@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand — violet family */
+  --color-brand-50: #f5f0ff;
+  --color-brand-100: #ede0ff;
+  --color-brand-200: #d8bfff;
+  --color-brand-300: #be93ff;
+  --color-brand-400: #aa3bff;
+  --color-brand-500: #8b1fff;
+  --color-brand-600: #6C3BE2;
+  --color-brand-700: #5528b8;
+  --color-brand-800: #3d1a8a;
+  --color-brand-900: #290f5c;
+  --color-brand-950: #0f0b1a;
+
+  /* Surfaces (dark-first) */
+  --color-surface-0: #0f0b1a;
+  --color-surface-1: #1a1528;
+  --color-surface-2: #241e38;
+  --color-surface-3: #2e2848;
+  --color-surface-4: #3a3255;
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-info: #3b82f6;
+  --color-info-bg: rgba(59, 130, 246, 0.12);
+
+  /* Text */
+  --color-text-primary: #e2d9f3;
+  --color-text-secondary: #a89dc0;
+  --color-text-muted: #6b6080;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Radii */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Base reset ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-0);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  /* Prevent zoom on double-tap for iOS */
+  touch-action: manipulation;
+}
+
+body {
+  margin: 0;
+  overscroll-behavior-y: contain;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-surface-4); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-brand-600); }
+
+/* ─── Headings ─── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: 2px;
+}
+
+/* ─── Safe area helpers ─── */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Page transitions ─── */
+[data-status="entering"] {
+  animation: fadeSlideIn 200ms ease-out both;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Hide scrollbar utility ─── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Gradient brand button helper ─── */
+.btn-brand {
+  background: linear-gradient(135deg, var(--color-brand-600) 0%, var(--color-brand-400) 100%);
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 150ms, transform 150ms;
+}
+.btn-brand:hover { opacity: 0.9; }
+.btn-brand:active { transform: scale(0.98); }
+
+/* ─── Card base ─── */
+.card {
+  background: var(--color-surface-1);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+}
+
+/* ─── Bottom nav blur ─── */
+.bottom-nav {
+  background: rgba(26, 21, 40, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}

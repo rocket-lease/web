@@ -1,3 +1,13 @@
+# Running the frontend.
+
+```bash
+npm run dev -- --host
+ngrok http 5173
+```
+
+# To add it in home in your mobile phone:
+Open the link that ngrok gives you in your mobile phone, share, add to home.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
