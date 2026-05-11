@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { UserRole } from '../types'
 
-const STORAGE_KEY = 'rocket_leaser:active_role'
+const STORAGE_KEY = 'rocket_lease:active_role'
 
 function getStoredRole(): UserRole {
   try {

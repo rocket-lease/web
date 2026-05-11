@@ -59,8 +59,8 @@ export function SoporteContactCard() {
         <ContactRow
           icon={Mail}
           label="Email"
-          value="hola@rocketleaser.com"
-          href="mailto:hola@rocketleaser.com"
+          value="hola@rocketlease.com"
+          href="mailto:hola@rocketlease.com"
         />
         <ContactRow
           icon={Clock}

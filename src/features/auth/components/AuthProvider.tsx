@@ -3,7 +3,7 @@ import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '../types'
 
-const ROLE_KEY = 'rocket_leaser:active_role'
+const ROLE_KEY = 'rocket_lease:active_role'
 
 interface AuthContextValue {
   user: User | null

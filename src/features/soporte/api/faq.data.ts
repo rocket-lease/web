@@ -223,7 +223,7 @@ export const faqData: FaqItem[] = [
     categoryId: 'disputas',
     question: '¿Cómo contacto al equipo de soporte?',
     answer:
-      'Podés comunicarte con nosotros por tres vías: chat en la app (ícono abajo de esta pantalla), WhatsApp al +54 11 3456-7890, o email a hola@rocketleaser.com. Nuestro horario de atención es lunes a viernes de 9:00 a 20:00 hs (hora Argentina).',
+      'Podés comunicarte con nosotros por tres vías: chat en la app (ícono abajo de esta pantalla), WhatsApp al +54 11 3456-7890, o email a hola@rocketlease.com. Nuestro horario de atención es lunes a viernes de 9:00 a 20:00 hs (hora Argentina).',
     tags: ['contacto', 'soporte', 'ayuda', 'atención', 'chat', 'whatsapp', 'email', 'teléfono'],
   },
 ]

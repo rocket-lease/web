@@ -19,7 +19,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'icons/*.png'],
       manifest: {
         name: 'Rocket Lease',
-        short_name: 'RocketLeaser',
+        short_name: 'RocketLease',
         description: 'Alquilá el vehículo que necesitás',
         theme_color: '#6C3BE2',
         background_color: '#0f0b1a',
