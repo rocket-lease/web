@@ -28,6 +28,8 @@ export const es = {
   'auth.register.name': 'Nombre completo',
   'auth.register.email': 'Correo electrónico',
   'auth.register.password': 'Contraseña',
+  'auth.register.dni': 'DNI',
+  'auth.register.phone': 'Teléfono',
   'auth.register.confirmPassword': 'Confirmar contraseña',
   'auth.register.submit': 'Crear cuenta',
   'auth.register.hasAccount': '¿Ya tenés cuenta?',

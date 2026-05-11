@@ -18,3 +18,40 @@ export interface Profile {
   level: 'bronze' | 'silver' | 'gold' | 'platinum'
   createdAt: string
 }
+
+// Mirrors @rocket-lease/contracts auth/login.ts
+export interface LoginUserRequest {
+  email: string
+  password: string
+}
+
+export interface LoginUserResponse {
+  access_token: string
+  refresh_token: string
+  expires_in: number
+}
+
+// Mirrors @rocket-lease/contracts auth/register.ts
+export interface RegisterUserRequest {
+  name: string
+  email: string
+  dni: string
+  phone: string
+  password: string
+}
+
+export interface RegisterUserResponse {
+  id: string
+  name: string
+  email: string
+}
+
+// RFC 7807 error shape from api
+export interface ProblemDetails {
+  type: string
+  title: string
+  status: number
+  code: string
+  detail: string
+  instance?: string
+}

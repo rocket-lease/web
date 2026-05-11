@@ -2,21 +2,32 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { User, Mail, Lock, Rocket } from 'lucide-react'
+import { User, Mail, Lock, Phone, CreditCard, Rocket } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import type { ProblemDetails } from '../types'
 
+// Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
 const schema = z
   .object({
-    fullName: z.string().min(2, 'Ingresá tu nombre completo'),
+    name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
     email: z.string().email('Ingresá un correo válido'),
-    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    dni: z
+      .string()
+      .transform((v) => v.replace(/\./g, ''))
+      .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
+    phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
+    password: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .refine((v) => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
+      .refine((v) => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
     confirmPassword: z.string(),
   })
-  .refine(d => d.password === d.confirmPassword, {
+  .refine((d) => d.password === d.confirmPassword, {
     message: 'Las contraseñas no coinciden',
     path: ['confirmPassword'],
   })
@@ -33,11 +44,18 @@ export function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await authApi.signUp(data.email, data.password, data.fullName)
-      toast.success('Cuenta creada. Revisá tu correo para confirmarla.')
-      navigate({ to: '/buscar' })
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : t('error.default')
+      await authApi.signUp({
+        name: data.name,
+        email: data.email,
+        dni: data.dni,
+        phone: data.phone,
+        password: data.password,
+      })
+      toast.success('Cuenta creada. Ya podés iniciar sesión.')
+      navigate({ to: '/login' })
+    } catch (err) {
+      const problem = err as ProblemDetails
+      const msg = problem?.detail ?? t('error.default')
       toast.error(msg)
     }
   }
@@ -63,10 +81,11 @@ export function RegisterPage() {
                 autoComplete="name"
                 leftIcon={<User className="h-4 w-4" />}
                 placeholder="Ana García"
-                error={errors.fullName?.message}
-                {...register('fullName')}
+                error={errors.name?.message}
+                {...register('name')}
               />
             </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
                 {t('auth.register.email')}
@@ -80,6 +99,35 @@ export function RegisterPage() {
                 {...register('email')}
               />
             </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+                {t('auth.register.dni')}
+              </label>
+              <Input
+                inputMode="numeric"
+                autoComplete="off"
+                leftIcon={<CreditCard className="h-4 w-4" />}
+                placeholder="12.345.678"
+                error={errors.dni?.message}
+                {...register('dni')}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+                {t('auth.register.phone')}
+              </label>
+              <Input
+                type="tel"
+                autoComplete="tel"
+                leftIcon={<Phone className="h-4 w-4" />}
+                placeholder="+54 9 11 1234-5678"
+                error={errors.phone?.message}
+                {...register('phone')}
+              />
+            </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
                 {t('auth.register.password')}
@@ -93,6 +141,7 @@ export function RegisterPage() {
                 {...register('password')}
               />
             </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
                 {t('auth.register.confirmPassword')}
