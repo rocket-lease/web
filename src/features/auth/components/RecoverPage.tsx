@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from '@tanstack/react-router'
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Envelope, ArrowLeft, CheckCircle } from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
@@ -33,7 +33,7 @@ export function RecoverPage() {
       <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5">
         <div className="w-full max-w-sm text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-success-bg border border-success/20">
-            <CheckCircle className="h-8 w-8 text-success" />
+            <CheckCircle size={32} color="#10B981" weight="fill" />
           </div>
           <h2 className="text-xl font-bold text-text-primary">Revisá tu correo</h2>
           <p className="mt-2 text-sm text-text-secondary">{t('auth.recover.success')}</p>
@@ -54,7 +54,7 @@ export function RecoverPage() {
           to="/login"
           className="mb-8 flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft size={16} />
           {t('auth.recover.back')}
         </Link>
 
@@ -63,7 +63,7 @@ export function RecoverPage() {
           <p className="mt-2 text-sm text-text-secondary">{t('auth.recover.subtitle')}</p>
         </div>
 
-        <div className="rounded-2xl bg-surface-1 border border-white/6 p-6">
+        <div className="rounded-xl bg-surface-1 border border-white/6 p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
@@ -72,7 +72,7 @@ export function RecoverPage() {
               <Input
                 type="email"
                 autoComplete="email"
-                leftIcon={<Mail className="h-4 w-4" />}
+                leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
                 {...register('email')}

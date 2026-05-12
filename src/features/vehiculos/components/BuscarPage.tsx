@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, SlidersHorizontal, MapPin } from 'lucide-react'
+import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
 import { Input } from '@/ui/input'
 import { Button } from '@/ui/button'
 import { Badge } from '@/ui/badge'
@@ -73,9 +73,13 @@ const MOCK_VEHICULOS: Vehiculo[] = [
   },
 ]
 
+const FILTER_CHIPS = [
+  { key: 'transmission', value: 'automatic', label: 'Automático' },
+  { key: 'transmission', value: 'manual',    label: 'Manual'     },
+] as const
+
 export function BuscarPage() {
   const [filters, setFilters] = useState<VehiculoFilters>({})
-  const [showFilters, setShowFilters] = useState(false)
 
   const filtered = MOCK_VEHICULOS.filter(v => {
     if (filters.query) {
@@ -88,74 +92,82 @@ export function BuscarPage() {
 
   return (
     <div className="flex flex-col">
-      {/* Search header */}
-      <div className="sticky top-0 z-10 bg-surface-0/95 backdrop-blur-xl border-b border-white/6 px-4 py-3">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="text-brand-400 font-bold text-lg tracking-tight">Rocket Lease</div>
-          <div className="ml-auto flex items-center gap-1">
-            <MapPin className="h-3.5 w-3.5 text-brand-400" />
-            <span className="text-xs text-text-muted">Buenos Aires</span>
-          </div>
+      {/* Search bar — sticky below global top bar (top-14 = 56px) */}
+      <div className="sticky top-14 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5">
+
+        {/* Location row */}
+        <div className="flex items-center gap-1.5 mb-3">
+          <MapPin size={13} weight="fill" color="#06B6D4" />
+          <span className="text-xs font-medium text-text-secondary">Buenos Aires</span>
         </div>
-        <div className="flex gap-2">
-          <Input
-            leftIcon={<Search className="h-4 w-4" />}
+
+        {/* Search input */}
+        <div className="relative">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+            <MagnifyingGlass size={16} weight="regular" />
+          </div>
+          <input
+            type="search"
             placeholder={t('buscar.placeholder')}
             value={filters.query ?? ''}
             onChange={e => setFilters(f => ({ ...f, query: e.target.value }))}
-            className="flex-1"
+            className="w-full h-12 rounded-full bg-surface-1 border border-white/8 pl-10 pr-12 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15 transition-colors"
           />
-          <Button
-            variant={showFilters ? 'default' : 'secondary'}
-            size="icon"
-            onClick={() => setShowFilters(s => !s)}
+          <button
+            onClick={() => setFilters(f => ({ ...f, transmission: undefined }))}
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-text-secondary hover:text-text-primary transition-colors"
             aria-label={t('buscar.filters')}
           >
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
+            <SlidersHorizontal size={14} weight="regular" />
+          </button>
         </div>
 
-        {/* Quick filters */}
-        {showFilters && (
-          <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {(['automatic', 'manual'] as const).map(tr => (
+        {/* Filter chips */}
+        <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
+          {FILTER_CHIPS.map(chip => {
+            const active = filters[chip.key as keyof VehiculoFilters] === chip.value
+            return (
               <button
-                key={tr}
-                onClick={() =>
-                  setFilters(f => ({
-                    ...f,
-                    transmission: f.transmission === tr ? null : tr,
-                  }))
+                key={chip.value}
+                onClick={() => setFilters(f => ({
+                  ...f,
+                  [chip.key]: f[chip.key as keyof VehiculoFilters] === chip.value ? undefined : chip.value,
+                }))}
+                className="shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95"
+                style={active
+                  ? { background: 'linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%)', color: '#fff' }
+                  : { background: 'rgba(255,255,255,0.06)', color: '#A0A0B8', border: '1px solid rgba(255,255,255,0.08)' }
                 }
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${filters.transmission === tr
-                    ? 'bg-brand-600 text-white'
-                    : 'bg-surface-2 text-text-secondary'
-                  }`}
               >
-                {tr === 'automatic' ? t('buscar.filter.transmission.automatic') : t('buscar.filter.transmission.manual')}
+                {chip.label}
               </button>
-            ))}
-          </div>
-        )}
+            )
+          })}
+        </div>
       </div>
 
       {/* Results */}
-      <div className="px-4 pt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-sm text-text-muted">
-            <span className="font-semibold text-text-primary">{filtered.length}</span> {t('buscar.results')}
-          </p>
-          {filters.transmission && (
-            <Badge variant="default" className="text-xs">
-              {filters.transmission === 'automatic' ? 'Automático' : 'Manual'}
-            </Badge>
-          )}
-        </div>
+      <div className="px-4 pt-4 pb-2">
+        <p className="text-xs text-text-muted mb-4">
+          <span className="font-semibold text-text-primary">{filtered.length}</span> {t('buscar.results')}
+        </p>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Search className="h-12 w-12 text-text-muted mb-4" />
-            <p className="text-text-secondary">{t('buscar.noResults')}</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+            <MagnifyingGlass size={48} weight="thin" color="#5A5A78" />
+            <div>
+              <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
+              <p className="text-xs text-text-muted mt-1">Probá con otra búsqueda o cambiá los filtros</p>
+            </div>
+            {Object.values(filters).some(Boolean) && (
+              <button
+                onClick={() => setFilters({})}
+                className="text-xs font-semibold"
+                style={{ color: '#06B6D4' }}
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

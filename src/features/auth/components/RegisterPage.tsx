@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { User, Mail, Lock, Rocket } from 'lucide-react'
+import { User, Envelope, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -46,14 +46,12 @@ export function RegisterPage() {
     <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-elevated">
-            <Rocket className="h-7 w-7 text-white" />
-          </div>
+          <img src="/logo-symbol.png" alt="Rocket Lease" className="h-16 w-auto" />
           <h1 className="text-2xl font-bold text-text-primary">{t('auth.register.title')}</h1>
           <p className="text-sm text-text-muted">{t('auth.register.subtitle')}</p>
         </div>
 
-        <div className="rounded-2xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
+        <div className="rounded-xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
@@ -61,7 +59,7 @@ export function RegisterPage() {
               </label>
               <Input
                 autoComplete="name"
-                leftIcon={<User className="h-4 w-4" />}
+                leftIcon={<User size={16} />}
                 placeholder="Ana García"
                 error={errors.fullName?.message}
                 {...register('fullName')}
@@ -74,7 +72,7 @@ export function RegisterPage() {
               <Input
                 type="email"
                 autoComplete="email"
-                leftIcon={<Mail className="h-4 w-4" />}
+                leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
                 {...register('email')}
@@ -87,7 +85,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
-                leftIcon={<Lock className="h-4 w-4" />}
+                leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}
                 {...register('password')}
@@ -100,7 +98,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
-                leftIcon={<Lock className="h-4 w-4" />}
+                leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.confirmPassword?.message}
                 {...register('confirmPassword')}

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { Mail, Lock, Rocket } from 'lucide-react'
+import { Envelope, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -36,11 +36,13 @@ export function LoginPage() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5 py-12">
       <div className="w-full max-w-sm">
-        {/* Brand */}
-        <div className="mb-10 flex flex-col items-center gap-3">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-elevated">
-            <Rocket className="h-8 w-8 text-white" />
-          </div>
+        {/* Brand mark */}
+        <div className="mb-10 flex flex-col items-center gap-4">
+          <img
+            src="/logo-symbol.png"
+            alt="Rocket Lease"
+            className="h-20 w-auto"
+          />
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight text-text-primary">
               Rocket Lease
@@ -50,7 +52,7 @@ export function LoginPage() {
         </div>
 
         {/* Form */}
-        <div className="rounded-2xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
+        <div className="rounded-xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-text-primary">{t('auth.login.title')}</h2>
             <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
@@ -64,7 +66,7 @@ export function LoginPage() {
               <Input
                 type="email"
                 autoComplete="email"
-                leftIcon={<Mail className="h-4 w-4" />}
+                leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
                 {...register('email')}
@@ -78,7 +80,7 @@ export function LoginPage() {
               <Input
                 type="password"
                 autoComplete="current-password"
-                leftIcon={<Lock className="h-4 w-4" />}
+                leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}
                 {...register('password')}
