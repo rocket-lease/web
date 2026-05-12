@@ -15,8 +15,8 @@ interface BottomNavProps {
 }
 
 const roleGradient = {
-  conductor: { from: '#06B6D4', to: '#7C3AED' },
-  rentador:  { from: '#F59E0B', to: '#7C3AED' },
+  conductor: { from: 'var(--color-client)', to: 'var(--color-brand-500)' },
+  rentador:  { from: 'var(--color-owner)', to: 'var(--color-brand-500)' },
 }
 
 export function BottomNav({ tabs, activeRole }: BottomNavProps) {
