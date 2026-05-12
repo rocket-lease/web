@@ -78,7 +78,6 @@ const FILTER_CHIPS = [
 
 export function BuscarPage() {
   const [filters, setFilters] = useState<VehiculoFilters>({})
-  const [showFilters, setShowFilters] = useState(false)
   const { data: profile } = useMyProfile()
   const hasAppliedPreferences = useRef(false)
 

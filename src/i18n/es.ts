@@ -154,6 +154,7 @@ export const es = {
   'dashboard.calificacion': 'Calificación promedio',
   'dashboard.ultimasReservas': 'Últimas reservas',
   'dashboard.ocupacion': 'Ocupación de flota',
+  'dashboard.publicar': 'Publicar',
 
   // ─── Mis vehículos ───
   'misVehiculos.title': 'Mis vehículos',
