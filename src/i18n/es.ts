@@ -2,6 +2,8 @@ export const es = {
   // ─── App ───
   'app.name': 'Rocket Lease',
   'app.tagline': 'Alquilá el vehículo que necesitás',
+  'app.role.rentadorActive': 'Rentando',
+  'app.role.conductorActive': 'Conduciendo',
 
   // ─── Nav ───
   'nav.buscar': 'Buscar',
@@ -53,10 +55,13 @@ export const es = {
   'buscar.filter.transmission.all': 'Cualquiera',
   'buscar.filter.transmission.automatic': 'Automático',
   'buscar.filter.transmission.manual': 'Manual',
+  'buscar.filter.transmission.clear': 'Limpiar filtro de transmisión',
   'buscar.filter.priceRange': 'Precio por día',
   'buscar.filter.accessibility': 'Accesibilidad',
   'buscar.filter.apply': 'Aplicar filtros',
   'buscar.filter.clear': 'Limpiar filtros',
+  'buscar.noResultsHint': 'Probá con otra búsqueda o ajustá los filtros',
+  'buscar.location.city': 'Buenos Aires',
   'buscar.featuredIn': 'Destacados cerca tuyo',
 
   // ─── Vehículo ───
@@ -65,6 +70,11 @@ export const es = {
   'vehiculo.noDisponible': 'No disponible',
   'vehiculo.automatic': 'Automático',
   'vehiculo.manual': 'Manual',
+  'vehiculo.fuel.nafta': 'Nafta',
+  'vehiculo.fuel.diesel': 'Diésel',
+  'vehiculo.fuel.gnc': 'GNC',
+  'vehiculo.fuel.electrico': 'Eléctrico',
+  'vehiculo.fuel.hibrido': 'Híbrido',
   'vehiculo.seats': 'asientos',
   'vehiculo.perDay': '/ día',
   'vehiculo.perWeek': '/ semana',

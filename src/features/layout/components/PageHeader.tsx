@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
@@ -25,14 +25,14 @@ export function PageHeader({ title, subtitle, showBack = false, actions, icon, c
         <button
           onClick={() => router.history.back()}
           aria-label="Volver"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary hover:text-text-primary transition-colors shrink-0"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary hover:text-text-primary transition-colors shrink-0 active:scale-[0.97]"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft size={16} weight="regular" />
         </button>
       )}
 
       {icon && (
-        <div className="shrink-0 text-brand-400">{icon}</div>
+        <div className="shrink-0 text-brand-500">{icon}</div>
       )}
 
       <div className="min-w-0 flex-1">

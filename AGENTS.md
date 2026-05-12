@@ -51,12 +51,24 @@ public/
 7. **Money** displayed via `formatters.formatMoney(cents, currency)` (returns `Intl.NumberFormat`-formatted ARS by default). Never display raw numbers.
 8. **Dates** displayed via `formatters.formatDate(iso, format)`. UTC → `America/Argentina/Buenos_Aires` conversion happens here, nowhere else.
 
+## Brand & Design System
+
+All visual decisions — colors, typography, spacing, iconography, tone of voice, component behavior — are governed by `BRAND.md` at the root of this repo. Read it before implementing any UI work.
+
+Key rules derived from it:
+- **Color tokens** live in `src/styles/globals.css` (`@theme` block). Never use hex literals in components.
+- **Primary font**: Poppins. Loaded via Google Fonts in `index.html`.
+- **Icons**: Phosphor Icons (`@phosphor-icons/react`). `weight="regular"` at rest, `weight="duotone"` when active. No Lucide.
+- **Role colors**: conductor → cian `#06B6D4`, rentador → ámbar `#F59E0B`. Apply in role-specific contexts.
+- **Buttons**: primary always `rounded-full` (pill). Cards and inputs `rounded-xl` (12px).
+- **Logo assets**: `public/logo-symbol.png` (transparent, for use inside the app), `public/logo.png` (dark bg, for PWA/OG).
+
 ## Styling
 
-- Tailwind classes only. Example: `<div className="flex-1 bg-white p-4">`.
-- No inline `style={{ ... }}` except for animated values (Framer Motion / view transitions).
-- Tokens defined in `tailwind.config.ts` (or `@theme` block in `globals.css` if Tailwind v4). No hex literals in components.
-- Dark mode via Tailwind `dark:` variant + `class` strategy. Theme switch lives in user preferences.
+- Tailwind classes only. Example: `<div className="flex-1 bg-surface-1 p-4">`.
+- No inline `style={{ ... }}` except for animated values or dynamic gradient fills (e.g. role-aware gradients).
+- Tokens defined in `@theme` block in `globals.css` (Tailwind v4). No hex literals in components.
+- Dark mode is the default. Light mode applies only to specific functional flows (long forms, search).
 - Mobile-first: design at 375px width first, scale up. Use `sm:` / `md:` for larger.
 
 ## State + data fetching
