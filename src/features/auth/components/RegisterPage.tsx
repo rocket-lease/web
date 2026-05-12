@@ -2,18 +2,29 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { User, Envelope, Lock } from '@phosphor-icons/react'
+import { User, Envelope, Lock, Phone, IdentificationCard } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import type { ProblemDetails } from '../types'
 
+// Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
 const schema = z
   .object({
-    fullName: z.string().min(2, 'Ingresá tu nombre completo'),
+    name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
     email: z.string().email('Ingresá un correo válido'),
-    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    dni: z
+      .string()
+      .transform(v => v.replace(/\./g, ''))
+      .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
+    phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
+    password: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .refine(v => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
+      .refine(v => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
     confirmPassword: z.string(),
   })
   .refine(d => d.password === d.confirmPassword, {
@@ -33,11 +44,18 @@ export function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await authApi.signUp(data.email, data.password, data.fullName)
-      toast.success('Cuenta creada. Revisá tu correo para confirmarla.')
-      navigate({ to: '/buscar' })
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : t('error.default')
+      await authApi.signUp({
+        name: data.name,
+        email: data.email,
+        dni: data.dni,
+        phone: data.phone,
+        password: data.password,
+      })
+      toast.success('Cuenta creada. Ya podés iniciar sesión.')
+      navigate({ to: '/login' })
+    } catch (err) {
+      const problem = err as ProblemDetails
+      const msg = problem?.detail ?? t('error.default')
       toast.error(msg)
     }
   }
@@ -51,22 +69,23 @@ export function RegisterPage() {
           <p className="text-sm text-text-muted">{t('auth.register.subtitle')}</p>
         </div>
 
-        <div className="rounded-xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
+        <div className="rounded-xl border border-white/6 bg-surface-1 p-6 shadow-elevated">
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
                 {t('auth.register.name')}
               </label>
               <Input
                 autoComplete="name"
                 leftIcon={<User size={16} />}
                 placeholder="Ana García"
-                error={errors.fullName?.message}
-                {...register('fullName')}
+                error={errors.name?.message}
+                {...register('name')}
               />
             </div>
+
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
                 {t('auth.register.email')}
               </label>
               <Input
@@ -78,8 +97,37 @@ export function RegisterPage() {
                 {...register('email')}
               />
             </div>
+
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
+                {t('auth.register.dni')}
+              </label>
+              <Input
+                inputMode="numeric"
+                autoComplete="off"
+                leftIcon={<IdentificationCard size={16} />}
+                placeholder="12.345.678"
+                error={errors.dni?.message}
+                {...register('dni')}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
+                {t('auth.register.phone')}
+              </label>
+              <Input
+                type="tel"
+                autoComplete="tel"
+                leftIcon={<Phone size={16} />}
+                placeholder="+54 9 11 1234-5678"
+                error={errors.phone?.message}
+                {...register('phone')}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
                 {t('auth.register.password')}
               </label>
               <Input
@@ -91,8 +139,9 @@ export function RegisterPage() {
                 {...register('password')}
               />
             </div>
+
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <label className="mb-1.5 block text-xs font-medium tracking-wider text-text-secondary uppercase">
                 {t('auth.register.confirmPassword')}
               </label>
               <Input
@@ -113,7 +162,7 @@ export function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-text-muted">
           {t('auth.register.hasAccount')}{' '}
-          <Link to="/login" className="text-brand-400 font-semibold hover:text-brand-300">
+          <Link to="/login" className="font-semibold text-brand-400 hover:text-brand-300">
             {t('auth.register.login')}
           </Link>
         </p>
