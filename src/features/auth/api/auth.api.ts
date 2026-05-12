@@ -52,4 +52,11 @@ export const authApi = {
     if (error) throw error
     return data.session
   },
+
+  async deleteAccount(): Promise<void> {
+    await apiClient.delete('/profile/me')
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(REFRESH_KEY)
+    await supabase.auth.signOut().catch(() => {})
+  },
 }

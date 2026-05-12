@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   UserCheck,
   LogOut,
@@ -11,8 +12,8 @@ import {
   Save,
   Pencil,
   X,
+  Trash2,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract'
 import { Avatar } from '@/ui/avatar'
@@ -23,6 +24,7 @@ import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -63,6 +65,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -317,19 +320,32 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         ))}
       </div>
 
-      {/* Logout */}
+      {/* Logout + Delete */}
       {canEdit && (
-        <div className="px-4 mt-6 mb-4">
+        <div className="px-4 mt-6 mb-4 space-y-2">
           <Button
             variant="ghost"
-            className="w-full text-danger hover:bg-danger-bg"
+            className="w-full text-text-secondary hover:bg-surface-2"
             onClick={() => signOut()}
           >
             <LogOut className="h-4 w-4" />
             {t('perfil.logout')}
           </Button>
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            {t('perfil.deleteAccount')}
+          </Button>
         </div>
       )}
+
+      <DeleteAccountDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+      />
     </div>
   )
 }
