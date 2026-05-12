@@ -61,7 +61,7 @@ export function DashboardPage() {
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
               {t('dashboard.ultimasReservas')}
             </p>
-            <Link to="/mis-reservas" className="text-xs font-medium" style={{ color: '#F59E0B' }}>
+            <Link to="/mis-reservas" className="text-xs font-medium text-owner">
               {t('general.seeAll')}
             </Link>
           </div>
