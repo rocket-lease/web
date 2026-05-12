@@ -94,8 +94,8 @@ export function BuscarPage() {
 
         {/* Location row */}
         <div className="flex items-center gap-1.5 mb-3">
-          <MapPin size={13} weight="fill" color="#06B6D4" />
-          <span className="text-xs font-medium text-text-secondary">Buenos Aires</span>
+          <MapPin size={13} weight="fill" className="text-client" />
+          <span className="text-xs font-medium text-text-secondary">{t('buscar.location.city')}</span>
         </div>
 
         {/* Search input */}
@@ -113,7 +113,7 @@ export function BuscarPage() {
           <button
             onClick={() => setFilters(f => ({ ...f, transmission: undefined }))}
             className="absolute right-3 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-text-secondary hover:text-text-primary transition-colors"
-            aria-label={t('buscar.filters')}
+            aria-label={t('buscar.filter.transmission.clear')}
           >
             <SlidersHorizontal size={14} weight="regular" />
           </button>
@@ -130,11 +130,11 @@ export function BuscarPage() {
                   ...f,
                   [chip.key]: f[chip.key as keyof VehiculoFilters] === chip.value ? undefined : chip.value,
                 }))}
-                className="shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95"
-                style={active
-                  ? { background: 'linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%)', color: '#fff' }
-                  : { background: 'rgba(255,255,255,0.06)', color: '#A0A0B8', border: '1px solid rgba(255,255,255,0.08)' }
-                }
+                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 border ${
+                  active
+                    ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
+                    : 'bg-surface-1 text-text-secondary border-white/10'
+                }`}
               >
                 {chip.label}
               </button>

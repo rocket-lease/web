@@ -20,12 +20,12 @@ export function DashboardPage() {
   const name = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'Rentador'
 
   return (
-    <div className="flex flex-col">
-      {/* Header con acento ámbar (rol rentador) */}
-      <div className="px-4 pt-12 pb-6" style={{ background: 'linear-gradient(180deg, rgba(245,158,11,0.08) 0%, transparent 100%)' }}>
+      <div className="flex flex-col">
+        {/* Header con acento ámbar (rol rentador) */}
+      <div className="px-4 pt-12 pb-6 bg-gradient-to-b from-[var(--color-owner-subtle)] to-transparent">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium" style={{ color: '#F59E0B' }}>{t('dashboard.greeting')},</p>
+            <p className="text-sm font-medium text-owner">{t('dashboard.greeting')},</p>
             <h1 className="text-2xl font-bold text-text-primary mt-0.5">{name}</h1>
           </div>
           <Link to="/mis-vehiculos/nuevo">
