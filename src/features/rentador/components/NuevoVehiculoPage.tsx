@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Camera } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { photosApi } from '@/features/photos/api/photos.api'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
-import { storage } from '@/lib/storage'
 import { t } from '@/i18n/es'
-// import { publishVehicle } from '../api/vehicle.api'
-// import { CreateVehicleRequestSchema, type CreateVehicleRequest } from '@rocket-lease/contracts'
+import type { CreateVehicleRequest } from '@rocket-lease/contracts'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -19,8 +19,6 @@ const steps = [
 
 const MAX_PHOTOS = 10
 const MIN_PHOTOS = 3
-
-const VEHICLE_PHOTOS_BUCKET = 'vehicle-photos'
 
 type TransmissionOption = 'Manual' | 'Automatico' | 'Semiautomatico'
 
@@ -158,7 +156,7 @@ export function NuevoVehiculoPage() {
       ? 'Semiautomático'
       : 'Manual'
 
-  const formPayload = {
+  const formPayload: Omit<CreateVehicleRequest, 'photos'> = {
     brand: formData.brand,
     model: formData.model,
     year: Number(formData.year || 0),
@@ -171,7 +169,7 @@ export function NuevoVehiculoPage() {
     mileage: Number(formData.mileage || 0),
     description: formData.description.trim() ? formData.description.trim() : null,
     basePrice: Number(formData.dailyPrice || 0),
-    photos: [],
+    // photos: [],
   }
 
   const handleFieldChange = <K extends keyof VehicleFormData>(field: K, value: VehicleFormData[K]) => {
@@ -181,7 +179,7 @@ export function NuevoVehiculoPage() {
     }))
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 0 && !canContinueFromStep0) return
 
     if (currentStep === 1 && !canContinueFromPhotos) {
@@ -198,30 +196,24 @@ export function NuevoVehiculoPage() {
       return
     }
 
-    // void (async () => {
-    //   try {
-    //     const photoUrls = await Promise.all(
-    //       formData.photos.map(async photo => {
-    //         const safeName = photo.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    //         const path = `rentador/${crypto.randomUUID()}-${safeName}`
-    //         await storage.upload(VEHICLE_PHOTOS_BUCKET, path, photo.file)
-    //         return storage.getPublicUrl(VEHICLE_PHOTOS_BUCKET, path)
-    //       }),
-    //     )
+    // Subir fotos a Cloudinary y publicar vehículo
+    try {
+      const files = formData.photos.map(p => p.file)
+      const uploadedUrls = await Promise.all(files.map(f => photosApi.uploadVehicleImage(f)))
 
-    //     const requestBody = CreateVehicleRequestSchema.parse({
-    //       ...formPayload,
-    //       photos: photoUrls,
-    //     })
+      const payload: CreateVehicleRequest = {
+        ...formPayload,
+        photos: uploadedUrls,
+      }
 
-    //     await publishVehicle(requestBody)
-    //     toast.success('Vehículo publicado')
-    //     setIsPublished(true)
-    //   } catch (error) {
-    //     const message = error instanceof Error ? error.message : 'No se pudo publicar el vehículo'
-    //     toast.error(message)
-    //   }
-    // })()
+      await vehiclesApi.publishVehicle(payload)
+
+      toast.success('Vehículo publicado')
+      setIsPublished(true)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error al publicar el vehículo')
+    }
   }
 
   if (isPublished) {
