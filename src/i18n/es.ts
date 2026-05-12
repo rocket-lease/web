@@ -2,6 +2,8 @@ export const es = {
   // ─── App ───
   'app.name': 'Rocket Lease',
   'app.tagline': 'Alquilá el vehículo que necesitás',
+  'app.role.rentadorActive': 'Rentando',
+  'app.role.conductorActive': 'Conduciendo',
 
   // ─── Nav ───
   'nav.buscar': 'Buscar',

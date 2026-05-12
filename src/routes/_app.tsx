@@ -35,6 +35,11 @@ function AppLayout() {
 
   const tabs = activeRole === 'rentador' ? rentadorTabs : conductorTabs
   const role = activeRole === 'rentador' ? 'rentador' : 'conductor'
+  const roleGradient =
+    role === 'rentador'
+      ? 'linear-gradient(135deg, var(--color-owner) 0%, var(--color-brand-500) 100%)'
+      : 'linear-gradient(135deg, var(--color-client) 0%, var(--color-brand-500) 100%)'
+  const roleLabel = role === 'rentador' ? t('app.role.rentadorActive') : t('app.role.conductorActive')
 
   return (
     <div className="flex min-h-svh flex-col bg-surface-0">
@@ -44,15 +49,13 @@ function AppLayout() {
         <span
           className="text-xs font-bold uppercase tracking-[0.18em]"
           style={{
-            background: role === 'rentador'
-              ? 'linear-gradient(135deg, #F59E0B 0%, #7C3AED 100%)'
-              : 'linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%)',
+            background: roleGradient,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}
         >
-          {role === 'rentador' ? 'Rentando' : 'Conduciendo'}
+          {roleLabel}
         </span>
       </header>
 
