@@ -68,7 +68,9 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             </div>
             {/* Rating */}
             <div className="flex items-center gap-1 shrink-0">
-              <Star size={13} weight="fill" color="#F59E0B" />
+              <span className="text-warning">
+                <Star size={13} weight="fill" />
+              </span>
               <span className="text-sm font-semibold text-text-primary">{fmt.rating(vehiculo.rating)}</span>
               <span className="text-xs text-text-muted">({vehiculo.reviewCount})</span>
             </div>
