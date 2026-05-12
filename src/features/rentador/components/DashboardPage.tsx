@@ -31,7 +31,7 @@ export function DashboardPage() {
           <Link to="/mis-vehiculos/nuevo">
             <Button size="sm" className="flex items-center gap-1.5">
               <Plus size={15} weight="bold" />
-              Publicar
+              {t('dashboard.publicar')}
             </Button>
           </Link>
         </div>
