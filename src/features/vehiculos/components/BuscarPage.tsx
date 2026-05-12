@@ -71,8 +71,8 @@ const MOCK_VEHICULOS: Vehiculo[] = [
 ]
 
 const FILTER_CHIPS = [
-  { key: 'transmission', value: 'automatic', label: 'Automático' },
-  { key: 'transmission', value: 'manual',    label: 'Manual'     },
+  { key: 'transmission', value: 'automatic', label: t('buscar.filter.transmission.automatic') },
+  { key: 'transmission', value: 'manual',    label: t('buscar.filter.transmission.manual') },
 ] as const
 
 export function BuscarPage() {
