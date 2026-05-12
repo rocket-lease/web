@@ -151,18 +151,17 @@ export function BuscarPage() {
 
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-            <MagnifyingGlass size={48} weight="thin" color="#5A5A78" />
+            <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
             <div>
               <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-              <p className="text-xs text-text-muted mt-1">Probá con otra búsqueda o cambiá los filtros</p>
+              <p className="text-xs text-text-muted mt-1">{t('buscar.noResultsHint')}</p>
             </div>
             {Object.values(filters).some(Boolean) && (
               <button
                 onClick={() => setFilters({})}
-                className="text-xs font-semibold"
-                style={{ color: '#06B6D4' }}
+                className="text-xs font-semibold text-text-primary"
               >
-                Limpiar filtros
+                {t('buscar.filter.clear')}
               </button>
             )}
           </div>
