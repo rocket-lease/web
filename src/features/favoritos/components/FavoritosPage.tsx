@@ -1,0 +1,64 @@
+import { Heart } from '@phosphor-icons/react'
+import { Link } from '@tanstack/react-router'
+import { t } from '@/i18n/es'
+import { VehiculoCard } from '@/features/vehiculos/components/VehiculoCard'
+import { findVehiculo } from '@/features/vehiculos/data/mock-vehiculos'
+import { useFavoritos } from '../hooks/useFavoritos'
+
+export function FavoritosPage() {
+  const { data: favoritos = [], isLoading } = useFavoritos()
+
+  const vehiculosGuardados = favoritos
+    .map((fav) => ({ fav, vehiculo: findVehiculo(fav.vehicleId) }))
+    .filter((item) => item.vehiculo !== null) as Array<{
+    fav: (typeof favoritos)[0]
+    vehiculo: NonNullable<ReturnType<typeof findVehiculo>>
+  }>
+
+  return (
+    <div className="flex flex-col">
+      <div className="px-4 pt-4 pb-2">
+        {isLoading && (
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-52 rounded-xl bg-surface-1 animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && favoritos.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-1">
+              <Heart size={28} weight="regular" color="#5A5A78" />
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary">{t('favoritos.empty')}</p>
+              <p className="mt-1 text-sm text-text-muted">{t('favoritos.emptyHint')}</p>
+            </div>
+            <Link
+              to="/buscar"
+              className="mt-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white"
+              style={{ background: 'linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%)' }}
+            >
+              {t('favoritos.emptyAction')}
+            </Link>
+          </div>
+        )}
+
+        {!isLoading && favoritos.length > 0 && (
+          <>
+            <p className="text-xs text-text-muted mb-4">
+              <span className="font-semibold text-text-primary">{favoritos.length}</span>{' '}
+              {t('favoritos.count')}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {vehiculosGuardados.map(({ vehiculo }) => (
+                <VehiculoCard key={vehiculo.id} vehiculo={vehiculo} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}

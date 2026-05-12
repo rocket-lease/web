@@ -4,6 +4,7 @@ import {
   CalendarCheck,
   Car,
   Headset,
+  Heart,
   UserCircle,
   ChartBar,
   ClipboardText,
@@ -20,10 +21,11 @@ function AppLayout() {
   const { activeRole } = useAuth()
 
   const conductorTabs = [
-    { to: '/buscar',       icon: MagnifyingGlass, label: t('nav.buscar') },
-    { to: '/reservas',     icon: CalendarCheck,   label: t('nav.reservas') },
-    { to: '/soporte',      icon: Headset,         label: t('nav.soporte') },
-    { to: '/perfil',       icon: UserCircle,      label: t('nav.perfil') },
+    { to: '/buscar',      icon: MagnifyingGlass, label: t('nav.buscar') },
+    { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
+    { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
+    { to: '/soporte',     icon: Headset,         label: t('nav.soporte') },
+    { to: '/perfil',      icon: UserCircle,      label: t('nav.perfil') },
   ]
 
   const rentadorTabs = [

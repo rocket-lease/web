@@ -5,6 +5,7 @@ export const es = {
 
   // ─── Nav ───
   'nav.buscar': 'Buscar',
+  'nav.favoritos': 'Favoritos',
   'nav.reservas': 'Reservas',
   'nav.notificaciones': 'Notificaciones',
   'nav.soporte': 'Soporte',
@@ -141,6 +142,15 @@ export const es = {
   'nuevoVehiculo.step.disponibilidad': 'Disponibilidad',
   'nuevoVehiculo.step.tarifas': 'Tarifas',
   'nuevoVehiculo.step.publicar': 'Publicar',
+
+  // ─── Favoritos ───
+  'favoritos.title': 'Mis favoritos',
+  'favoritos.empty': 'Todavía no guardaste favoritos',
+  'favoritos.emptyHint': 'Tocá el corazón en cualquier vehículo para guardarlo acá',
+  'favoritos.emptyAction': 'Explorar vehículos',
+  'favoritos.count': 'guardados',
+  'favoritos.add': 'Agregar a favoritos',
+  'favoritos.remove': 'Quitar de favoritos',
 
   // ─── Soporte / FAQ ───
   'soporte.title': 'Soporte',

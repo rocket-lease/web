@@ -5,6 +5,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import type { Vehiculo } from '../types'
 import { cn } from '@/lib/utils'
+import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 
 interface VehiculoCardProps {
   vehiculo: Vehiculo
@@ -31,14 +32,17 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
     >
       <article className="overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card transition-transform duration-150 active:scale-[0.97]">
 
-        {/* Photo — limpia, sin overlay */}
-        <div className="aspect-video overflow-hidden bg-surface-2">
+        {/* Photo con botón de favorito */}
+        <div className="relative aspect-video overflow-hidden bg-surface-2">
           <img
             src={coverPhoto}
             alt={`${vehiculo.marca} ${vehiculo.modelo}`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
+          <div className="absolute right-2 top-2">
+            <FavoritoButton vehicleId={vehiculo.id} />
+          </div>
         </div>
 
         {/* Info */}
