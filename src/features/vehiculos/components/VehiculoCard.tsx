@@ -84,8 +84,13 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
                 {vehiculo.transmission === 'automatic' ? t('vehiculo.automatic') : t('vehiculo.manual')}
               </span>
               <span className="h-3 w-px bg-white/10" />
-              <span className="flex items-center gap-1">
+              <span
+                className="flex items-center gap-1"
+                aria-label={`${t('vehiculo.seats')}: ${vehiculo.asientos}`}
+                title={`${t('vehiculo.seats')}: ${vehiculo.asientos}`}
+              >
                 <Users size={12} weight="regular" />
+                <span className="sr-only">{t('vehiculo.seats')}: </span>
                 {vehiculo.asientos}
               </span>
               <span className="h-3 w-px bg-white/10" />
