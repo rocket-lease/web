@@ -33,7 +33,12 @@ export function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await authApi.signIn(data)
-      navigate({ to: '/buscar' })
+      const status = await authApi.getVerificationStatus()
+      if (!status.email) {
+        navigate({ to: '/verificar' })
+      } else {
+        navigate({ to: '/buscar' })
+      }
     } catch (err) {
       const problem = err as ProblemDetails
       const msg = problem?.detail ?? t('auth.login.error')

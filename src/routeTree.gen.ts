@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificarRouteImport } from './routes/verificar'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as LoginRouteImport } from './routes/login'
@@ -27,6 +28,11 @@ import { Route as AppReservasIdRouteImport } from './routes/_app/reservas.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisReservasIdRouteImport } from './routes/_app/mis-reservas.$id'
 
+const VerificarRoute = VerificarRouteImport.update({
+  id: '/verificar',
+  path: '/verificar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/_app/buscar': typeof AppBuscarRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/buscar'
     | '/dashboard'
     | '/mis-reservas'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/buscar'
     | '/dashboard'
     | '/mis-reservas'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/_app/buscar'
     | '/_app/dashboard'
     | '/_app/mis-reservas'
@@ -232,10 +244,18 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RecuperarRoute: typeof RecuperarRoute
   RegistroRoute: typeof RegistroRoute
+  VerificarRoute: typeof VerificarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verificar': {
+      id: '/verificar'
+      path: '/verificar'
+      fullPath: '/verificar'
+      preLoaderRoute: typeof VerificarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
@@ -426,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RecuperarRoute: RecuperarRoute,
   RegistroRoute: RegistroRoute,
+  VerificarRoute: VerificarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

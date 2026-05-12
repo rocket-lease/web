@@ -55,3 +55,22 @@ export interface ProblemDetails {
   detail: string
   instance?: string
 }
+
+// Mirrors @rocket-lease/contracts auth/verification.ts
+export type VerificationChannel = 'email' | 'phone'
+
+export interface SendOtpResponse {
+  sentAt: string
+  expiresAt: string
+}
+
+export type VerifyOtpReason = 'incorrect' | 'expired' | 'exhausted' | 'not_found'
+
+export type VerifyOtpResponse =
+  | { verified: true }
+  | { verified: false; reason: VerifyOtpReason; attemptsLeft: number }
+
+export interface VerificationStatusResponse {
+  email: boolean
+  phone: boolean
+}

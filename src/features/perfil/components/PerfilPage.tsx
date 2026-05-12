@@ -3,7 +3,6 @@ import {
   LogOut,
   Bell,
   ChevronRight,
-  Shield,
   Star,
   Award,
   Settings,
@@ -15,6 +14,7 @@ import { Badge } from '@/ui/badge'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -100,13 +100,15 @@ export function PerfilPage() {
         </div>
       )}
 
+      {/* Verification status */}
+      <VerificationStatusSection />
+
       {/* Settings menu */}
       <div className="px-4 mt-5 space-y-1">
         <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
 
         {[
           { icon: Bell, label: t('perfil.notifications') },
-          { icon: Shield, label: t('perfil.verification') },
           { icon: Settings, label: 'Configuración' },
         ].map(item => (
           <button

@@ -5,6 +5,10 @@ import type {
   LoginUserResponse,
   RegisterUserRequest,
   RegisterUserResponse,
+  SendOtpResponse,
+  VerificationChannel,
+  VerificationStatusResponse,
+  VerifyOtpResponse,
 } from '../types'
 
 const TOKEN_KEY = 'rocket_lease:access_token'
@@ -51,5 +55,25 @@ export const authApi = {
     const { data, error } = await supabase.auth.getSession()
     if (error) throw error
     return data.session
+  },
+
+  async sendVerificationOtp(
+    channel: VerificationChannel,
+  ): Promise<SendOtpResponse> {
+    return apiClient.post<SendOtpResponse>('/verifications/send', { channel })
+  },
+
+  async verifyOtp(
+    channel: VerificationChannel,
+    code: string,
+  ): Promise<VerifyOtpResponse> {
+    return apiClient.post<VerifyOtpResponse>('/verifications/verify', {
+      channel,
+      code,
+    })
+  },
+
+  async getVerificationStatus(): Promise<VerificationStatusResponse> {
+    return apiClient.get<VerificationStatusResponse>('/verifications/status')
   },
 }

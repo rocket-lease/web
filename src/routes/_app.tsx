@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { BottomNav } from '@/features/layout/components/BottomNav'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { VerificationBanner } from '@/features/auth/components/VerificationBanner'
 import { t } from '@/i18n/es'
 
 export const Route = createFileRoute('/_app')({
@@ -33,6 +34,7 @@ function AppLayout() {
 
   return (
     <div className="flex min-h-svh flex-col bg-surface-0">
+      <VerificationBanner />
       <main className="flex-1 pb-28">
         <Outlet />
       </main>
