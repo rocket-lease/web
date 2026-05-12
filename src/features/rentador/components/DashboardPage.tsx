@@ -9,10 +9,10 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { t } from '@/i18n/es'
 
 const stats = [
-  { label: t('dashboard.ingresos'),           value: fmt.currency(12500000), icon: TrendUp,     color: '#10B981' },
-  { label: t('dashboard.reservasActivas'),     value: '3',                    icon: CalendarCheck,color: '#06B6D4' },
-  { label: t('dashboard.vehiculosPublicados'), value: '5',                    icon: Car,          color: '#F59E0B' },
-  { label: t('dashboard.calificacion'),        value: '4.8',                  icon: Star,         color: '#F59E0B' },
+  { label: t('dashboard.ingresos'),           value: fmt.currency(12500000), icon: TrendUp,      color: 'var(--color-success)' },
+  { label: t('dashboard.reservasActivas'),    value: '3',                    icon: CalendarCheck, color: 'var(--color-info)' },
+  { label: t('dashboard.vehiculosPublicados'), value: '5',                   icon: Car,           color: 'var(--color-owner)' },
+  { label: t('dashboard.calificacion'),       value: '4.8',                  icon: Star,          color: 'var(--color-owner)' },
 ]
 
 export function DashboardPage() {
