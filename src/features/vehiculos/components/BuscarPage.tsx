@@ -1,8 +1,12 @@
-import { useState } from 'react'
 import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
+import { Input } from '@/ui/input'
+import { Button } from '@/ui/button'
+import { Badge } from '@/ui/badge'
 import { VehiculoCard } from './VehiculoCard'
 import { t } from '@/i18n/es'
 import type { Vehiculo, VehiculoFilters } from '../types'
+import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 
 const MOCK_VEHICULOS: Vehiculo[] = [
   {
@@ -77,6 +81,21 @@ const FILTER_CHIPS = [
 
 export function BuscarPage() {
   const [filters, setFilters] = useState<VehiculoFilters>({})
+  const [showFilters, setShowFilters] = useState(false)
+  const { data: profile } = useMyProfile()
+  const hasAppliedPreferences = useRef(false)
+
+  useEffect(() => {
+    if (!profile || hasAppliedPreferences.current) return
+
+    setFilters((current) => ({
+      ...current,
+      transmission: profile.preferences.transmission,
+      maxPriceDaily: profile.preferences.maxPriceDaily,
+      accessibility: profile.preferences.accessibility,
+    }))
+    hasAppliedPreferences.current = true
+  }, [profile])
 
   const filtered = MOCK_VEHICULOS.filter(v => {
     if (filters.query) {

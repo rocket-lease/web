@@ -80,9 +80,14 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
     allowedHosts: ['dreamy-anyplace-zebra.ngrok-free.dev'],
+    fs: {
+      allow: [path.resolve(__dirname, './')],
+    },
   },
 })
