@@ -32,8 +32,8 @@ export function RecoverPage() {
     return (
       <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5">
         <div className="w-full max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-success-bg border border-success/20">
-            <CheckCircle size={32} color="#10B981" weight="fill" />
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-success/20 bg-success-bg text-success">
+            <CheckCircle size={32} color="currentColor" weight="fill" />
           </div>
           <h2 className="text-xl font-bold text-text-primary">Revisá tu correo</h2>
           <p className="mt-2 text-sm text-text-secondary">{t('auth.recover.success')}</p>
