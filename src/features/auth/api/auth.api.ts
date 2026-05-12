@@ -35,10 +35,16 @@ export const authApi = {
   },
 
   async resetPassword(email: string) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/recuperar`,
+    await apiClient.post('/auth/forgot-password', { email })
+  },
+
+  async updatePassword(newPassword: string) {
+    const { data, error } = await supabase.auth.getSession()
+    if (error || !data.session) throw error ?? new Error('No recovery session')
+    await apiClient.post('/auth/reset-password', {
+      accessToken: data.session.access_token,
+      newPassword,
     })
-    if (error) throw error
   },
 
   async getSession() {

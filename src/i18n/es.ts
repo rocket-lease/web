@@ -40,6 +40,14 @@ export const es = {
   'auth.recover.submit': 'Enviar enlace',
   'auth.recover.back': 'Volver al inicio',
   'auth.recover.success': 'Revisá tu correo para recuperar tu contraseña',
+  'auth.recover.newTitle': 'Nueva contraseña',
+  'auth.recover.newSubtitle': 'Elegí una contraseña segura para tu cuenta',
+  'auth.recover.newPassword': 'Nueva contraseña',
+  'auth.recover.confirmPassword': 'Confirmar contraseña',
+  'auth.recover.newSubmit': 'Guardar contraseña',
+  'auth.recover.newSuccess': 'Contraseña actualizada. Ingresá con la nueva.',
+  'auth.recover.linkExpired': 'El enlace expiró o ya fue usado. Pedí uno nuevo.',
+  'auth.recover.mismatch': 'Las contraseñas no coinciden',
 
   // ─── Buscar ───
   'buscar.title': 'Buscar vehículos',
