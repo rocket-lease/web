@@ -12,11 +12,11 @@ interface VehiculoCardProps {
 }
 
 const fuelLabel: Record<string, string> = {
-  nafta:     'Nafta',
-  diesel:    'Diésel',
-  gnc:       'GNC',
-  electrico: 'Eléctrico',
-  hibrido:   'Híbrido',
+  nafta:     t('vehiculo.fuel.nafta'),
+  diesel:    t('vehiculo.fuel.diesel'),
+  gnc:       t('vehiculo.fuel.gnc'),
+  electrico: t('vehiculo.fuel.electrico'),
+  hibrido:   t('vehiculo.fuel.hibrido'),
 }
 
 export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
