@@ -118,6 +118,14 @@ export const es = {
   'perfil.level.silver': 'Plata',
   'perfil.level.gold': 'Oro',
   'perfil.level.platinum': 'Platino',
+  'perfil.form.name': 'Nombre completo',
+  'perfil.form.phone': 'Telefono',
+  'perfil.form.avatarUrl': 'URL de foto de perfil',
+  'perfil.form.transmissionPreference': 'Preferencia de transmision',
+  'perfil.form.maxPriceDaily': 'Precio maximo diario preferido',
+  'perfil.form.accessibility': 'Accesibilidad (separado por coma)',
+  'perfil.saveSuccess': 'Perfil actualizado',
+  'perfil.saving': 'Guardando...',
 
   // ─── Dashboard rentador ───
   'dashboard.title': 'Dashboard',
