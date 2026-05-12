@@ -1,10 +1,10 @@
 import { Link } from '@tanstack/react-router'
-import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import { useId } from 'react'
 
 export interface NavTab {
   to: string
-  icon: typeof PhosphorIcon
+  icon: Icon
   label: string
   badge?: number
 }
@@ -17,42 +17,6 @@ interface BottomNavProps {
 const roleGradient = {
   conductor: { from: '#06B6D4', to: '#7C3AED' },
   rentador:  { from: '#F59E0B', to: '#7C3AED' },
-}
-
-interface GradientIconProps {
-  icon: typeof PhosphorIcon
-  size: number
-  from: string
-  to: string
-  gradientId: string
-  active: boolean
-}
-
-function GradientIcon({ icon: Icon, size, from, to, gradientId, active }: GradientIconProps) {
-  if (!active) {
-    return <Icon size={size} weight="regular" color="#5A5A78" />
-  }
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible' }}>
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={from} />
-          <stop offset="100%" stopColor={to} />
-        </linearGradient>
-      </defs>
-      {/* Render Phosphor icon as foreignObject so the gradient fill cascades in */}
-      <foreignObject width={size} height={size}>
-        <span
-          // @ts-expect-error xmlns required for foreignObject
-          xmlns="http://www.w3.org/1999/xhtml"
-          style={{ display: 'block', width: size, height: size, color: `url(#${gradientId})` }}
-        >
-          <Icon size={size} weight="duotone" />
-        </span>
-      </foreignObject>
-    </svg>
-  )
 }
 
 export function BottomNav({ tabs, activeRole }: BottomNavProps) {

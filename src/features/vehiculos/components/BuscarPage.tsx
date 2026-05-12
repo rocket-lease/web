@@ -1,8 +1,5 @@
 import { useState } from 'react'
 import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
-import { Input } from '@/ui/input'
-import { Button } from '@/ui/button'
-import { Badge } from '@/ui/badge'
 import { VehiculoCard } from './VehiculoCard'
 import { t } from '@/i18n/es'
 import type { Vehiculo, VehiculoFilters } from '../types'
