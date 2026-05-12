@@ -13,11 +13,11 @@ interface VehiculoCardProps {
 }
 
 const fuelLabel: Record<string, string> = {
-  nafta:     'Nafta',
-  diesel:    'Diésel',
-  gnc:       'GNC',
-  electrico: 'Eléctrico',
-  hibrido:   'Híbrido',
+  nafta:     t('vehiculo.fuel.nafta'),
+  diesel:    t('vehiculo.fuel.diesel'),
+  gnc:       t('vehiculo.fuel.gnc'),
+  electrico: t('vehiculo.fuel.electrico'),
+  hibrido:   t('vehiculo.fuel.hibrido'),
 }
 
 export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
@@ -72,7 +72,9 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             </div>
             {/* Rating */}
             <div className="flex items-center gap-1 shrink-0">
-              <Star size={13} weight="fill" color="#F59E0B" />
+              <span className="text-warning">
+                <Star size={13} weight="fill" />
+              </span>
               <span className="text-sm font-semibold text-text-primary">{fmt.rating(vehiculo.rating)}</span>
               <span className="text-xs text-text-muted">({vehiculo.reviewCount})</span>
             </div>
@@ -86,8 +88,13 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
                 {vehiculo.transmission === 'automatic' ? t('vehiculo.automatic') : t('vehiculo.manual')}
               </span>
               <span className="h-3 w-px bg-white/10" />
-              <span className="flex items-center gap-1">
+              <span
+                className="flex items-center gap-1"
+                aria-label={`${t('vehiculo.seats')}: ${vehiculo.asientos}`}
+                title={`${t('vehiculo.seats')}: ${vehiculo.asientos}`}
+              >
                 <Users size={12} weight="regular" />
+                <span className="sr-only">{t('vehiculo.seats')}: </span>
                 {vehiculo.asientos}
               </span>
               <span className="h-3 w-px bg-white/10" />

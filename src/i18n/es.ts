@@ -2,6 +2,8 @@ export const es = {
   // ─── App ───
   'app.name': 'Rocket Lease',
   'app.tagline': 'Alquilá el vehículo que necesitás',
+  'app.role.rentadorActive': 'Rentando',
+  'app.role.conductorActive': 'Conduciendo',
 
   // ─── Nav ───
   'nav.buscar': 'Buscar',
@@ -29,6 +31,8 @@ export const es = {
   'auth.register.name': 'Nombre completo',
   'auth.register.email': 'Correo electrónico',
   'auth.register.password': 'Contraseña',
+  'auth.register.dni': 'DNI',
+  'auth.register.phone': 'Teléfono',
   'auth.register.confirmPassword': 'Confirmar contraseña',
   'auth.register.submit': 'Crear cuenta',
   'auth.register.hasAccount': '¿Ya tenés cuenta?',
@@ -39,6 +43,14 @@ export const es = {
   'auth.recover.submit': 'Enviar enlace',
   'auth.recover.back': 'Volver al inicio',
   'auth.recover.success': 'Revisá tu correo para recuperar tu contraseña',
+  'auth.recover.newTitle': 'Nueva contraseña',
+  'auth.recover.newSubtitle': 'Elegí una contraseña segura para tu cuenta',
+  'auth.recover.newPassword': 'Nueva contraseña',
+  'auth.recover.confirmPassword': 'Confirmar contraseña',
+  'auth.recover.newSubmit': 'Guardar contraseña',
+  'auth.recover.newSuccess': 'Contraseña actualizada. Ingresá con la nueva.',
+  'auth.recover.linkExpired': 'El enlace expiró o ya fue usado. Pedí uno nuevo.',
+  'auth.recover.mismatch': 'Las contraseñas no coinciden',
 
   // ─── Buscar ───
   'buscar.title': 'Buscar vehículos',
@@ -52,10 +64,13 @@ export const es = {
   'buscar.filter.transmission.all': 'Cualquiera',
   'buscar.filter.transmission.automatic': 'Automático',
   'buscar.filter.transmission.manual': 'Manual',
+  'buscar.filter.transmission.clear': 'Limpiar filtro de transmisión',
   'buscar.filter.priceRange': 'Precio por día',
   'buscar.filter.accessibility': 'Accesibilidad',
   'buscar.filter.apply': 'Aplicar filtros',
   'buscar.filter.clear': 'Limpiar filtros',
+  'buscar.noResultsHint': 'Probá con otra búsqueda o ajustá los filtros',
+  'buscar.location.city': 'Buenos Aires',
   'buscar.featuredIn': 'Destacados cerca tuyo',
 
   // ─── Vehículo ───
@@ -64,6 +79,11 @@ export const es = {
   'vehiculo.noDisponible': 'No disponible',
   'vehiculo.automatic': 'Automático',
   'vehiculo.manual': 'Manual',
+  'vehiculo.fuel.nafta': 'Nafta',
+  'vehiculo.fuel.diesel': 'Diésel',
+  'vehiculo.fuel.gnc': 'GNC',
+  'vehiculo.fuel.electrico': 'Eléctrico',
+  'vehiculo.fuel.hibrido': 'Híbrido',
   'vehiculo.seats': 'asientos',
   'vehiculo.perDay': '/ día',
   'vehiculo.perWeek': '/ semana',
@@ -117,6 +137,14 @@ export const es = {
   'perfil.level.silver': 'Plata',
   'perfil.level.gold': 'Oro',
   'perfil.level.platinum': 'Platino',
+  'perfil.form.name': 'Nombre completo',
+  'perfil.form.phone': 'Telefono',
+  'perfil.form.avatarUrl': 'URL de foto de perfil',
+  'perfil.form.transmissionPreference': 'Preferencia de transmision',
+  'perfil.form.maxPriceDaily': 'Precio maximo diario preferido',
+  'perfil.form.accessibility': 'Accesibilidad (separado por coma)',
+  'perfil.saveSuccess': 'Perfil actualizado',
+  'perfil.saving': 'Guardando...',
 
   // ─── Dashboard rentador ───
   'dashboard.title': 'Dashboard',
@@ -127,6 +155,7 @@ export const es = {
   'dashboard.calificacion': 'Calificación promedio',
   'dashboard.ultimasReservas': 'Últimas reservas',
   'dashboard.ocupacion': 'Ocupación de flota',
+  'dashboard.publicar': 'Publicar',
 
   // ─── Mis vehículos ───
   'misVehiculos.title': 'Mis vehículos',

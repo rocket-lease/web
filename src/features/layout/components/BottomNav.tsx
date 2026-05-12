@@ -15,8 +15,8 @@ interface BottomNavProps {
 }
 
 const roleGradient = {
-  conductor: { from: '#06B6D4', to: '#7C3AED' },
-  rentador:  { from: '#F59E0B', to: '#7C3AED' },
+  conductor: { from: 'var(--color-client)', to: 'var(--color-brand-500)' },
+  rentador:  { from: 'var(--color-owner)', to: 'var(--color-brand-500)' },
 }
 
 export function BottomNav({ tabs, activeRole }: BottomNavProps) {
@@ -51,6 +51,9 @@ export function BottomNav({ tabs, activeRole }: BottomNavProps) {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
+        .rl-nav-badge-active-${uid} {
+          background: linear-gradient(135deg, ${from} 0%, ${to} 100%);
+        }
       `}</style>
 
       <nav
@@ -73,12 +76,11 @@ export function BottomNav({ tabs, activeRole }: BottomNavProps) {
                     <tab.icon
                       size={22}
                       weight={isActive ? 'duotone' : 'regular'}
-                      color={isActive ? undefined : '#5A5A78'}
+                      className={isActive ? undefined : 'text-text-muted'}
                     />
                     {tab.badge != null && tab.badge > 0 && (
                       <span
-                        className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                        style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
+                        className={`absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold text-white rl-nav-badge-active-${uid}`}
                       >
                         {tab.badge > 9 ? '9+' : tab.badge}
                       </span>

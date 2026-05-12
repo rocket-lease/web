@@ -8,10 +8,16 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import type { ProblemDetails } from '../types'
 
+// Mirrors LoginUserRequestSchema from @rocket-lease/contracts
 const schema = z.object({
   email: z.string().email('Ingresá un correo válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .refine((v) => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
+    .refine((v) => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -26,10 +32,12 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await authApi.signIn(data.email, data.password)
+      await authApi.signIn(data)
       navigate({ to: '/buscar' })
-    } catch {
-      toast.error(t('auth.login.error'))
+    } catch (err) {
+      const problem = err as ProblemDetails
+      const msg = problem?.detail ?? t('auth.login.error')
+      toast.error(msg)
     }
   }
 
