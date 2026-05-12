@@ -10,11 +10,12 @@ interface AuthGateProps {
 
 export function AuthGate({ children }: AuthGateProps) {
   const { user, isLoading } = useAuth()
+  const hasToken = Boolean(localStorage.getItem('rocket_lease:access_token'))
   const navigate = useNavigate()
 
   if (isLoading) return null
 
-  if (!user) {
+  if (!user && !hasToken) {
     return (
       <div className="relative min-h-screen overflow-hidden">
         {/* Skeleton background */}

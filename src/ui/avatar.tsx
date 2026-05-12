@@ -20,6 +20,10 @@ function Avatar({ src, alt, size = 'md', fallback, className, ...props }: Avatar
   const [imgError, setImgError] = React.useState(false)
   const sizeClass = sizeMap[size]
 
+  React.useEffect(() => {
+    setImgError(false)
+  }, [src])
+
   return (
     <div
       className={cn(
