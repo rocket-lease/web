@@ -360,6 +360,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const isSaving = saveMutation.isPending
   const isDeleting = deleteMutation.isPending
+  const hasNewPhotos = draft.photos.some(isNewPhoto)
   const canSave = draft.photos.length >= 3 && !isSaving && !isDeleting
 
   return (
@@ -630,7 +631,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               onClick={() => saveMutation.mutate()}
               disabled={!canSave}
             >
-              {isSaving ? t('editVehiculo.uploadingPhotos') : t('general.save')}
+              {isSaving ? (hasNewPhotos ? t('editVehiculo.uploadingPhotos') : t('editVehiculo.saving')) : t('general.save')}
             </Button>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

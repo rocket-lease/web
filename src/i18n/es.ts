@@ -240,6 +240,7 @@ export const es = {  // --- App ---
   'editVehiculo.photoMinimumHint': 'Se requieren al menos 3 fotos para guardar',
   'editVehiculo.removePhoto': 'Borrar foto',
   'editVehiculo.uploadingPhotos': 'Subiendo fotos nuevas...',
+  'editVehiculo.saving': 'Guardando cambios...',
   'editVehiculo.deleteVehicle': 'Eliminar vehiculo',
   'editVehiculo.deleteConfirm': 'Vas a eliminar este vehiculo y todas sus fotos. Esta accion no se puede deshacer.',
   'editVehiculo.saveSuccess': 'Cambios publicados',
