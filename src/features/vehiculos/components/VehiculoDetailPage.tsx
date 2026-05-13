@@ -82,7 +82,7 @@ export function VehiculoDetailPage() {
           className="h-full w-full object-cover pointer-events-none"
           draggable={false}
         />
-        <div className="absolute right-0 top-0">
+        <div className="absolute right-2 top-2">
           <FavoritoButton vehicleId={vehicle.id} />
         </div>
         {vehicle.isAccessible && (
