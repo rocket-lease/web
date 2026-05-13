@@ -5,9 +5,10 @@ import type {
   CreateVehicleRequest,
   CreateVehicleResponse,
   GetVehicleResponse,
+  UpdateVehicleRequest,
 } from '@rocket-lease/contracts'
 
-export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
+export type { UpdateVehicleRequest }
 
 const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
 const parseVehicles = (input: unknown): GetVehicleResponse[] => GetVehicleResponseSchema.array().parse(input)
