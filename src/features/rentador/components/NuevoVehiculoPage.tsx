@@ -231,11 +231,11 @@ export function NuevoVehiculoPage() {
     // Subir fotos a Cloudinary y publicar vehículo
     try {
       const files = formData.photos.map(p => p.file)
-      const uploadedUrls = await Promise.all(files.map(f => photosApi.uploadVehicleImage(f)))
+      const uploadedPhotos = await Promise.all(files.map(f => photosApi.uploadVehicleImage(f)))
 
       const payload = {
         ...formPayload,
-        photos: uploadedUrls,
+        photos: uploadedPhotos.map(photo => photo.url),
         availableFrom: formData.availableFrom,
         province: formData.province,
         city: formData.city,
