@@ -291,6 +291,9 @@ export const es = {  // --- App ---
   'favoritos.count': 'guardados',
   'favoritos.add': 'Agregar a favoritos',
   'favoritos.remove': 'Quitar de favoritos',
+  'favoritos.toast.added': 'Agregado a favoritos',
+  'favoritos.toast.removed': 'Quitado de favoritos',
+  'favoritos.toast.error': 'No pudimos actualizar tus favoritos',
 
   // --- Soporte / FAQ ---
   'soporte.title': 'Soporte',

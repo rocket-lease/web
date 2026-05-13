@@ -1,7 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { favoritosApi } from '../api/favoritos.api'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { t } from '@/i18n/es'
 import type { FavoritoItem } from '../types'
 
 export function useToggleFavorito() {
@@ -65,9 +67,21 @@ export function useToggleFavorito() {
       return
     }
     if (isFavorito) {
-      removeMutation.mutate(vehicleId)
+      toast.success(t('favoritos.toast.removed'))
+      removeMutation.mutate(vehicleId, {
+        onError: (err) => {
+          const status = (err as { status?: number })?.status
+          if (status !== 404) toast.error(t('favoritos.toast.error'))
+        },
+      })
     } else {
-      addMutation.mutate(vehicleId)
+      toast.success(t('favoritos.toast.added'))
+      addMutation.mutate(vehicleId, {
+        onError: (err) => {
+          const status = (err as { status?: number })?.status
+          if (status !== 409) toast.error(t('favoritos.toast.error'))
+        },
+      })
     }
   }
 
