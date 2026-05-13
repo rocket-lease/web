@@ -11,7 +11,8 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
-import type { GetVehicleResponse, UpdateVehicleRequest } from '@rocket-lease/contracts'
+import type { GetVehicleResponse } from '@rocket-lease/contracts'
+import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const MAX_PHOTOS = 10
@@ -51,7 +52,7 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
     description: vehicle.description ?? '',
     enabled: Boolean(vehicle.enabled),
     isAccessible: Boolean(vehicle.isAccessible),
-    photos: vehicle.photos.map(url => ({
+    photos: vehicle.photos.map((url: string) => ({
       id: url,
       kind: 'existing',
       url,
@@ -237,8 +238,8 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
       await vehiclesApi.updateVehicle(vehicleId, payload)
 
-      const removedPhotoUrls = vehicle.photos.filter(url => !draft.photos.some(photo => photo.url === url))
-      await Promise.allSettled(removedPhotoUrls.map(url => photosApi.deleteVehicleImage(url)))
+      const removedPhotoUrls = vehicle.photos.filter((url: string) => !draft.photos.some(photo => photo.url === url))
+      await Promise.allSettled(removedPhotoUrls.map((url: string) => photosApi.deleteVehicleImage(url)))
 
       return finalPhotoUrls
     },
@@ -254,7 +255,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
         return {
           ...current,
-          photos: finalPhotoUrls.map(url => ({
+          photos: finalPhotoUrls.map((url: string) => ({
             id: url,
             kind: 'existing',
             url,
@@ -278,7 +279,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       }
 
       await vehiclesApi.deleteVehicle(vehicle.id)
-      await Promise.allSettled(vehicle.photos.map(url => photosApi.deleteVehicleImage(url)))
+      await Promise.allSettled(vehicle.photos.map((url: string) => photosApi.deleteVehicleImage(url)))
     },
     onSuccess: () => {
       if (draftRef.current) {
