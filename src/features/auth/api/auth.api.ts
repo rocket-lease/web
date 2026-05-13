@@ -52,4 +52,9 @@ export const authApi = {
     if (error) throw error
     return data.session
   },
+
+  async deleteAccount(): Promise<void> {
+    await apiClient.delete('/profile/me')
+    await this.signOut()
+  },
 }
