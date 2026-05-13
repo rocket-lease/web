@@ -14,7 +14,9 @@ async function forceLogout() {
   await supabase.auth.signOut()
   localStorage.removeItem('rocket_lease:access_token')
   if (window.location.pathname !== '/login') {
-    window.location.href = '/login'
+    const returnTo = window.location.pathname + window.location.search
+    const params = new URLSearchParams({ returnTo })
+    window.location.href = `/login?${params.toString()}`
   }
 }
 
