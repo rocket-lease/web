@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   UserCheck,
   LogOut,
@@ -23,6 +24,7 @@ import { Separator } from '@/ui/separator'
 import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { authApi } from '@/features/auth/api/auth.api'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { t } from '@/i18n/es'
@@ -46,7 +48,8 @@ interface PerfilPageProps {
 }
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const {
     data: profile,
     isLoading,
@@ -288,7 +291,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
       {/* Become rentador banner */}
       {!isRentador && canEdit && (
-        <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/mis-vehiculos' })}
+          className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600">
             <Rocket className="h-5 w-5 text-white" />
           </div>
@@ -297,7 +304,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <p className="text-xs text-text-muted mt-0.5">Generá ingresos alquilándolo</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </div>
+        </button>
       )}
 
       {/* Settings menu */}
@@ -326,7 +333,10 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           <Button
             variant="ghost"
             className="w-full text-text-secondary hover:bg-surface-2"
-            onClick={() => signOut()}
+            onClick={async () => {
+              await authApi.signOut()
+              navigate({ to: '/' })
+            }}
           >
             <LogOut className="h-4 w-4" />
             {t('perfil.logout')}
