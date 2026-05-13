@@ -1,14 +1,14 @@
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck } from 'lucide-react'
+import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck, AlertTriangle, MessageSquare } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
 import { fmt } from '@/lib/formatters'
-import { t } from '@/i18n/es'
+import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { getCharacteristicLabel } from '../utils/characteristics'
 
@@ -110,6 +110,26 @@ export function VehiculoDetailPage() {
           </div>
         </div>
 
+        {/* CTA Reservar + precio (hero) */}
+        <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 shadow-elevated">
+          {!vehicle.enabled && (
+            <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <p className="text-xs text-warning">{t('vehiculo.unavailableNotice')}</p>
+            </div>
+          )}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wider text-text-muted">Tarifa</p>
+              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.price(vehicle.basePrice)}</p>
+              <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
+            </div>
+            <Button size="lg" disabled={!vehicle.enabled} className="shrink-0">
+              {vehicle.enabled ? t('vehiculo.reservar') : t('vehiculo.noDisponible')}
+            </Button>
+          </div>
+        </div>
+
         {/* Características principales */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col items-center gap-1 rounded-xl bg-surface-2 py-3">
@@ -148,17 +168,6 @@ export function VehiculoDetailPage() {
               <p className="text-[10px] text-text-muted">Disponible desde</p>
               <p className="text-sm font-semibold text-text-primary">{fmt.dateShort(vehicle.availableFrom)}</p>
             </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Precio */}
-        <div>
-          <p className="text-sm text-text-muted mb-2">Tarifas</p>
-          <div className="rounded-xl bg-surface-2 flex-1 p-3 text-center">
-            <p className="text-lg font-bold text-text-primary">{fmt.price(vehicle.basePrice)}</p>
-            <p className="text-xs text-text-muted">por día</p>
           </div>
         </div>
 
@@ -210,8 +219,7 @@ export function VehiculoDetailPage() {
                       {fmt.rating(vehicle.owner.reputationScore)}
                     </span>
                     <Badge variant="default">
-                      {/* @ts-ignore */}
-                      {t(`perfil.level.${vehicle.owner.level}`)}
+                      {t(`perfil.level.${vehicle.owner.level}` as I18nKey)}
                     </Badge>
                   </div>
                 </div>
@@ -219,16 +227,27 @@ export function VehiculoDetailPage() {
             </div>
           </>
         )}
-      </div>
 
-      {/* CTA sticky */}
-      <div
-        className="sticky bottom-0 bg-surface-0/95 backdrop-blur-xl border-t border-white/6 px-4 py-4"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
-      >
-        <Button className="w-full" size="lg">
-          {t('vehiculo.reservar')}
-        </Button>
+        {/* Reseñas del vehículo (empty state — datos llegan en Sprint 5 con US-38) */}
+        <Separator />
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-text-muted">{t('vehiculo.reviewsTitle')}</p>
+            <div className="flex items-center gap-1.5 text-xs text-text-muted">
+              <Star className="h-3.5 w-3.5 text-text-muted" />
+              <span>0.0</span>
+              <span>·</span>
+              <span>{t('vehiculo.reviewsCount').replace('{count}', '0')}</span>
+            </div>
+          </div>
+          <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
+              <MessageSquare className="h-5 w-5 text-text-muted" />
+            </div>
+            <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
+            <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>
+          </div>
+        </div>
       </div>
     </div>
   )
