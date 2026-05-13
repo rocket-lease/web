@@ -1,4 +1,4 @@
-import type { GetVehicleResponse } from '@rocket-lease/contracts'
+import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 
 export interface VehiculoFilters {
   query?: string
@@ -10,6 +10,7 @@ export interface VehiculoFilters {
   minYear?: number | null
   maxYear?: number | null
   accessibility?: string[]
+  characteristics?: Characteristic[]
   fechaDesde?: string
   fechaHasta?: string
 }

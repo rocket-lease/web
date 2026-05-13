@@ -339,8 +339,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
       </div>
 
-      {/* Become rentador banner */}
-      {!isRentador && canEdit && (
+      {/* Mis vehiculos shortcut */}
+      {canEdit && (
         <button
           type="button"
           onClick={() => navigate({ to: '/mis-vehiculos' })}
@@ -350,8 +350,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <Rocket className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary">Publicá tu vehículo</p>
-            <p className="text-xs text-text-muted mt-0.5">Generá ingresos alquilándolo</p>
+            <p className="text-sm font-semibold text-text-primary">Mis vehículos</p>
+            <p className="text-xs text-text-muted mt-0.5">Gestioná tu flota o publicá uno nuevo</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
         </button>

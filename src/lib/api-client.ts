@@ -1,14 +1,21 @@
 import type { ProblemDetails } from '@/features/auth/types'
+import { supabase } from './supabase'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
 
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token ?? localStorage.getItem('rocket_lease:access_token')
+  if (!token) return {}
+  return { Authorization: `Bearer ${token}` }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('rocket_lease:access_token')
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(await authHeaders()),
       ...init?.headers,
     },
   })

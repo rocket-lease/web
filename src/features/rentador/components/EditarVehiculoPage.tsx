@@ -11,8 +11,9 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
-import type { GetVehicleResponse } from '@rocket-lease/contracts'
+import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
+import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const MAX_PHOTOS = 10
@@ -39,6 +40,7 @@ type VehicleDraft = {
   enabled: boolean
   isAccessible: boolean
   photos: EditablePhoto[]
+  characteristics: Characteristic[]
 }
 
 function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
@@ -57,6 +59,7 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
       kind: 'existing',
       url,
     })),
+    characteristics: vehicle.characteristics ?? [],
   }
 }
 
@@ -115,6 +118,16 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const handleFieldChange = <K extends keyof VehicleDraft>(field: K, value: VehicleDraft[K]) => {
     setDraft(current => (current ? { ...current, [field]: value } : current))
+  }
+
+  const toggleCharacteristic = (characteristic: Characteristic) => {
+    setDraft(current => {
+      if (!current) return null
+      const characteristics = current.characteristics.includes(characteristic)
+        ? current.characteristics.filter(c => c !== characteristic)
+        : [...current.characteristics, characteristic]
+      return { ...current, characteristics }
+    })
   }
 
   const handlePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
@@ -234,6 +247,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         enabled: draft.enabled,
         isAccessible: draft.isAccessible,
         photos: finalPhotoUrls,
+        characteristics: draft.characteristics,
       }
 
       await vehiclesApi.updateVehicle(vehicleId, payload)
@@ -266,6 +280,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       queryClient.invalidateQueries({ queryKey: myVehiclesQueryKey })
       queryClient.invalidateQueries({ queryKey: vehicleQueryKey(vehicleId) })
       toast.success(t('editVehiculo.saveSuccess'))
+      navigate({ to: '/mis-vehiculos' })
     },
     onError: (error: Error) => {
       if (error.message === 'Vehicle must have at least 3 photos') {
@@ -345,6 +360,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const isSaving = saveMutation.isPending
   const isDeleting = deleteMutation.isPending
+  const hasNewPhotos = draft.photos.some(isNewPhoto)
   const canSave = draft.photos.length >= 3 && !isSaving && !isDeleting
 
   return (
@@ -564,6 +580,30 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
             </div>
 
             <div>
+              <label className="mb-3 block text-sm font-medium text-text-secondary">{t('vehiculo.features')}</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_CHARACTERISTICS.map(char => {
+                  const isSelected = draft.characteristics.includes(char)
+                  return (
+                    <button
+                      key={char}
+                      type="button"
+                      onClick={() => toggleCharacteristic(char)}
+                      disabled={isSaving || isDeleting}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20'
+                          : 'bg-surface-2 text-text-secondary hover:bg-surface-3 border border-white/5'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {getCharacteristicLabel(char)}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
               <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.description')}</label>
               <textarea
                 value={draft.description}
@@ -591,7 +631,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               onClick={() => saveMutation.mutate()}
               disabled={!canSave}
             >
-              {isSaving ? t('editVehiculo.uploadingPhotos') : t('general.save')}
+              {isSaving ? (hasNewPhotos ? t('editVehiculo.uploadingPhotos') : t('editVehiculo.saving')) : t('general.save')}
             </Button>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
