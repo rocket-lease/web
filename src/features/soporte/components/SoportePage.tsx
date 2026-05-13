@@ -23,9 +23,10 @@ export function SoportePage() {
         icon={<LifeBuoy className="h-5 w-5" />}
       />
 
-      {/* Sticky search + category tabs */}
+      {/* Sticky search + category tabs (debajo del header global, respetando safe-area) */}
       <div
-        className="sticky top-0 z-10 bg-surface-0/95 backdrop-blur-xl border-b border-white/6 px-4 pt-4 pb-3 space-y-3"
+        className="sticky z-30 bg-surface-0/95 backdrop-blur-xl border-b border-white/6 px-4 pt-4 pb-3 space-y-3"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
       >
         <FaqSearch value={query} onChange={setQuery} />
         <FaqCategoryTabs

@@ -78,8 +78,11 @@ export function BuscarPage() {
 
   return (
     <div className="flex flex-col">
-      {/* Barra de búsqueda — sticky bajo la top bar global */}
-      <div className="sticky top-14 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5">
+      {/* Barra de búsqueda — sticky bajo la top bar global (incluye safe-area-inset-top) */}
+      <div
+        className="sticky z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
+      >
 
         {/* Fila de ubicación */}
         <div className="flex items-center gap-1.5 mb-3">
