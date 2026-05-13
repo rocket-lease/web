@@ -24,7 +24,7 @@ type FormData = z.infer<typeof schema>
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { hint } = useSearch({ from: '/login' })
+  const { hint, returnTo } = useSearch({ from: '/login' })
   const {
     register,
     handleSubmit,
@@ -34,6 +34,10 @@ export function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await authApi.signIn(data)
+      if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/')) {
+        window.location.href = returnTo
+        return
+      }
       navigate({ to: '/buscar' })
     } catch (err) {
       const problem = err as ProblemDetails & { statusCode?: number; message?: string }

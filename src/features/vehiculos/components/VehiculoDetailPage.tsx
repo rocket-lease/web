@@ -1,10 +1,12 @@
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box } from 'lucide-react'
+import { useState } from 'react'
+import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
+import { Avatar } from '@/ui/avatar'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
@@ -12,6 +14,7 @@ import { getCharacteristicLabel } from '../utils/characteristics'
 
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
+  const [photoIndex, setPhotoIndex] = useState(0)
 
   const { data: vehicle, isLoading, isError } = useQuery({
     queryKey: ['vehicle', id],
@@ -42,16 +45,17 @@ export function VehiculoDetailPage() {
     )
   }
 
-  const coverPhoto = vehicle.photos[0] ?? '/placeholder-car.jpg'
+  const photos = vehicle.photos.length > 0 ? vehicle.photos : ['/placeholder-car.jpg']
+  const currentPhoto = photos[Math.min(photoIndex, photos.length - 1)]
 
   return (
     <div className="flex flex-col min-h-full">
       <PageHeader title="Detalle del vehículo" showBack />
 
-      {/* Fotos */}
+      {/* Galería */}
       <div className="aspect-[4/3] bg-surface-2 relative overflow-hidden">
         <img
-          src={coverPhoto}
+          src={currentPhoto}
           alt={`${vehicle.brand} ${vehicle.model}`}
           className="h-full w-full object-cover"
         />
@@ -60,7 +64,35 @@ export function VehiculoDetailPage() {
             <Badge variant="secondary">Accesible</Badge>
           </div>
         )}
+        {photos.length > 1 && (
+          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1.5 pb-2">
+            {photos.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === photoIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {photos.length > 1 && (
+        <div className="px-4 pt-3 flex gap-2 overflow-x-auto no-scrollbar">
+          {photos.map((url, i) => (
+            <button
+              key={`${url}-${i}`}
+              onClick={() => setPhotoIndex(i)}
+              className={`h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
+                i === photoIndex ? 'border-brand-500' : 'border-transparent opacity-70'
+              }`}
+            >
+              <img src={url} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex-1 px-4 py-5 space-y-5">
 
@@ -149,6 +181,40 @@ export function VehiculoDetailPage() {
                 {vehicle.characteristics.map(c => (
                   <Badge key={c} variant="secondary">{getCharacteristicLabel(c)}</Badge>
                 ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {vehicle.owner && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm text-text-muted mb-3">{t('vehiculo.owner')}</p>
+              <div className="flex items-center gap-3">
+                <Avatar
+                  src={vehicle.owner.avatarUrl ?? undefined}
+                  fallback={vehicle.owner.name.slice(0, 2).toUpperCase()}
+                  size="md"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-semibold text-text-primary truncate">{vehicle.owner.name}</p>
+                    {vehicle.owner.verified && (
+                      <BadgeCheck className="h-4 w-4 text-success shrink-0" aria-label="Verificado" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-0.5 text-xs text-text-muted">
+                    <span className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                      {fmt.rating(vehicle.owner.reputationScore)}
+                    </span>
+                    <Badge variant="default">
+                      {/* @ts-ignore */}
+                      {t(`perfil.level.${vehicle.owner.level}`)}
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </div>
           </>
