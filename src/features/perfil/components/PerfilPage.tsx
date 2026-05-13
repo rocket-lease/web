@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   LogOut,
   Bell,
@@ -48,6 +49,7 @@ interface PerfilPageProps {
 }
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
+  const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const {
     data: profile,
@@ -334,7 +336,10 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           <Button
             variant="ghost"
             className="w-full text-text-secondary hover:bg-surface-2"
-            onClick={() => signOut()}
+            onClick={async () => {
+              await signOut()
+              navigate({ to: '/login' })
+            }}
           >
             <LogOut className="h-4 w-4" />
             {t('perfil.logout')}
