@@ -1,3 +1,5 @@
+import type { Characteristic } from '@rocket-lease/contracts'
+
 export type Transmission = 'automatic' | 'manual'
 
 export interface VehiculoFoto {
@@ -24,6 +26,7 @@ export interface Vehiculo {
   combustible: 'nafta' | 'diesel' | 'gnc' | 'electrico' | 'hibrido'
   descripcion: string
   tags: string[]
+  characteristics: Characteristic[]
   tarifa: Tarifa
   fotos: VehiculoFoto[]
   disponible: boolean
@@ -54,7 +57,7 @@ export interface VehiculoFilters {
   minSeats?:     number | null
   minYear?:      number | null
   maxYear?:      number | null
-  // US-18 los usará para filtrar en el servidor
+  characteristics?: Characteristic[]
   fechaDesde?:   string
   fechaHasta?:   string
 }

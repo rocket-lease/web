@@ -34,6 +34,15 @@ export const httpClient = {
     return handleResponse<T>(res)
   },
 
+  async patch<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify(body),
+    })
+    return handleResponse<T>(res)
+  },
+
   async delete(path: string): Promise<void> {
     const res = await fetch(`${API_URL}${path}`, {
       method: 'DELETE',

@@ -1,11 +1,14 @@
 import { MagnifyingGlass, SlidersHorizontal } from '@phosphor-icons/react'
 import { useMemo, useState, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { VehiculoCard } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
 import { t } from '@/i18n/es'
 import type { Vehiculo, VehiculoFilters, SortCriteria } from '../types'
-import { MOCK_VEHICULOS } from '../data/mock-vehiculos'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { vehiclesApi } from '../api/vehiculos.api'
+import type { GetVehicleResponse } from '@rocket-lease/contracts'
+import { getCharacteristicLabel } from '../utils/characteristics'
 
 function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[] {
   return vehicles.filter(v => {
@@ -19,6 +22,10 @@ function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[
     if (filters.minSeats != null && v.asientos < filters.minSeats) return false
     if (filters.minYear  != null && v.anio < filters.minYear)     return false
     if (filters.maxYear  != null && v.anio > filters.maxYear)     return false
+    if (filters.characteristics?.length) {
+      const hasAll = filters.characteristics.every((item) => v.characteristics.includes(item))
+      if (!hasAll) return false
+    }
     return true
   })
 }
@@ -33,6 +40,55 @@ function applySort(vehicles: Vehiculo[], sort: SortCriteria): Vehiculo[] {
   }
 }
 
+const transmissionToUi = (value: string): 'automatic' | 'manual' =>
+  value === 'Manual' ? 'manual' : 'automatic'
+
+const toVehiculo = (vehicle: GetVehicleResponse): Vehiculo => {
+  const characteristics = Array.isArray(vehicle.characteristics)
+    ? vehicle.characteristics
+    : []
+  const tags = characteristics.map(getCharacteristicLabel)
+  const photos = Array.isArray(vehicle.photos) ? vehicle.photos : []
+
+  return {
+    id: vehicle.id,
+    rentadorId: vehicle.ownerId,
+    marca: vehicle.brand,
+    modelo: vehicle.model,
+    anio: vehicle.year,
+    patente: vehicle.plate,
+    transmission: transmissionToUi(vehicle.transmission),
+    asientos: vehicle.passengers,
+    combustible: 'nafta',
+    descripcion: vehicle.description ?? '',
+    tags,
+    characteristics,
+    tarifa: { daily: vehicle.basePrice },
+    fotos: photos.map((url, index) => ({
+      id: `${vehicle.id}-${index}`,
+      url,
+      order: index,
+    })),
+    disponible: vehicle.enabled,
+    rating: 4.7,
+    reviewCount: 0,
+    ubicacion: {
+      direccion: `${vehicle.city}, ${vehicle.province}`,
+      lat: 0,
+      lng: 0,
+      ciudad: vehicle.city,
+    },
+    rentador: {
+      id: vehicle.ownerId,
+      nombre: 'Rentador',
+      rating: 4.7,
+      reviewCount: 0,
+      level: 'bronze',
+    },
+    createdAt: new Date().toISOString(),
+  }
+}
+
 export function BuscarPage() {
   const [filters,    setFilters]    = useState<VehiculoFilters>({})
   const [sortBy,     setSortBy]     = useState<SortCriteria>('price_asc')
@@ -40,6 +96,12 @@ export function BuscarPage() {
 
   const { data: profile } = useMyProfile()
   const hasAppliedPreferences = useRef(false)
+
+  const serverCharacteristics = filters.characteristics ?? []
+  const vehiclesQuery = useQuery({
+    queryKey: ['vehicles', 'list', serverCharacteristics],
+    queryFn: () => vehiclesApi.getAll(serverCharacteristics),
+  })
 
   useEffect(() => {
     if (!profile || hasAppliedPreferences.current) return
@@ -59,21 +121,21 @@ export function BuscarPage() {
   )
 
   const displayVehiculos = useMemo(() => {
-    const filtered = applyFilters(MOCK_VEHICULOS, filters)
+    const base = (vehiclesQuery.data ?? []).map(toVehiculo)
+    const filtered = applyFilters(base, filters)
     return applySort(filtered, sortBy)
-  }, [filters, sortBy])
+  }, [filters, sortBy, vehiclesQuery.data])
 
-  const handleApply = (newFilters: VehiculoFilters, newSort: SortCriteria) => {
+  const handleApply = (newFilters: VehiculoFilters, sort: SortCriteria) => {
     setFilters(newFilters)
-    setSortBy(newSort)
+    setSortBy(sort)
   }
 
   return (
     <div className="flex flex-col">
-      {/* Search bar — sticky */}
+      {/* Search bar - sticky */}
       <div className="sticky top-14 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5">
         <div className="flex items-center gap-2">
-
           {/* Search input */}
           <div className="relative flex-1">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
@@ -94,7 +156,11 @@ export function BuscarPage() {
             className="relative shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-surface-1 border border-white/8 text-text-secondary hover:text-text-primary hover:border-brand-500/40 transition-colors"
             aria-label={t('buscar.filter.title')}
           >
-            <SlidersHorizontal size={18} weight={activeFiltersCount > 0 ? 'fill' : 'regular'} className={activeFiltersCount > 0 ? 'text-client' : ''} />
+            <SlidersHorizontal
+              size={18}
+              weight={activeFiltersCount > 0 ? 'fill' : 'regular'}
+              className={activeFiltersCount > 0 ? 'text-client' : ''}
+            />
             {activeFiltersCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-client text-[9px] font-bold text-white">
                 {activeFiltersCount}
@@ -114,12 +180,16 @@ export function BuscarPage() {
               onClick={() => { setFilters({}); setSortBy('price_asc') }}
               className="ml-2 text-client font-semibold"
             >
-              · {t('buscar.filter.clearAll')}
+              - {t('buscar.filter.clearAll')}
             </button>
           )}
         </p>
 
-        {displayVehiculos.length === 0 ? (
+        {vehiclesQuery.isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
+            <p className="text-text-secondary">{t('buscar.loading')}</p>
+          </div>
+        ) : displayVehiculos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
             <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
             <div>

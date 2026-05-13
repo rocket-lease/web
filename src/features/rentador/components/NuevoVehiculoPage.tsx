@@ -7,9 +7,10 @@ import { photosApi } from '@/features/photos/api/photos.api'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
-import type { CreateVehicleRequest } from '@rocket-lease/contracts'
+import type { Characteristic, CreateVehicleRequest } from '@rocket-lease/contracts'
 import { State } from 'country-state-city'
 import { getCitiesForProvince } from '@/lib/argentina-cities'
+import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -47,6 +48,7 @@ type VehicleFormData = {
   city: string
   dailyPrice: string
   photos: Array<VehiclePhoto>
+  characteristics: Characteristic[]
 }
 
 const initialFormData: VehicleFormData = {
@@ -66,6 +68,7 @@ const initialFormData: VehicleFormData = {
   city: '',
   dailyPrice: '',
   photos: [],
+  characteristics: [],
 }
 
 export function NuevoVehiculoPage() {
@@ -211,6 +214,15 @@ export function NuevoVehiculoPage() {
     }))
   }
 
+  const toggleCharacteristic = (char: Characteristic) => {
+    setFormData(current => {
+      const next = current.characteristics.includes(char)
+        ? current.characteristics.filter(c => c !== char)
+        : [...current.characteristics, char]
+      return { ...current, characteristics: next }
+    })
+  }
+
   const handleNext = async () => {
     if (currentStep === 0 && !canContinueFromStep0) return
 
@@ -239,6 +251,7 @@ export function NuevoVehiculoPage() {
         availableFrom: formData.availableFrom,
         province: formData.province,
         city: formData.city,
+        characteristics: formData.characteristics,
       } as CreateVehicleRequest
 
       await vehiclesApi.publishVehicle(payload)
@@ -378,6 +391,28 @@ export function NuevoVehiculoPage() {
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Kilometraje</label>
               <Input value={formData.mileage} onChange={e => handleFieldChange('mileage', e.target.value)} type="number" placeholder="35000" min="0" />
+            </div>
+            <div>
+              <label className="mb-3 block text-xs font-medium text-text-secondary uppercase tracking-wider">Características</label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_CHARACTERISTICS.map(char => {
+                  const isSelected = formData.characteristics.includes(char)
+                  return (
+                    <button
+                      key={char}
+                      type="button"
+                      onClick={() => toggleCharacteristic(char)}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20'
+                          : 'bg-surface-2 text-text-secondary hover:bg-surface-3 border border-white/5'
+                      }`}
+                    >
+                      {getCharacteristicLabel(char)}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Descripción</label>

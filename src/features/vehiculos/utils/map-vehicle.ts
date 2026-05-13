@@ -1,7 +1,10 @@
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import type { Vehiculo } from '../types'
+import { getCharacteristicLabel } from './characteristics'
 
 export function fromApiToVehiculo(v: GetVehicleResponse): Vehiculo {
+  const characteristics = v.characteristics ?? []
+
   return {
     id:           v.id,
     rentadorId:   v.ownerId,
@@ -13,7 +16,8 @@ export function fromApiToVehiculo(v: GetVehicleResponse): Vehiculo {
     asientos:     v.passengers,
     combustible:  'nafta',
     descripcion:  v.description ?? '',
-    tags:         [],
+    tags:         characteristics.map(getCharacteristicLabel),
+    characteristics,
     tarifa:       { daily: v.basePrice },
     fotos:        v.photos.map((url, i) => ({ id: String(i), url, order: i })),
     disponible:   v.enabled,
