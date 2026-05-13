@@ -15,8 +15,8 @@ importers:
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@rocket-lease/contracts':
-        specifier: ^0.3.0
-        version: 0.3.0(zod@3.25.76)
+        specifier: ^0.4.0
+        version: 0.4.0(zod@3.25.76)
       '@supabase/supabase-js':
         specifier: ^2.105.4
         version: 2.105.4
@@ -959,8 +959,8 @@ packages:
       react: '>= 16.8'
       react-dom: '>= 16.8'
 
-  '@rocket-lease/contracts@0.3.0':
-    resolution: {integrity: sha512-nV4lK16BIaApj0ehhKO4dKTzlYhlMhXp8h1/g4viBtBccAQLSrDj8Y1wdbMBoJ/hl8o7vtVefdKBZeEDuvnOOw==}
+  '@rocket-lease/contracts@0.4.0':
+    resolution: {integrity: sha512-vfDmoec7Idm+JDRRAlPfae7djM90QLsuoZKas8uy1f0laK6WxxAYq4sQzblRUQE5W8R58q2z/X9Sgnmr6lEzgQ==}
     peerDependencies:
       zod: ^3.23.8
 
@@ -3430,8 +3430,8 @@ packages:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
     engines: {node: '>=8'}
 
-  ws@8.20.0:
-    resolution: {integrity: sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA==}
+  ws@8.20.1:
+    resolution: {integrity: sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -4376,7 +4376,7 @@ snapshots:
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
 
-  '@rocket-lease/contracts@0.3.0(zod@3.25.76)':
+  '@rocket-lease/contracts@0.4.0(zod@3.25.76)':
     dependencies:
       zod: 3.25.76
 
@@ -5880,7 +5880,7 @@ snapshots:
       whatwg-encoding: 3.1.1
       whatwg-mimetype: 4.0.0
       whatwg-url: 14.2.0
-      ws: 8.20.0
+      ws: 8.20.1
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -6927,7 +6927,7 @@ snapshots:
       string-width: 4.2.3
       strip-ansi: 6.0.1
 
-  ws@8.20.0: {}
+  ws@8.20.1: {}
 
   xml-name-validator@5.0.0: {}
 
