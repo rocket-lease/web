@@ -1,6 +1,7 @@
-import React, { createContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useRef, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
 import { authApi } from '../api/auth.api'
 import type { UserRole } from '../types'
 
@@ -46,16 +47,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     await authApi.signOut()
+    queryClient.clear()
   }
+
+  const prevUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setUser(data.session?.user ?? null)
+      prevUserIdRef.current = data.session?.user?.id ?? null
       setIsLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const nextUserId = session?.user?.id ?? null
+      if (event === 'SIGNED_OUT' || prevUserIdRef.current !== nextUserId) {
+        queryClient.clear()
+      }
+      prevUserIdRef.current = nextUserId
       setSession(session)
       setUser(session?.user ?? null)
       setIsLoading(false)
