@@ -3,6 +3,8 @@ import type {
   CreateVehicleRequest,
   CreateVehicleResponse,
   GetVehicleResponse,
+  SearchVehiclesQuery,
+  SearchVehiclesResponse,
 } from '@rocket-lease/contracts'
 import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
 
@@ -13,6 +15,13 @@ export const vehiclesApi = {
 
   async getAll(): Promise<GetVehicleResponse[]> {
     return httpClient.get<GetVehicleResponse[]>('/vehicle')
+  },
+
+  async search(params: SearchVehiclesQuery): Promise<SearchVehiclesResponse> {
+    const searchParams = new URLSearchParams({ city: params.city })
+    if (params.startDate) searchParams.set('startDate', params.startDate)
+    if (params.endDate) searchParams.set('endDate', params.endDate)
+    return httpClient.get<SearchVehiclesResponse>(`/vehicle/search?${searchParams.toString()}`)
   },
 
   async getMyVehicles(): Promise<GetVehicleResponse[]> {

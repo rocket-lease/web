@@ -106,6 +106,10 @@ export const es = {
   'buscar.filter.accessible':    'Solo vehículos accesibles',
   'buscar.filter.clearAll':      'Limpiar todo',
   'buscar.filter.applyFilters':  'Aplicar',
+  'buscar.ciudad':               'Ciudad',
+  'buscar.fechaDesde':           'Desde',
+  'buscar.fechaHasta':           'Hasta',
+  'buscar.cargando':             'Buscando vehículos...',
 
   // ─── Vehículo ───
   'vehiculo.reservar': 'Reservar',

@@ -1,11 +1,17 @@
-import { MagnifyingGlass, SlidersHorizontal } from '@phosphor-icons/react'
+import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { VehiculoCard } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
+import { DateRangePicker } from './DateRangePicker'
 import { t } from '@/i18n/es'
 import type { Vehiculo, VehiculoFilters, SortCriteria } from '../types'
-import { MOCK_VEHICULOS } from '../data/mock-vehiculos'
+import { fromApiToVehiculo } from '../utils/map-vehicle'
+import { useSearchVehiculos } from '../hooks/useSearchVehiculos'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+
+const DEFAULT_CITY = 'Buenos Aires'
+
+const CITIES = ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'La Plata', 'Mar del Plata']
 
 function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[] {
   return vehicles.filter(v => {
@@ -34,6 +40,10 @@ function applySort(vehicles: Vehiculo[], sort: SortCriteria): Vehiculo[] {
 }
 
 export function BuscarPage() {
+  const [city,       setCity]       = useState(DEFAULT_CITY)
+  const [cityOpen,   setCityOpen]   = useState(false)
+  const [startDate,  setStartDate]  = useState<string | undefined>()
+  const [endDate,    setEndDate]    = useState<string | undefined>()
   const [filters,    setFilters]    = useState<VehiculoFilters>({})
   const [sortBy,     setSortBy]     = useState<SortCriteria>('price_asc')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -51,6 +61,13 @@ export function BuscarPage() {
     hasAppliedPreferences.current = true
   }, [profile])
 
+  const { data, isLoading } = useSearchVehiculos({ city, startDate, endDate })
+
+  const apiVehiculos = useMemo(
+    () => (data?.vehicles ?? []).map(fromApiToVehiculo),
+    [data]
+  )
+
   const activeFiltersCount = useMemo(() =>
     Object.entries(filters)
       .filter(([k, v]) => k !== 'query' && v != null && v !== '')
@@ -59,9 +76,9 @@ export function BuscarPage() {
   )
 
   const displayVehiculos = useMemo(() => {
-    const filtered = applyFilters(MOCK_VEHICULOS, filters)
+    const filtered = applyFilters(apiVehiculos, filters)
     return applySort(filtered, sortBy)
-  }, [filters, sortBy])
+  }, [apiVehiculos, filters, sortBy])
 
   const handleApply = (newFilters: VehiculoFilters, newSort: SortCriteria) => {
     setFilters(newFilters)
@@ -69,12 +86,32 @@ export function BuscarPage() {
   }
 
   return (
-    <div className="flex flex-col">
-      {/* Search bar — sticky */}
-      <div className="sticky top-14 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
 
-          {/* Search input */}
+    <div className="flex flex-col">
+      {/* Header sticky */}
+      <div className="sticky top-14 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5 space-y-3">
+
+        {/* Fila ciudad + fechas */}
+        <div className="flex items-center gap-2">
+          {/* Botón ciudad */}
+          <button
+            onClick={() => setCityOpen(true)}
+            className="flex items-center gap-1.5 rounded-full bg-surface-1 border border-white/8 px-3 h-10 text-sm font-medium text-text-primary shrink-0 hover:border-brand-500/40 transition-colors"
+          >
+            <MapPin size={14} weight="fill" className="text-client" />
+            <span>{city}</span>
+          </button>
+
+          {/* Date range picker */}
+          <DateRangePicker
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(from, to) => { setStartDate(from); setEndDate(to) }}
+          />
+        </div>
+
+        {/* Fila búsqueda + filtros */}
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
               <MagnifyingGlass size={16} weight="regular" />
@@ -88,7 +125,6 @@ export function BuscarPage() {
             />
           </div>
 
-          {/* Filter button — al costado del input */}
           <button
             onClick={() => setFilterOpen(true)}
             className="relative shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-surface-1 border border-white/8 text-text-secondary hover:text-text-primary hover:border-brand-500/40 transition-colors"
@@ -104,43 +140,79 @@ export function BuscarPage() {
         </div>
       </div>
 
-      {/* Results */}
+      {/* Resultados */}
       <div className="px-4 pt-4 pb-2">
-        <p className="text-xs text-text-muted mb-4">
-          <span className="font-semibold text-text-primary">{displayVehiculos.length}</span>{' '}
-          {t('buscar.results')}
-          {activeFiltersCount > 0 && (
-            <button
-              onClick={() => { setFilters({}); setSortBy('price_asc') }}
-              className="ml-2 text-client font-semibold"
-            >
-              · {t('buscar.filter.clearAll')}
-            </button>
-          )}
-        </p>
-
-        {displayVehiculos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-            <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
-            <div>
-              <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-              <p className="text-xs text-text-muted mt-1">{t('buscar.noResultsHint')}</p>
-            </div>
-            <button
-              onClick={() => { setFilters({}); setSortBy('price_asc') }}
-              className="text-xs font-semibold text-text-primary"
-            >
-              {t('buscar.filter.clearAll')}
-            </button>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+            <p className="text-sm text-text-muted">{t('buscar.cargando')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {displayVehiculos.map(v => (
-              <VehiculoCard key={v.id} vehiculo={v} />
-            ))}
-          </div>
+          <>
+            <p className="text-xs text-text-muted mb-4">
+              <span className="font-semibold text-text-primary">{displayVehiculos.length}</span>{' '}
+              {t('buscar.results')}
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={() => { setFilters({}); setSortBy('price_asc') }}
+                  className="ml-2 text-client font-semibold"
+                >
+                  · {t('buscar.filter.clearAll')}
+                </button>
+              )}
+            </p>
+
+            {displayVehiculos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+                <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
+                <div>
+                  <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
+                  <p className="text-xs text-text-muted mt-1">{t('buscar.noResultsHint')}</p>
+                </div>
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={() => { setFilters({}); setSortBy('price_asc') }}
+                    className="text-xs font-semibold text-text-primary"
+                  >
+                    {t('buscar.filter.clearAll')}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {displayVehiculos.map(v => (
+                  <VehiculoCard key={v.id} vehiculo={v} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* Sheet selector de ciudad */}
+      {cityOpen && (
+        <div className="fixed inset-0 z-50 flex items-end" onClick={() => setCityOpen(false)}>
+          <div
+            className="w-full rounded-t-2xl bg-surface-1 border-t border-white/8 p-6 space-y-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-text-primary mb-4">{t('buscar.ciudad')}</p>
+            {CITIES.map(c => (
+              <button
+                key={c}
+                onClick={() => { setCity(c); setCityOpen(false) }}
+                className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                  c === city
+                    ? 'bg-client/15 text-client font-semibold'
+                    : 'text-text-secondary hover:bg-surface-2'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <FilterSheet
         open={filterOpen}
