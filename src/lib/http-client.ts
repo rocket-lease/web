@@ -34,11 +34,20 @@ export const httpClient = {
     return handleResponse<T>(res)
   },
 
-  async delete(path: string): Promise<void> {
+  async patch<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify(body),
+    })
+    return handleResponse<T>(res)
+  },
+
+  async delete<T = void>(path: string): Promise<T> {
     const res = await fetch(`${API_URL}${path}`, {
       method: 'DELETE',
       headers: { ...(await authHeaders()) },
     })
-    return handleResponse<void>(res)
+    return handleResponse<T>(res)
   },
 }

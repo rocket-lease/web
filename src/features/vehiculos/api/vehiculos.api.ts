@@ -4,7 +4,11 @@ import type {
   CreateVehicleResponse,
   GetVehicleResponse,
 } from '@rocket-lease/contracts'
+
+export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
 import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
+
+const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
 
 export const vehiclesApi = {
   async publishVehicle(data: CreateVehicleRequest): Promise<CreateVehicleResponse> {
@@ -15,12 +19,21 @@ export const vehiclesApi = {
     return httpClient.get<GetVehicleResponse[]>('/vehicle')
   },
 
-  async getMyVehicles(): Promise<GetVehicleResponse[]> {
-    const res = await apiClient.get<unknown>('/vehicle/mine')
-    const parseVehicle = GetVehicleResponseSchema as unknown as {
-      parse(input: unknown): GetVehicleResponse
-    }
+  async getVehicleById(vehicleId: string): Promise<GetVehicleResponse> {
+    const res = await httpClient.get<unknown>(`/vehicle/${vehicleId}`)
+    return parseVehicle(res)
+  },
 
-    return (res as unknown[]).map(item => parseVehicle.parse(item))
+  async getMyVehicles(): Promise<GetVehicleResponse[]> {
+    const res = await httpClient.get<unknown>('/vehicle/mine')
+    return (res as unknown[]).map(parseVehicle)
+  },
+
+  async updateVehicle(vehicleId: string, data: UpdateVehicleRequest): Promise<void> {
+    await httpClient.patch<void>(`/vehicle/${vehicleId}`, data)
+  },
+
+  async deleteVehicle(vehicleId: string): Promise<void> {
+    await httpClient.delete<void>(`/vehicle/${vehicleId}`)
   },
 }

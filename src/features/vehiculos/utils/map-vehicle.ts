@@ -15,7 +15,7 @@ export function fromApiToVehiculo(v: GetVehicleResponse): Vehiculo {
     descripcion:  v.description ?? '',
     tags:         [],
     tarifa:       { daily: v.basePrice },
-    fotos:        v.photos.map((url, i) => ({ id: String(i), url, order: i })),
+    fotos:        (v.photos as string[]).map((url: string, i: number) => ({ id: String(i), url, order: i })),
     disponible:   v.enabled,
     rating:       0,
     reviewCount:  0,
