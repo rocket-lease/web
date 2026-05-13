@@ -47,19 +47,16 @@ export interface Vehiculo {
 }
 
 export interface VehiculoFilters {
-  query?:          string
-  transmission?:   Transmission | null
-  minPrice?:       number | null
-  maxPrice?:       number | null
-  minSeats?:       number | null
-  minTrunkLiters?: number | null
-  minYear?:        number | null
-  maxYear?:        number | null
-  model?:          string
-  isAccessible?:   boolean | null
+  query?:        string
+  transmission?: Transmission | null
+  minPrice?:     number | null
+  maxPrice?:     number | null
+  minSeats?:     number | null
+  minYear?:      number | null
+  maxYear?:      number | null
   // US-18 los usará para filtrar en el servidor
-  fechaDesde?:     string
-  fechaHasta?:     string
+  fechaDesde?:   string
+  fechaHasta?:   string
 }
 
-export type SortCriteria = 'price_asc' | 'price_desc' | 'rating' | 'distance'
+export type SortCriteria = 'price_asc' | 'price_desc' | 'rating'

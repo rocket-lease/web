@@ -6,11 +6,11 @@ import { SortBar } from './SortBar'
 import type { VehiculoFilters, SortCriteria } from '../types'
 
 interface FilterSheetProps {
-  open:         boolean
-  filters:      VehiculoFilters
-  sortBy:       SortCriteria
-  onClose:      () => void
-  onApply:      (filters: VehiculoFilters, sort: SortCriteria) => void
+  open:    boolean
+  filters: VehiculoFilters
+  sortBy:  SortCriteria
+  onClose: () => void
+  onApply: (filters: VehiculoFilters, sort: SortCriteria) => void
 }
 
 const SEAT_OPTIONS = [2, 4, 5, 7]
@@ -18,6 +18,7 @@ const TRANSMISSION_OPTIONS = [
   { value: 'automatic' as const, label: t('buscar.filter.transmission.automatic') },
   { value: 'manual'    as const, label: t('buscar.filter.transmission.manual') },
 ]
+const CURRENT_YEAR = new Date().getFullYear()
 
 export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterSheetProps) {
   const [localFilters, setLocalFilters] = useState<VehiculoFilters>(filters)
@@ -50,17 +51,21 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
           <span className="font-semibold text-text-primary">{t('buscar.filter.title')}</span>
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+          <button
+            onClick={onClose}
+            aria-label={t('general.close')}
+            className="text-text-muted hover:text-text-primary transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
 
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
 
-          {/* Ordenar por — al tope, como ML */}
+          {/* Ordenar por */}
           <section>
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-              Ordenar por
+              {t('buscar.filter.sortBy')}
             </p>
             <SortBar value={localSort} onChange={setLocalSort} />
           </section>
@@ -138,29 +143,16 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
             </div>
           </section>
 
-          {/* Baúl */}
-          <section>
-            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-              {t('buscar.filter.trunk')}
-            </p>
-            <input
-              type="number" min={0} placeholder="0 litros"
-              value={localFilters.minTrunkLiters ?? ''}
-              onChange={e => set('minTrunkLiters', e.target.value ? Number(e.target.value) : null)}
-              className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
-            />
-          </section>
-
           {/* Año */}
           <section>
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
-              Año
+              {t('buscar.filter.year')}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.yearFrom')}</label>
                 <input
-                  type="number" min={1990} max={2026} placeholder="2015"
+                  type="number" min={1990} max={CURRENT_YEAR} placeholder="2015"
                   value={localFilters.minYear ?? ''}
                   onChange={e => set('minYear', e.target.value ? Number(e.target.value) : null)}
                   className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
@@ -169,34 +161,13 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
               <div>
                 <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.yearTo')}</label>
                 <input
-                  type="number" min={1990} max={2026} placeholder="2026"
+                  type="number" min={1990} max={CURRENT_YEAR} placeholder={String(CURRENT_YEAR)}
                   value={localFilters.maxYear ?? ''}
                   onChange={e => set('maxYear', e.target.value ? Number(e.target.value) : null)}
                   className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
                 />
               </div>
             </div>
-          </section>
-
-          {/* Accesibilidad */}
-          <section>
-            <button
-              onClick={() => set('isAccessible', localFilters.isAccessible ? null : true)}
-              className={cn(
-                'flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all',
-                localFilters.isAccessible
-                  ? 'bg-client/10 border-client/40 text-client'
-                  : 'bg-surface-1 border-white/10 text-text-secondary',
-              )}
-            >
-              <span className="text-sm font-medium">{t('buscar.filter.accessible')}</span>
-              <div className={cn(
-                'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
-                localFilters.isAccessible ? 'border-client bg-client' : 'border-white/20',
-              )}>
-                {localFilters.isAccessible && <div className="w-2 h-2 rounded-full bg-white" />}
-              </div>
-            </button>
           </section>
 
         </div>

@@ -1,4 +1,3 @@
-import { apiClient } from '@/lib/api-client'
 import { httpClient } from '@/lib/http-client'
 import type {
   CreateVehicleRequest,
@@ -8,8 +7,7 @@ import type {
 
 export const vehiclesApi = {
   async publishVehicle(data: CreateVehicleRequest): Promise<CreateVehicleResponse> {
-    const res = await apiClient.post<CreateVehicleResponse>('/vehicle', data)
-    return res
+    return httpClient.post<CreateVehicleResponse>('/vehicle', data)
   },
 
   async getAll(): Promise<GetVehicleResponse[]> {

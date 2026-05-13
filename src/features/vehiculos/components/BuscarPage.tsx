@@ -16,10 +16,9 @@ function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[
     if (filters.transmission && v.transmission !== filters.transmission) return false
     if (filters.minPrice != null && v.tarifa.daily < filters.minPrice)   return false
     if (filters.maxPrice != null && v.tarifa.daily > filters.maxPrice)   return false
-    if (filters.minSeats != null && v.asientos < filters.minSeats)       return false
-    if (filters.minYear  != null && v.anio < filters.minYear)            return false
-    if (filters.maxYear  != null && v.anio > filters.maxYear)            return false
-    if (filters.isAccessible != null && v.disponible !== filters.isAccessible) return false
+    if (filters.minSeats != null && v.asientos < filters.minSeats) return false
+    if (filters.minYear  != null && v.anio < filters.minYear)     return false
+    if (filters.maxYear  != null && v.anio > filters.maxYear)     return false
     return true
   })
 }
@@ -82,7 +81,7 @@ export function BuscarPage() {
             </div>
             <input
               type="search"
-              placeholder="Marca, modelo..."
+              placeholder={t('buscar.placeholder.search')}
               value={filters.query ?? ''}
               onChange={e => setFilters(f => ({ ...f, query: e.target.value }))}
               className="w-full h-12 rounded-full bg-surface-1 border border-white/8 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15 transition-colors"

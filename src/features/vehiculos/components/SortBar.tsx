@@ -6,7 +6,6 @@ const SORT_OPTIONS: { key: SortCriteria; label: string }[] = [
   { key: 'price_asc',  label: t('buscar.sort.priceAsc') },
   { key: 'price_desc', label: t('buscar.sort.priceDesc') },
   { key: 'rating',     label: t('buscar.sort.rating') },
-  { key: 'distance',   label: t('buscar.sort.distance') },
 ]
 
 interface SortBarProps {
