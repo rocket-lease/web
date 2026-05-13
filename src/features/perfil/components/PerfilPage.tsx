@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
-  UserCheck,
   LogOut,
   Bell,
   ChevronRight,
@@ -14,19 +13,21 @@ import {
   Pencil,
   X,
   Trash2,
+  UserCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract'
 import { Avatar } from '@/ui/avatar'
-import { Button } from '@/ui/button'
 import { Badge } from '@/ui/badge'
+import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { authApi } from '@/features/auth/api/auth.api'
+import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
+import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -48,8 +49,8 @@ interface PerfilPageProps {
 }
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
-  const { user } = useAuth()
   const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const {
     data: profile,
     isLoading,
@@ -59,6 +60,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     uploadAvatar,
     isUploadingAvatar,
   } = useMyProfile(profileId)
+  const { status: verificationStatus, loading: verificationLoading } = useVerificationStatus()
+  const isFullyVerified = !!verificationStatus?.email && !!verificationStatus?.phone
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -208,14 +211,18 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
 
-        {/* Verification */}
-        <Badge variant={profile.verificationStatus === 'verified' ? 'success' : 'warning'}>
-          <UserCheck className="h-3 w-3" />
-          {profile.verificationStatus === 'verified' ? t('perfil.verified') : t('perfil.pendingVerification')}
-        </Badge>
+        {!verificationLoading && (
+          <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+            <UserCheck className="h-3 w-3" />
+            {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+          </Badge>
+        )}
+
       </div>
 
       <Separator />
+
+      {canEdit && <VerificationStatusSection />}
 
       <div className="px-4 mt-5 space-y-4">
         {canEdit && !isEditing && (
@@ -334,8 +341,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             variant="ghost"
             className="w-full text-text-secondary hover:bg-surface-2"
             onClick={async () => {
-              await authApi.signOut()
-              navigate({ to: '/' })
+              await signOut()
+              navigate({ to: '/login' })
             }}
           >
             <LogOut className="h-4 w-4" />

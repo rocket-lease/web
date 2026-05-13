@@ -5,6 +5,7 @@ import type {
   LoginUserResponse,
   RegisterUserRequest,
   RegisterUserResponse,
+  VerificationStatusResponse,
 } from '../types'
 
 const TOKEN_KEY = 'rocket_lease:access_token'
@@ -56,5 +57,21 @@ export const authApi = {
   async deleteAccount(): Promise<void> {
     await apiClient.delete('/profile/me')
     await this.signOut()
+  },
+
+  async resendEmailOtp(email: string): Promise<void> {
+    await apiClient.post('/verifications/email/resend', { email })
+  },
+
+  async verifyEmailOtp(email: string, token: string): Promise<void> {
+    await apiClient.post('/verifications/email/verify', { email, token })
+  },
+
+  async verifyPhoneOtp(token: string): Promise<void> {
+    await apiClient.post('/verifications/phone/verify', { token })
+  },
+
+  async getVerificationStatus(): Promise<VerificationStatusResponse> {
+    return apiClient.get<VerificationStatusResponse>('/verifications/status')
   },
 }

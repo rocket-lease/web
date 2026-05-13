@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react'
 import { BottomNav } from '@/features/layout/components/BottomNav'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { VerificationBanner } from '@/features/auth/components/VerificationBanner'
 import { t } from '@/i18n/es'
 
 export const Route = createFileRoute('/_app')({
@@ -60,6 +61,8 @@ function AppLayout() {
           {roleLabel}
         </span>
       </header>
+
+      <VerificationBanner />
 
       <main className="flex-1 pb-24">
         <Outlet />
