@@ -301,15 +301,6 @@ export const es = {  // --- App ---
   'general.retry': 'Reintentar',
   'general.cancel': 'Cancelar',
   'general.confirm': 'Confirmar',
-  'general.yes': 'Si',
- 'error.validation': 'Revisá los campos del formulario.',
-  'error.default': 'Algo salió mal. Intentá de nuevo.',
-
-  // ─── Generales ───
-  'general.loading': 'Cargando...',
-  'general.retry': 'Reintentar',
-  'general.cancel': 'Cancelar',
-  'general.confirm': 'Confirmar',
   'general.yes': 'Sí',
   'general.no': 'No',
   'general.save': 'Guardar',

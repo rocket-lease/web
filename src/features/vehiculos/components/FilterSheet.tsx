@@ -4,6 +4,7 @@ import { t } from '@/i18n/es'
 import { cn } from '@/lib/utils'
 import { SortBar } from './SortBar'
 import type { VehiculoFilters, SortCriteria } from '../types'
+import type { Characteristic } from '@rocket-lease/contracts'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '../utils/characteristics'
 
 interface FilterSheetProps {
@@ -28,7 +29,7 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
   const set = <K extends keyof VehiculoFilters>(key: K, value: VehiculoFilters[K]) =>
     setLocalFilters(f => ({ ...f, [key]: value }))
 
-  const toggleCharacteristic = (char: string) => {
+  const toggleCharacteristic = (char: Characteristic) => {
     const current = localFilters.characteristics ?? []
     const next = current.includes(char)
       ? current.filter(c => c !== char)

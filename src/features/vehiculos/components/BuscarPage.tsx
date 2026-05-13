@@ -22,10 +22,6 @@ function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[
     if (filters.minSeats != null && v.asientos < filters.minSeats) return false
     if (filters.minYear  != null && v.anio < filters.minYear)     return false
     if (filters.maxYear  != null && v.anio > filters.maxYear)     return false
-    if (filters.characteristics?.length) {
-      const hasAll = filters.characteristics.every((item) => v.characteristics.includes(item))
-      if (!hasAll) return false
-    }
     return true
   })
 }
