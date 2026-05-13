@@ -5,6 +5,9 @@ import { favoritosApi } from '../api/favoritos.api'
 import { createWrapper } from '@/test/query-wrapper'
 
 vi.mock('../api/favoritos.api')
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: 'test-user' }, session: null, activeRole: 'conductor', isLoading: false }),
+}))
 
 const mockApi = vi.mocked(favoritosApi)
 
