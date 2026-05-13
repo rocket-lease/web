@@ -4,7 +4,6 @@ import {
   LogOut,
   Bell,
   ChevronRight,
-  Shield,
   Star,
   Award,
   Settings,
@@ -362,7 +361,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
         {[
           { icon: Bell, label: t('perfil.notifications') },
-          { icon: Shield, label: t('perfil.verification') },
           { icon: Settings, label: 'Configuración' },
         ].map(item => (
           <button

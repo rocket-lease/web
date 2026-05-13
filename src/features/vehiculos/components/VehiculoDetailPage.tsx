@@ -1,6 +1,6 @@
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck, AlertTriangle, MessageSquare } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -12,9 +12,12 @@ import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { getCharacteristicLabel } from '../utils/characteristics'
 
+const SWIPE_THRESHOLD_PX = 40
+
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
   const [photoIndex, setPhotoIndex] = useState(0)
+  const touchStartX = useRef<number | null>(null)
 
   const { data: vehicle, isLoading, isError } = useQuery({
     queryKey: ['vehicle', id],
@@ -48,16 +51,35 @@ export function VehiculoDetailPage() {
   const photos = vehicle.photos.length > 0 ? vehicle.photos : ['/placeholder-car.jpg']
   const currentPhoto = photos[Math.min(photoIndex, photos.length - 1)]
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || photos.length < 2) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return
+    setPhotoIndex((i) => {
+      if (dx < 0) return Math.min(i + 1, photos.length - 1)
+      return Math.max(i - 1, 0)
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-full">
       <PageHeader title="Detalle del vehículo" showBack />
 
       {/* Galería */}
-      <div className="aspect-[4/3] bg-surface-2 relative overflow-hidden">
+      <div
+        className="aspect-[4/3] bg-surface-2 relative overflow-hidden touch-pan-y select-none"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <img
           src={currentPhoto}
           alt={`${vehicle.brand} ${vehicle.model}`}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover pointer-events-none"
+          draggable={false}
         />
         {vehicle.isAccessible && (
           <div className="absolute left-3 bottom-3">
