@@ -4,11 +4,11 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { FavoritoItem } from '../types'
 
 export function useFavoritos() {
-  const { user } = useAuth()
+  const { isAuthenticated } = useAuth()
   return useQuery<FavoritoItem[]>({
     queryKey: ['favoritos', 'list'],
     queryFn: favoritosApi.list,
-    enabled: !!user,
+    enabled: isAuthenticated,
   })
 }
 
