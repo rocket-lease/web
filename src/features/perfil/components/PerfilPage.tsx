@@ -69,18 +69,19 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   const [transmission, setTransmission] = useState<'automatic' | 'manual' | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [syncedProfileId, setSyncedProfileId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  useEffect(() => {
-    if (!profile) return
+  // Reset form state when the profile identity changes (React's "adjusting state during render" idiom).
+  if (profile && profile.id !== syncedProfileId) {
+    setSyncedProfileId(profile.id)
     setName(profile.name)
     setPhone(profile.phone)
     setMaxPriceDaily(profile.preferences.maxPriceDaily?.toString() ?? '')
     setAccessibilityCsv(profile.preferences.accessibility.join(', '))
     setTransmission(profile.preferences.transmission)
-  }, [profile])
+  }
 
   const reviewCount = useMemo(() => {
     if (!profile) return 0
@@ -88,19 +89,18 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   }, [profile])
 
   const canEdit = isOwnProfile || user?.id === profile?.id
-  const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
+
+  const avatarPreviewUrl = useMemo(
+    () => (selectedAvatarFile ? URL.createObjectURL(selectedAvatarFile) : null),
+    [selectedAvatarFile],
+  )
 
   useEffect(() => {
-    if (!selectedAvatarFile) {
-      setAvatarPreviewUrl(null)
-      return
-    }
+    if (!avatarPreviewUrl) return
+    return () => URL.revokeObjectURL(avatarPreviewUrl)
+  }, [avatarPreviewUrl])
 
-    const objectUrl = URL.createObjectURL(selectedAvatarFile)
-    setAvatarPreviewUrl(objectUrl)
-
-    return () => URL.revokeObjectURL(objectUrl)
-  }, [selectedAvatarFile])
+  const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
 
   const handleSave = async () => {
     if (!profile) return
@@ -133,7 +133,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     try {
       await uploadAvatar(selectedAvatarFile)
       setSelectedAvatarFile(null)
-      setAvatarPreviewUrl(null)
       toast.success(t('perfil.saveSuccess'))
     } catch {
       toast.error(t('error.default'))
