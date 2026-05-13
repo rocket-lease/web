@@ -10,8 +10,16 @@ async function authHeaders(): Promise<Record<string, string>> {
   return { Authorization: `Bearer ${token}` }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
+async function forceLogout() {
+  await supabase.auth.signOut()
+  localStorage.removeItem('rocket_lease:access_token')
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+async function doFetch(path: string, init?: RequestInit) {
+  return fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -19,6 +27,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   })
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  let res = await doFetch(path, init)
+
+  if (res.status === 401) {
+    const { data, error } = await supabase.auth.refreshSession()
+    if (error || !data.session) {
+      await forceLogout()
+      const body = await res.json().catch(() => ({}))
+      throw body as ProblemDetails
+    }
+    res = await doFetch(path, init)
+    if (res.status === 401) {
+      await forceLogout()
+    }
+  }
 
   const body = await res.json().catch(() => ({}))
 
