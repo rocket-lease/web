@@ -6,7 +6,7 @@ import type { FavoritoItem } from '../types'
 
 export function useToggleFavorito() {
   const queryClient = useQueryClient()
-  const { user, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const addMutation = useMutation({
@@ -51,7 +51,7 @@ export function useToggleFavorito() {
   })
 
   const toggle = (vehicleId: string, isFavorito: boolean) => {
-    if (!authLoading && !user) {
+    if (!authLoading && !isAuthenticated) {
       navigate({ to: '/login', search: { hint: 'favoritos' } })
       return
     }

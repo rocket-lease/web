@@ -31,7 +31,7 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             className="h-full w-full object-cover"
             loading="lazy"
           />
-          <div className="absolute right-2 top-2">
+          <div className="absolute right-0 top-0">
             <FavoritoButton vehicleId={vehiculo.id} />
           </div>
           {vehiculo.isAccessible && (

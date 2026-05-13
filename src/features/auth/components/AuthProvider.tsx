@@ -12,6 +12,7 @@ interface AuthContextValue {
   activeRole: UserRole
   setActiveRole: (role: UserRole) => void
   isLoading: boolean
+  isAuthenticated: boolean
   signOut: () => Promise<void>
 }
 
@@ -21,6 +22,7 @@ export const AuthContext = createContext<AuthContextValue>({
   activeRole: 'conductor',
   setActiveRole: () => {},
   isLoading: true,
+  isAuthenticated: false,
   signOut: async () => {},
 })
 
@@ -62,8 +64,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  const hasToken = Boolean(localStorage.getItem('rocket_lease:access_token'))
+  const isAuthenticated = !!user || hasToken
+
   return (
-    <AuthContext.Provider value={{ user, session, activeRole, setActiveRole, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, session, activeRole, setActiveRole, isLoading, isAuthenticated, signOut }}>
       {children}
     </AuthContext.Provider>
   )

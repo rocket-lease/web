@@ -11,6 +11,7 @@ import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { getCharacteristicLabel } from '../utils/characteristics'
+import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 
 const SWIPE_THRESHOLD_PX = 40
 
@@ -81,6 +82,9 @@ export function VehiculoDetailPage() {
           className="h-full w-full object-cover pointer-events-none"
           draggable={false}
         />
+        <div className="absolute right-0 top-0">
+          <FavoritoButton vehicleId={vehicle.id} />
+        </div>
         {vehicle.isAccessible && (
           <div className="absolute left-3 bottom-3">
             <Badge variant="secondary">Accesible</Badge>
