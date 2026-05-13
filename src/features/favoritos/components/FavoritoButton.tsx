@@ -10,7 +10,7 @@ interface FavoritoButtonProps {
 
 export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
   const favIds = useFavoritoIds()
-  const { toggle, isLoading } = useToggleFavorito()
+  const { toggle } = useToggleFavorito()
   const isFavorito = favIds.has(vehicleId)
 
   return (
@@ -18,7 +18,6 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
       type="button"
       aria-label={isFavorito ? 'Quitar de favoritos' : 'Agregar a favoritos'}
       aria-pressed={isFavorito}
-      disabled={isLoading}
       onClick={(e) => {
         e.preventDefault()
         e.stopPropagation()
@@ -27,7 +26,6 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
       className={cn(
         'group flex h-12 w-12 items-center justify-center transition-all duration-150',
         'active:opacity-80',
-        isLoading && 'opacity-60 pointer-events-none',
         className,
       )}
     >

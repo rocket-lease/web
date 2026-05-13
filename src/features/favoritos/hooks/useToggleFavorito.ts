@@ -11,8 +11,8 @@ export function useToggleFavorito() {
 
   const addMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.add(vehicleId),
-    onMutate: async (vehicleId) => {
-      await queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
+    onMutate: (vehicleId) => {
+      queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
       const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
 
       queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) => {
@@ -38,8 +38,8 @@ export function useToggleFavorito() {
 
   const removeMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.remove(vehicleId),
-    onMutate: async (vehicleId) => {
-      await queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
+    onMutate: (vehicleId) => {
+      queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
       const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
 
       queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) =>
