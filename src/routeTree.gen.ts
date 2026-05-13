@@ -20,6 +20,7 @@ import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 import { Route as AppNotificacionesRouteImport } from './routes/_app/notificaciones'
 import { Route as AppMisVehiculosRouteImport } from './routes/_app/mis-vehiculos'
 import { Route as AppMisReservasRouteImport } from './routes/_app/mis-reservas'
+import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppBuscarRouteImport } from './routes/_app/buscar'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
@@ -82,6 +83,11 @@ const AppMisReservasRoute = AppMisReservasRouteImport.update({
   path: '/mis-reservas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFavoritosRoute = AppFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/registro': typeof RegistroRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
+  '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/registro': typeof RegistroRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
+  '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/registro': typeof RegistroRoute
   '/_app/buscar': typeof AppBuscarRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/favoritos': typeof AppFavoritosRoute
   '/_app/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/_app/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/_app/notificaciones': typeof AppNotificacionesRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/buscar'
     | '/dashboard'
+    | '/favoritos'
     | '/mis-reservas'
     | '/mis-vehiculos'
     | '/notificaciones'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/buscar'
     | '/dashboard'
+    | '/favoritos'
     | '/mis-reservas'
     | '/mis-vehiculos'
     | '/notificaciones'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/_app/buscar'
     | '/_app/dashboard'
+    | '/_app/favoritos'
     | '/_app/mis-reservas'
     | '/_app/mis-vehiculos'
     | '/_app/notificaciones'
@@ -323,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/mis-reservas'
       fullPath: '/mis-reservas'
       preLoaderRoute: typeof AppMisReservasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/favoritos': {
+      id: '/_app/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AppFavoritosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -428,6 +447,7 @@ const AppReservasRouteWithChildren = AppReservasRoute._addFileChildren(
 interface AppRouteChildren {
   AppBuscarRoute: typeof AppBuscarRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppFavoritosRoute: typeof AppFavoritosRoute
   AppMisReservasRoute: typeof AppMisReservasRouteWithChildren
   AppMisVehiculosRoute: typeof AppMisVehiculosRouteWithChildren
   AppNotificacionesRoute: typeof AppNotificacionesRoute
@@ -440,6 +460,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBuscarRoute: AppBuscarRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppFavoritosRoute: AppFavoritosRoute,
   AppMisReservasRoute: AppMisReservasRouteWithChildren,
   AppMisVehiculosRoute: AppMisVehiculosRouteWithChildren,
   AppNotificacionesRoute: AppNotificacionesRoute,
