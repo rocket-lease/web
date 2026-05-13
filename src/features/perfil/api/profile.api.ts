@@ -8,6 +8,7 @@ import {
   type UpdateMyProfileRequest,
   type UpdateMyProfileResponse,
 } from '@/features/perfil/types/profile.contract';
+import { apiClient } from '@/lib/api-client';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000';
 
@@ -53,13 +54,8 @@ export const profileApi = {
   },
 
   async getProfileById(profileId: string): Promise<GetUserProfileResponse> {
-    return request(
-      `/profile/${profileId}`,
-      {
-        method: 'GET',
-      },
-      (input) => GetUserProfileResponseSchema.parse(input),
-    );
+    const raw = await apiClient.get<unknown>(`/profile/${profileId}`);
+    return GetUserProfileResponseSchema.parse(raw);
   },
 
   async updateMyProfile(

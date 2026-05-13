@@ -27,6 +27,8 @@ import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStat
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
+import { OwnerVehiclesSection } from './OwnerVehiclesSection'
+import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -142,7 +144,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   if (isLoading || !profile) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('perfil.title')} />
+        <PageHeader title={t('perfil.title')} showBack={!isOwnProfile} />
         <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
       </div>
     )
@@ -150,7 +152,10 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={t('perfil.title')} />
+      <PageHeader
+        title={canEdit ? t('perfil.title') : profile.name}
+        showBack={!canEdit}
+      />
 
       {/* Profile hero */}
       <div className="px-4 py-6 flex flex-col items-center text-center gap-3">
@@ -185,7 +190,9 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
         <div>
           <h2 className="text-xl font-bold text-text-primary">{profile.name}</h2>
-          <p className="text-sm text-text-muted">{profile.email}</p>
+          {canEdit && (
+            <p className="text-sm text-text-muted">{profile.email}</p>
+          )}
         </div>
         {canEdit && selectedAvatarFile && (
           <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar}>
@@ -208,21 +215,29 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
 
-        {!verificationLoading && (
-          <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+        {canEdit ? (
+          !verificationLoading && (
+            <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+              <UserCheck className="h-3 w-3" />
+              {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+            </Badge>
+          )
+        ) : profile.verificationStatus === 'verified' ? (
+          <Badge variant="success">
             <UserCheck className="h-3 w-3" />
-            {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+            {t('perfil.verified')}
           </Badge>
-        )}
+        ) : null}
 
       </div>
 
-      <Separator />
+      {canEdit && <Separator />}
 
       {canEdit && <VerificationStatusSection />}
 
+      {canEdit && (
       <div className="px-4 mt-5 space-y-4">
-        {canEdit && !isEditing && (
+        {!isEditing && (
           <div className="flex justify-center">
             <Button onClick={() => setIsEditing(true)}>
               <Pencil className="h-4 w-4" />
@@ -335,6 +350,15 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           )}
         </div>
       </div>
+      )}
+
+      {/* Vehículos publicados + reseñas del rentador (perfil ajeno) */}
+      {!canEdit && profile && (
+        <>
+          <OwnerVehiclesSection ownerId={profile.id} />
+          <OwnerReviewsSection />
+        </>
+      )}
 
       {/* Mis vehiculos shortcut */}
       {canEdit && (
@@ -354,24 +378,26 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </button>
       )}
 
-      {/* Settings menu */}
-      <div className="px-4 mt-5 space-y-1">
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
+      {/* Settings menu (solo perfil propio) */}
+      {canEdit && (
+        <div className="px-4 mt-5 space-y-1">
+          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
 
-        {[
-          { icon: Bell, label: t('perfil.notifications') },
-          { icon: Settings, label: 'Configuración' },
-        ].map(item => (
-          <button
-            key={item.label}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-left text-sm font-medium text-text-primary">{item.label}</span>
-            <ChevronRight className="h-4 w-4 text-text-muted" />
-          </button>
-        ))}
-      </div>
+          {[
+            { icon: Bell, label: t('perfil.notifications') },
+            { icon: Settings, label: 'Configuración' },
+          ].map(item => (
+            <button
+              key={item.label}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+            >
+              <item.icon className="h-5 w-5 shrink-0" />
+              <span className="flex-1 text-left text-sm font-medium text-text-primary">{item.label}</span>
+              <ChevronRight className="h-4 w-4 text-text-muted" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Logout + Delete */}
       {canEdit && (

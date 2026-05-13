@@ -1,7 +1,7 @@
-import { useParams } from '@tanstack/react-router'
+import { Link, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
-import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck, AlertTriangle, MessageSquare } from 'lucide-react'
+import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck, AlertTriangle, MessageSquare, ChevronRight } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -222,7 +222,12 @@ export function VehiculoDetailPage() {
             <Separator />
             <div>
               <p className="text-sm text-text-muted mb-3">{t('vehiculo.owner')}</p>
-              <div className="flex items-center gap-3">
+              <Link
+                to="/perfil/$id"
+                params={{ id: vehicle.owner.id }}
+                aria-label={`Ver perfil de ${vehicle.owner.name}`}
+                className="flex items-center gap-3 -mx-2 px-2 py-2 rounded-xl hover:bg-surface-2 transition-colors active:scale-[0.99]"
+              >
                 <Avatar
                   src={vehicle.owner.avatarUrl ?? undefined}
                   fallback={vehicle.owner.name.slice(0, 2).toUpperCase()}
@@ -245,7 +250,8 @@ export function VehiculoDetailPage() {
                     </Badge>
                   </div>
                 </div>
-              </div>
+                <ChevronRight className="h-4 w-4 text-text-muted shrink-0" aria-hidden="true" />
+              </Link>
             </div>
           </>
         )}

@@ -31,6 +31,12 @@ export const vehiclesApi = {
     return parseVehicles(res)
   },
 
+  async getByOwnerId(ownerId: string): Promise<GetVehicleResponse[]> {
+    const params = new URLSearchParams({ ownerId })
+    const res = await apiClient.get<unknown>(`/vehicle?${params.toString()}`)
+    return parseVehicles(res)
+  },
+
   async getById(id: string): Promise<GetVehicleResponse> {
     const res = await apiClient.get<unknown>(`/vehicle/${id}`)
     return parseVehicle(res)
