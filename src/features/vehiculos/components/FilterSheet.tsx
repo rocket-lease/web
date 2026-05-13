@@ -1,0 +1,241 @@
+import { useState } from 'react'
+import { X } from '@phosphor-icons/react'
+import { t } from '@/i18n/es'
+import { cn } from '@/lib/utils'
+import type { VehiculoFilters } from '../types'
+
+interface FilterSheetProps {
+  open:     boolean
+  filters:  VehiculoFilters
+  onClose:  () => void
+  onApply:  (filters: VehiculoFilters) => void
+}
+
+const SEAT_OPTIONS = [2, 4, 5, 7]
+const TRANSMISSION_OPTIONS = [
+  { value: 'automatic' as const, label: t('buscar.filter.transmission.automatic') },
+  { value: 'manual'    as const, label: t('buscar.filter.transmission.manual') },
+]
+
+export function FilterSheet({ open, filters, onClose, onApply }: FilterSheetProps) {
+  const [local, setLocal] = useState<VehiculoFilters>(filters)
+
+  const set = <K extends keyof VehiculoFilters>(key: K, value: VehiculoFilters[K]) =>
+    setLocal(f => ({ ...f, [key]: value }))
+
+  const handleApply = () => {
+    onApply(local)
+    onClose()
+  }
+
+  const handleClear = () => {
+    const cleared: VehiculoFilters = {}
+    setLocal(cleared)
+    onApply(cleared)
+    onClose()
+  }
+
+  if (!open) return null
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-surface-0 border-t border-white/8 max-h-[85svh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
+          <span className="font-semibold text-text-primary">{t('buscar.filter.title')}</span>
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
+
+          {/* Transmisión */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.transmission')}
+            </p>
+            <div className="flex gap-2">
+              {TRANSMISSION_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => set('transmission', local.transmission === opt.value ? null : opt.value)}
+                  className={cn(
+                    'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                    local.transmission === opt.value
+                      ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
+                      : 'bg-surface-1 text-text-secondary border-white/10',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Rango de precio */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.priceRange')}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.minPrice')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="0"
+                  value={local.minPrice ?? ''}
+                  onChange={e => set('minPrice', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.maxPrice')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="∞"
+                  value={local.maxPrice ?? ''}
+                  onChange={e => set('maxPrice', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Asientos */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.seats')}
+            </p>
+            <div className="flex gap-2">
+              {SEAT_OPTIONS.map(n => (
+                <button
+                  key={n}
+                  onClick={() => set('minSeats', local.minSeats === n ? null : n)}
+                  className={cn(
+                    'rounded-full w-10 h-10 text-sm font-medium border transition-all',
+                    local.minSeats === n
+                      ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
+                      : 'bg-surface-1 text-text-secondary border-white/10',
+                  )}
+                >
+                  {n === 7 ? '7+' : n}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Baúl */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.trunk')}
+            </p>
+            <input
+              type="number"
+              min={0}
+              placeholder="0"
+              value={local.minTrunkLiters ?? ''}
+              onChange={e => set('minTrunkLiters', e.target.value ? Number(e.target.value) : null)}
+              className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+            />
+          </section>
+
+          {/* Rango de año */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              Año
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.yearFrom')}</label>
+                <input
+                  type="number"
+                  min={1990}
+                  max={2026}
+                  placeholder="2015"
+                  value={local.minYear ?? ''}
+                  onChange={e => set('minYear', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-text-muted mb-1 block">{t('buscar.filter.yearTo')}</label>
+                <input
+                  type="number"
+                  min={1990}
+                  max={2026}
+                  placeholder="2026"
+                  value={local.maxYear ?? ''}
+                  onChange={e => set('maxYear', e.target.value ? Number(e.target.value) : null)}
+                  className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Modelo */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.model')}
+            </p>
+            <input
+              type="text"
+              placeholder="Ej: Corolla, EcoSport..."
+              value={local.model ?? ''}
+              onChange={e => set('model', e.target.value || undefined)}
+              className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+            />
+          </section>
+
+          {/* Accesibilidad */}
+          <section>
+            <button
+              onClick={() => set('isAccessible', local.isAccessible ? null : true)}
+              className={cn(
+                'flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all',
+                local.isAccessible
+                  ? 'bg-client/10 border-client/40 text-client'
+                  : 'bg-surface-1 border-white/10 text-text-secondary',
+              )}
+            >
+              <span className="text-sm font-medium">{t('buscar.filter.accessible')}</span>
+              <div className={cn(
+                'w-5 h-5 rounded-full border-2 flex items-center justify-center',
+                local.isAccessible ? 'border-client bg-client' : 'border-white/20',
+              )}>
+                {local.isAccessible && <div className="w-2 h-2 rounded-full bg-white" />}
+              </div>
+            </button>
+          </section>
+
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-4 border-t border-white/8 flex gap-3 shrink-0">
+          <button
+            onClick={handleClear}
+            className="flex-1 h-12 rounded-full border border-white/15 text-text-secondary text-sm font-semibold hover:border-white/30 transition-colors"
+          >
+            {t('buscar.filter.clearAll')}
+          </button>
+          <button
+            onClick={handleApply}
+            className="flex-1 h-12 rounded-full bg-gradient-to-br from-client to-brand-500 text-white text-sm font-semibold active:scale-95 transition-transform"
+          >
+            {t('buscar.filter.applyFilters')}
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
