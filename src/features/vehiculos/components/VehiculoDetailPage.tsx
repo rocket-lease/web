@@ -8,6 +8,7 @@ import { Badge } from '@/ui/badge'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
+import { getCharacteristicLabel } from '../utils/characteristics'
 
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
@@ -135,6 +136,20 @@ export function VehiculoDetailPage() {
             <div>
               <p className="text-sm text-text-muted mb-2">{t('vehiculo.description')}</p>
               <p className="text-sm text-text-secondary leading-relaxed">{vehicle.description}</p>
+            </div>
+          </>
+        )}
+
+        {vehicle.characteristics && vehicle.characteristics.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm text-text-muted mb-2">{t('vehiculo.features')}</p>
+              <div className="flex flex-wrap gap-2">
+                {vehicle.characteristics.map(c => (
+                  <Badge key={c} variant="secondary">{getCharacteristicLabel(c)}</Badge>
+                ))}
+              </div>
             </div>
           </>
         )}

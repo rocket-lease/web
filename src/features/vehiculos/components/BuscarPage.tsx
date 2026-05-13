@@ -22,9 +22,10 @@ export function BuscarPage() {
   const { data: profile } = useMyProfile()
   const hasAppliedPreferences = useRef(false)
 
+  const serverCharacteristics = filters.characteristics ?? []
   const { data: vehicles = [], isLoading, isError } = useQuery({
-    queryKey: ['vehicles'],
-    queryFn: () => vehiclesApi.getAll(),
+    queryKey: ['vehicles', serverCharacteristics],
+    queryFn: () => vehiclesApi.getAll(serverCharacteristics),
   })
 
   useEffect(() => {
@@ -67,11 +68,12 @@ export function BuscarPage() {
     filters.minSeats,
     filters.minYear,
     filters.maxYear,
+    filters.characteristics?.length ? filters.characteristics : null,
   ].filter(v => v != null).length
 
-  const handleApply = (newFilters: VehiculoFilters, newSort: SortCriteria) => {
+  const handleApply = (newFilters: VehiculoFilters, sort: SortCriteria) => {
     setFilters(newFilters)
-    setSortBy(newSort)
+    setSortBy(sort)
   }
 
   return (
@@ -104,7 +106,11 @@ export function BuscarPage() {
             className="relative shrink-0 flex h-12 w-12 items-center justify-center rounded-full bg-surface-1 border border-white/8 text-text-secondary hover:text-text-primary hover:border-brand-500/40 transition-colors"
             aria-label={t('buscar.filter.title')}
           >
-            <SlidersHorizontal size={18} weight={activeFiltersCount > 0 ? 'fill' : 'regular'} className={activeFiltersCount > 0 ? 'text-client' : ''} />
+            <SlidersHorizontal
+              size={18}
+              weight={activeFiltersCount > 0 ? 'fill' : 'regular'}
+              className={activeFiltersCount > 0 ? 'text-client' : ''}
+            />
             {activeFiltersCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-client text-[9px] font-bold text-white">
                 {activeFiltersCount}

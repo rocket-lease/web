@@ -1,37 +1,48 @@
 import { apiClient } from '@/lib/api-client'
 import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
 import type {
+  Characteristic,
   CreateVehicleRequest,
   CreateVehicleResponse,
-  GetVehicleResponse
+  GetVehicleResponse,
+  UpdateVehicleRequest,
 } from '@rocket-lease/contracts'
 
-export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
-
+export type { UpdateVehicleRequest }
 
 const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
+const parseVehicles = (input: unknown): GetVehicleResponse[] => GetVehicleResponseSchema.array().parse(input)
+
+const buildCharacteristicsQuery = (characteristics?: Characteristic[]) => {
+  if (!characteristics || characteristics.length === 0) return ''
+  const params = new URLSearchParams()
+  params.set('characteristics', characteristics.join(','))
+  return `?${params.toString()}`
+}
 
 export const vehiclesApi = {
   async publishVehicle(data: CreateVehicleRequest): Promise<CreateVehicleResponse> {
-    return await apiClient.post<CreateVehicleResponse>('/vehicle', data)
+    return apiClient.post<CreateVehicleResponse>('/vehicle', data)
   },
 
-  async getAll(): Promise<GetVehicleResponse[]> {
-    return await apiClient.get<GetVehicleResponse[]>('/vehicle')
+  async getAll(characteristics?: Characteristic[]): Promise<GetVehicleResponse[]> {
+    const query = buildCharacteristicsQuery(characteristics)
+    const res = await apiClient.get<unknown>(`/vehicle${query}`)
+    return parseVehicles(res)
   },
 
   async getById(id: string): Promise<GetVehicleResponse> {
-    return await apiClient.get<GetVehicleResponse>(`/vehicle/${id}`)
+    const res = await apiClient.get<unknown>(`/vehicle/${id}`)
+    return parseVehicle(res)
   },
 
   async getVehicleById(vehicleId: string): Promise<GetVehicleResponse> {
-    const res = await apiClient.get<unknown>(`/vehicle/${vehicleId}`)
-    return parseVehicle(res)
+    return this.getById(vehicleId)
   },
 
   async getMyVehicles(): Promise<GetVehicleResponse[]> {
     const res = await apiClient.get<unknown>('/vehicle/mine')
-    return (res as unknown[]).map(parseVehicle)
+    return parseVehicles(res)
   },
 
   async updateVehicle(vehicleId: string, data: UpdateVehicleRequest): Promise<void> {

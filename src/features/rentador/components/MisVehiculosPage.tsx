@@ -1,4 +1,4 @@
-import { Plus, Car } from 'lucide-react'
+import { Plus, Car, Pencil } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
@@ -7,8 +7,16 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
+const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80'
+const getVehiclePhotoUrl = (photos: unknown): string => {
+  if (Array.isArray(photos) && typeof photos[0] === 'string' && photos[0].length > 0) {
+    return photos[0]
+  }
+  return FALLBACK_PHOTO
+}
 
 export function MisVehiculosPage() {
   const vehiclesQuery = useQuery({
@@ -57,7 +65,7 @@ export function MisVehiculosPage() {
             <Link key={v.id} to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
               <article className="card flex gap-4 p-4 transition-transform duration-150 active:scale-[0.99]">
                 <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                  <img src={v.photos[0]} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
+                  <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -68,16 +76,32 @@ export function MisVehiculosPage() {
                       {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
                     </Badge>
                   </div>
-                  <p className="mt-1 text-sm font-semibold text-brand-400">
-                    {fmt.currency(v.basePrice *100)} / día 
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {fmt.currency(v.basePrice * 100)} {t('vehiculo.perDay')}
                   </p>
+                  {v.characteristics?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {v.characteristics.map((item) => (
+                        <Badge key={item} variant="secondary" className="text-[10px] px-2 py-0.5">
+                          {getCharacteristicLabel(item)}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : null}
                   {v.city || v.province ? (
-                    <p className="mt-1 text-xs text-info">
+                    <p className="mt-2 text-xs text-text-muted">
                       {v.city}
                       {v.city && v.province ? ' · ' : ''}
                       {v.province}
                     </p>
                   ) : null}
+
+                  <div className="mt-3">
+                    <Button size="sm" variant="ghost">
+                      <Pencil className="h-4 w-4" />
+                      Editar vehiculo
+                    </Button>
+                  </div>
                 </div>
               </article>
             </Link>
