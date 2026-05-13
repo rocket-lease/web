@@ -88,7 +88,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     return Math.max(0, Math.round(profile.reputationScore * 10))
   }, [profile])
 
-  const isRentador = useMemo(() => user?.user_metadata?.is_rentador === true, [user])
   const canEdit = isOwnProfile || user?.id === profile?.id
   const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
 
