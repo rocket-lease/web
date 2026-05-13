@@ -18,6 +18,8 @@ function RootLayout() {
         <Toaster
           position="top-center"
           richColors
+          offset={'calc(env(safe-area-inset-top, 0px) + 16px)'}
+          mobileOffset={'calc(env(safe-area-inset-top, 0px) + 16px)'}
           toastOptions={{
             style: {
               background: 'var(--color-surface-2)',
