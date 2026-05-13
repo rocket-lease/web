@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificarRouteImport } from './routes/verificar'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as LoginRouteImport } from './routes/login'
@@ -20,6 +21,7 @@ import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 import { Route as AppNotificacionesRouteImport } from './routes/_app/notificaciones'
 import { Route as AppMisVehiculosRouteImport } from './routes/_app/mis-vehiculos'
 import { Route as AppMisReservasRouteImport } from './routes/_app/mis-reservas'
+import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppBuscarRouteImport } from './routes/_app/buscar'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
@@ -28,6 +30,11 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisReservasIdRouteImport } from './routes/_app/mis-reservas.$id'
 
+const VerificarRoute = VerificarRouteImport.update({
+  id: '/verificar',
+  path: '/verificar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -82,6 +89,11 @@ const AppMisReservasRoute = AppMisReservasRouteImport.update({
   path: '/mis-reservas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFavoritosRoute = AppFavoritosRouteImport.update({
+  id: '/favoritos',
+  path: '/favoritos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -123,8 +135,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
+  '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
@@ -142,8 +156,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
   '/dashboard': typeof AppDashboardRoute
+  '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
@@ -163,8 +179,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
+  '/verificar': typeof VerificarRoute
   '/_app/buscar': typeof AppBuscarRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/favoritos': typeof AppFavoritosRoute
   '/_app/mis-reservas': typeof AppMisReservasRouteWithChildren
   '/_app/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/_app/notificaciones': typeof AppNotificacionesRoute
@@ -184,8 +202,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/buscar'
     | '/dashboard'
+    | '/favoritos'
     | '/mis-reservas'
     | '/mis-vehiculos'
     | '/notificaciones'
@@ -203,8 +223,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/buscar'
     | '/dashboard'
+    | '/favoritos'
     | '/mis-reservas'
     | '/mis-vehiculos'
     | '/notificaciones'
@@ -223,8 +245,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/recuperar'
     | '/registro'
+    | '/verificar'
     | '/_app/buscar'
     | '/_app/dashboard'
+    | '/_app/favoritos'
     | '/_app/mis-reservas'
     | '/_app/mis-vehiculos'
     | '/_app/notificaciones'
@@ -244,10 +268,18 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RecuperarRoute: typeof RecuperarRoute
   RegistroRoute: typeof RegistroRoute
+  VerificarRoute: typeof VerificarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verificar': {
+      id: '/verificar'
+      path: '/verificar'
+      fullPath: '/verificar'
+      preLoaderRoute: typeof VerificarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
@@ -323,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/mis-reservas'
       fullPath: '/mis-reservas'
       preLoaderRoute: typeof AppMisReservasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/favoritos': {
+      id: '/_app/favoritos'
+      path: '/favoritos'
+      fullPath: '/favoritos'
+      preLoaderRoute: typeof AppFavoritosRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/dashboard': {
@@ -428,6 +467,7 @@ const AppReservasRouteWithChildren = AppReservasRoute._addFileChildren(
 interface AppRouteChildren {
   AppBuscarRoute: typeof AppBuscarRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppFavoritosRoute: typeof AppFavoritosRoute
   AppMisReservasRoute: typeof AppMisReservasRouteWithChildren
   AppMisVehiculosRoute: typeof AppMisVehiculosRouteWithChildren
   AppNotificacionesRoute: typeof AppNotificacionesRoute
@@ -440,6 +480,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBuscarRoute: AppBuscarRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppFavoritosRoute: AppFavoritosRoute,
   AppMisReservasRoute: AppMisReservasRouteWithChildren,
   AppMisVehiculosRoute: AppMisVehiculosRouteWithChildren,
   AppNotificacionesRoute: AppNotificacionesRoute,
@@ -457,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RecuperarRoute: RecuperarRoute,
   RegistroRoute: RegistroRoute,
+  VerificarRoute: VerificarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

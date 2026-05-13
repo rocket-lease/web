@@ -4,12 +4,14 @@ import {
   CalendarCheck,
   Car,
   Headset,
+  Heart,
   UserCircle,
   ChartBar,
   ClipboardText,
 } from '@phosphor-icons/react'
 import { BottomNav } from '@/features/layout/components/BottomNav'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { VerificationBanner } from '@/features/auth/components/VerificationBanner'
 import { t } from '@/i18n/es'
 
 export const Route = createFileRoute('/_app')({
@@ -20,10 +22,11 @@ function AppLayout() {
   const { activeRole } = useAuth()
 
   const conductorTabs = [
-    { to: '/buscar',       icon: MagnifyingGlass, label: t('nav.buscar') },
-    { to: '/reservas',     icon: CalendarCheck,   label: t('nav.reservas') },
-    { to: '/soporte',      icon: Headset,         label: t('nav.soporte') },
-    { to: '/perfil',       icon: UserCircle,      label: t('nav.perfil') },
+    { to: '/buscar',      icon: MagnifyingGlass, label: t('nav.buscar') },
+    { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
+    { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
+    { to: '/soporte',     icon: Headset,         label: t('nav.soporte') },
+    { to: '/perfil',      icon: UserCircle,      label: t('nav.perfil') },
   ]
 
   const rentadorTabs = [
@@ -58,6 +61,8 @@ function AppLayout() {
           {roleLabel}
         </span>
       </header>
+
+      <VerificationBanner />
 
       <main className="flex-1 pb-24">
         <Outlet />

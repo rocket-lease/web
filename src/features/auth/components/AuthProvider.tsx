@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { authApi } from '../api/auth.api'
 import type { UserRole } from '../types'
 
 const ROLE_KEY = 'rocket_lease:active_role'
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await authApi.signOut()
   }
 
   useEffect(() => {

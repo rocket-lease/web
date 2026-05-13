@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env.development
+.env.example
+.env.production
+package.json
+pnpm-workspace.yaml

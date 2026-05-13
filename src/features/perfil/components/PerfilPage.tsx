@@ -1,5 +1,6 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
-  UserCheck,
   LogOut,
   Bell,
   ChevronRight,
@@ -11,18 +12,22 @@ import {
   Save,
   Pencil,
   X,
+  Trash2,
+  UserCheck,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract'
 import { Avatar } from '@/ui/avatar'
-import { Button } from '@/ui/button'
 import { Badge } from '@/ui/badge'
+import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
+import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -44,6 +49,7 @@ interface PerfilPageProps {
 }
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
+  const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const {
     data: profile,
@@ -54,6 +60,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     uploadAvatar,
     isUploadingAvatar,
   } = useMyProfile(profileId)
+  const { status: verificationStatus, loading: verificationLoading } = useVerificationStatus()
+  const isFullyVerified = !!verificationStatus?.email && !!verificationStatus?.phone
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -63,6 +71,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -202,14 +211,18 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
 
-        {/* Verification */}
-        <Badge variant={profile.verificationStatus === 'verified' ? 'success' : 'warning'}>
-          <UserCheck className="h-3 w-3" />
-          {profile.verificationStatus === 'verified' ? t('perfil.verified') : t('perfil.pendingVerification')}
-        </Badge>
+        {!verificationLoading && (
+          <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+            <UserCheck className="h-3 w-3" />
+            {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+          </Badge>
+        )}
+
       </div>
 
       <Separator />
+
+      {canEdit && <VerificationStatusSection />}
 
       <div className="px-4 mt-5 space-y-4">
         {canEdit && !isEditing && (
@@ -285,7 +298,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
       {/* Become rentador banner */}
       {!isRentador && canEdit && (
-        <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/mis-vehiculos' })}
+          className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600">
             <Rocket className="h-5 w-5 text-white" />
           </div>
@@ -294,7 +311,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <p className="text-xs text-text-muted mt-0.5">Generá ingresos alquilándolo</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </div>
+        </button>
       )}
 
       {/* Settings menu */}
@@ -317,19 +334,35 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         ))}
       </div>
 
-      {/* Logout */}
+      {/* Logout + Delete */}
       {canEdit && (
-        <div className="px-4 mt-6 mb-4">
+        <div className="px-4 mt-6 mb-4 space-y-2">
           <Button
             variant="ghost"
-            className="w-full text-danger hover:bg-danger-bg"
-            onClick={() => signOut()}
+            className="w-full text-text-secondary hover:bg-surface-2"
+            onClick={async () => {
+              await signOut()
+              navigate({ to: '/login' })
+            }}
           >
             <LogOut className="h-4 w-4" />
             {t('perfil.logout')}
           </Button>
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            {t('perfil.deleteAccount')}
+          </Button>
         </div>
       )}
+
+      <DeleteAccountDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+      />
     </div>
   )
 }

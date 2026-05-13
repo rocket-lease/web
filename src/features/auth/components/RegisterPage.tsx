@@ -51,8 +51,8 @@ export function RegisterPage() {
         phone: data.phone,
         password: data.password,
       })
-      toast.success('Cuenta creada. Ya podés iniciar sesión.')
-      navigate({ to: '/login' })
+      toast.success('Cuenta creada. Verificá tu correo para continuar.')
+      navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
     } catch (err) {
       const problem = err as ProblemDetails
       const msg = problem?.detail ?? t('error.default')

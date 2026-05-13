@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { Envelope, Lock } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
@@ -24,6 +24,7 @@ type FormData = z.infer<typeof schema>
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { hint } = useSearch({ from: '/login' })
   const {
     register,
     handleSubmit,
@@ -35,8 +36,13 @@ export function LoginPage() {
       await authApi.signIn(data)
       navigate({ to: '/buscar' })
     } catch (err) {
-      const problem = err as ProblemDetails
-      const msg = problem?.detail ?? t('auth.login.error')
+      const problem = err as ProblemDetails & { statusCode?: number; message?: string }
+      if (problem?.statusCode === 403 || problem?.status === 403) {
+        toast.error(t('auth.login.errorUnverified'))
+        navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+        return
+      }
+      const msg = problem?.detail ?? problem?.message ?? t('auth.login.error')
       toast.error(msg)
     }
   }
@@ -58,6 +64,13 @@ export function LoginPage() {
             <p className="mt-1 text-sm text-text-muted">{t('app.tagline')}</p>
           </div>
         </div>
+
+        {/* Contextual hint (e.g. redirected from favorites) */}
+        {hint === 'favoritos' && (
+          <div className="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/10 px-4 py-3">
+            <p className="text-center text-sm text-brand-300">{t('favoritos.loginHint')}</p>
+          </div>
+        )}
 
         {/* Form */}
         <div className="rounded-xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
