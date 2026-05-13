@@ -27,6 +27,7 @@ import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStat
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
+import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -335,6 +336,9 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           )}
         </div>
       </div>
+
+      {/* Vehículos publicados del rentador (perfil ajeno) */}
+      {!canEdit && profile && <OwnerVehiclesSection ownerId={profile.id} />}
 
       {/* Mis vehiculos shortcut */}
       {canEdit && (

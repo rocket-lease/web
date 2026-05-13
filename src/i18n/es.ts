@@ -178,6 +178,8 @@ export const es = {  // --- App ---
   'perfil.pendingVerification': 'Verificacion pendiente',
   'perfil.level': 'Nivel',
   'perfil.reputation': 'Reputacion',
+  'perfil.publishedVehicles': 'Vehículos publicados',
+  'perfil.publishedVehiclesEmpty': 'Este rentador todavía no publicó vehículos.',
   'perfil.settings': 'Configuracion',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
