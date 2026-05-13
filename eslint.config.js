@@ -19,4 +19,11 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: ['src/routes/**/*.{ts,tsx}'],
+    rules: {
+      // TanStack file-based routes export `Route` alongside the page component on purpose.
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

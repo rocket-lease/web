@@ -46,8 +46,8 @@ export function LoginPage() {
         navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
         return
       }
-      const msg = problem?.detail ?? problem?.message ?? t('auth.login.error')
-      toast.error(msg)
+      // US-02 AC2/AC3: mensaje genérico — no revelar si el email existe ni si la contraseña es incorrecta.
+      toast.error(t('auth.login.error'))
     }
   }
 

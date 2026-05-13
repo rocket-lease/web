@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Trash2, AlertTriangle, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -18,6 +18,15 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
   const navigate = useNavigate()
   const [confirmText, setConfirmText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
 
   if (!open) return null
 
@@ -44,11 +53,12 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      style={{ minHeight: '100dvh' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-danger/30 p-6 shadow-elevated"
+        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-danger/30 p-6 shadow-elevated my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3 mb-4">
@@ -83,7 +93,6 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
         </label>
         <Input
           autoComplete="off"
-          autoFocus
           placeholder={CONFIRM_WORD}
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}

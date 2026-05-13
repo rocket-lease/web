@@ -15,4 +15,4 @@ export interface VehiculoFilters {
   fechaHasta?: string
 }
 
-export type SortCriteria = 'price_asc' | 'price_desc' | 'rating'
+export type SortCriteria = 'price_asc' | 'price_desc' | 'rating' | 'distance'
