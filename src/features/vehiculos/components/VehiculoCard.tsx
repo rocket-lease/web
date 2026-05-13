@@ -16,14 +16,13 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
   const coverPhoto = vehiculo.photos[0] ?? '/placeholder-car.jpg'
 
   return (
-    <Link
-      to="/vehiculos/$id"
-      params={{ id: vehiculo.id }}
-      className={cn('block', className)}
-    >
-      <article className="overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card transition-transform duration-150 active:scale-[0.97]">
-
-        {/* Foto con botón de favorito */}
+    <article className={cn('relative overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card transition-transform duration-150 active:scale-[0.97]', className)}>
+      <Link
+        to="/vehiculos/$id"
+        params={{ id: vehiculo.id }}
+        className="block"
+      >
+        {/* Foto */}
         <div className="relative aspect-video overflow-hidden bg-surface-2">
           <img
             src={coverPhoto}
@@ -31,9 +30,6 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             className="h-full w-full object-cover"
             loading="lazy"
           />
-          <div className="absolute right-0 top-0">
-            <FavoritoButton vehicleId={vehiculo.id} />
-          </div>
           {vehiculo.isAccessible && (
             <div className="absolute left-2 bottom-2">
               <Badge variant="secondary" className="text-[10px]">Accesible</Badge>
@@ -88,7 +84,12 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
           </div>
 
         </div>
-      </article>
-    </Link>
+      </Link>
+
+      {/* Boton favorito (fuera del Link para no propagar nav) */}
+      <div className="absolute right-1 top-1 z-10">
+        <FavoritoButton vehicleId={vehiculo.id} />
+      </div>
+    </article>
   )
 }

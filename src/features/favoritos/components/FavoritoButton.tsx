@@ -25,19 +25,19 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
         toggle(vehicleId, isFavorito)
       }}
       className={cn(
-        'group flex h-16 w-16 items-start justify-end p-3.5 transition-all duration-150',
-        'bg-gradient-to-bl from-black/70 via-black/30 to-transparent rounded-bl-[2.5rem]',
+        'group flex h-12 w-12 items-center justify-center transition-all duration-150',
         'active:opacity-80',
         isLoading && 'opacity-60 pointer-events-none',
         className,
       )}
     >
-      <Heart
-        size={22}
-        weight={isFavorito ? 'fill' : 'regular'}
-        color={isFavorito ? '#F59E0B' : '#ffffff'}
-        className="transition-transform group-active:scale-90"
-      />
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black/45 backdrop-blur-sm transition-transform group-active:scale-90">
+        <Heart
+          size={20}
+          weight={isFavorito ? 'fill' : 'regular'}
+          color={isFavorito ? '#F59E0B' : '#ffffff'}
+        />
+      </span>
     </button>
   )
 }
