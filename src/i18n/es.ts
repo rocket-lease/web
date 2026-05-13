@@ -173,6 +173,7 @@ export const es = {
   'nuevoVehiculo.step.publicar': 'Publicar',
 
   // ─── Favoritos ───
+  'favoritos.loginHint': 'Guardá tus autos favoritos para reservar con tu cuenta',
   'favoritos.title': 'Mis favoritos',
   'favoritos.empty': 'Todavía no guardaste favoritos',
   'favoritos.emptyHint': 'Tocá el corazón en cualquier vehículo para guardarlo acá',

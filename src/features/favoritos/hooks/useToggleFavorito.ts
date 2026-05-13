@@ -1,9 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { favoritosApi } from '../api/favoritos.api'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { FavoritoItem } from '../types'
 
 export function useToggleFavorito() {
   const queryClient = useQueryClient()
+  const { user, isLoading: authLoading } = useAuth()
+  const navigate = useNavigate()
 
   const addMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.add(vehicleId),
@@ -47,6 +51,10 @@ export function useToggleFavorito() {
   })
 
   const toggle = (vehicleId: string, isFavorito: boolean) => {
+    if (!authLoading && !user) {
+      navigate({ to: '/login', search: { hint: 'favoritos' } })
+      return
+    }
     if (isFavorito) {
       removeMutation.mutate(vehicleId)
     } else {

@@ -2,7 +2,7 @@ import type { Vehiculo } from '../types'
 
 export const MOCK_VEHICULOS: Vehiculo[] = [
   {
-    id: '1',
+    id: '11111111-1111-1111-1111-111111111111',
     rentadorId: 'r1',
     marca: 'Toyota',
     modelo: 'Corolla',
@@ -23,7 +23,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-01-15',
   },
   {
-    id: '2',
+    id: '22222222-2222-2222-2222-222222222222',
     rentadorId: 'r2',
     marca: 'Volkswagen',
     modelo: 'Polo',
@@ -44,7 +44,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-02-10',
   },
   {
-    id: '3',
+    id: '33333333-3333-3333-3333-333333333333',
     rentadorId: 'r3',
     marca: 'Ford',
     modelo: 'EcoSport',
@@ -65,7 +65,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-03-01',
   },
   {
-    id: '4',
+    id: '44444444-4444-4444-4444-444444444444',
     rentadorId: 'r4',
     marca: 'Chevrolet',
     modelo: 'Onix',
@@ -86,7 +86,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-04-05',
   },
   {
-    id: '5',
+    id: '55555555-5555-5555-5555-555555555555',
     rentadorId: 'r5',
     marca: 'Peugeot',
     modelo: '208',
@@ -107,7 +107,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-05-10',
   },
   {
-    id: '6',
+    id: '66666666-6666-6666-6666-666666666666',
     rentadorId: 'r6',
     marca: 'Renault',
     modelo: 'Duster',
@@ -128,7 +128,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-06-01',
   },
   {
-    id: '7',
+    id: '77777777-7777-7777-7777-777777777777',
     rentadorId: 'r7',
     marca: 'Honda',
     modelo: 'HR-V',
@@ -149,7 +149,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-07-15',
   },
   {
-    id: '8',
+    id: '88888888-8888-8888-8888-888888888888',
     rentadorId: 'r8',
     marca: 'Fiat',
     modelo: 'Cronos',
@@ -170,7 +170,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-08-20',
   },
   {
-    id: '9',
+    id: '99999999-9999-9999-9999-999999999999',
     rentadorId: 'r9',
     marca: 'Nissan',
     modelo: 'Kicks',
@@ -191,7 +191,7 @@ export const MOCK_VEHICULOS: Vehiculo[] = [
     createdAt: '2024-09-03',
   },
   {
-    id: '10',
+    id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     rentadorId: 'r10',
     marca: 'Volkswagen',
     modelo: 'Amarok',
