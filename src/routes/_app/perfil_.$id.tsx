@@ -1,9 +1,15 @@
-import { createFileRoute, useParams } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { AuthGate } from '@/features/auth/components/AuthGate'
 import { PerfilPage } from '@/features/perfil/components/PerfilPage'
 
 function PerfilByIdRoute() {
-  const { id } = useParams({ from: '/_app/perfil_/$id' })
-  return <PerfilPage profileId={id} />
+  const { id } = Route.useParams()
+
+  return (
+    <AuthGate>
+      <PerfilPage profileId={id} />
+    </AuthGate>
+  )
 }
 
 export const Route = createFileRoute('/_app/perfil_/$id')({
