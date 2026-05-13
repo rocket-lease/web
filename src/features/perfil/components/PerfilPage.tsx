@@ -298,7 +298,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
       {/* Become rentador banner */}
       {!isRentador && canEdit && (
-        <div className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/mis-vehiculos' })}
+          className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
+        >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600">
             <Rocket className="h-5 w-5 text-white" />
           </div>
@@ -307,7 +311,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <p className="text-xs text-text-muted mt-0.5">Generá ingresos alquilándolo</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </div>
+        </button>
       )}
 
       {/* Settings menu */}
