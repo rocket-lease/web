@@ -46,6 +46,14 @@ export interface RegisterUserResponse {
   email: string
 }
 
+// Mirrors @rocket-lease/contracts auth/verification.ts
+export interface VerificationStatusResponse {
+  email: boolean
+  phone: boolean
+}
+
+export type VerificationChannel = 'email' | 'phone'
+
 // RFC 7807 error shape from api
 export interface ProblemDetails {
   type: string
