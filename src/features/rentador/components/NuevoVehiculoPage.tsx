@@ -8,6 +8,8 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
 import type { CreateVehicleRequest } from '@rocket-lease/contracts'
+import { State } from 'country-state-city'
+import { getCitiesForProvince } from '@/lib/argentina-cities'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -41,6 +43,8 @@ type VehicleFormData = {
   mileage: string
   description: string
   availableFrom: string
+  province: string
+  city: string
   dailyPrice: string
   photos: Array<VehiclePhoto>
 }
@@ -58,6 +62,8 @@ const initialFormData: VehicleFormData = {
   mileage: '',
   description: '',
   availableFrom: '',
+  province: '',
+  city: '',
   dailyPrice: '',
   photos: [],
 }
@@ -70,6 +76,9 @@ export function NuevoVehiculoPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photosRef = useRef(formData.photos)
 
+  const [provinces, setProvinces] = useState<Array<any>>([])
+  const [cities, setCities] = useState<Array<any>>([])
+
   useEffect(() => {
     photosRef.current = formData.photos
   }, [formData.photos])
@@ -79,6 +88,29 @@ export function NuevoVehiculoPage() {
       photosRef.current.forEach(photo => URL.revokeObjectURL(photo.previewUrl))
     }
   }, [])
+
+  useEffect(() => {
+    try {
+      const states = State.getStatesOfCountry('AR') || []
+      setProvinces(states)
+    } catch (e) {
+      setProvinces([])
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!formData.province) {
+      setCities([])
+      return
+    }
+
+    try {
+      const list = getCitiesForProvince(formData.province)
+      setCities(list)
+    } catch (e) {
+      setCities([])
+    }
+  }, [formData.province])
 
   const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
@@ -147,7 +179,7 @@ export function NuevoVehiculoPage() {
       formData.description.trim(),
   )
   const canContinueFromPhotos = formData.photos.length >= MIN_PHOTOS
-  const canContinueFromAvailability = Boolean(formData.availableFrom)
+  const canContinueFromAvailability = Boolean(formData.availableFrom && formData.province && formData.city)
   const canContinueFromPricing = Number(formData.dailyPrice) > 0
 
   const transmissionLabel = formData.transmission === 'Automatico'
@@ -156,7 +188,7 @@ export function NuevoVehiculoPage() {
       ? 'Semiautomático'
       : 'Manual'
 
-  const formPayload: Omit<CreateVehicleRequest, 'photos'> = {
+  const formPayload: Omit<CreateVehicleRequest, 'photos' | 'availableFrom' | 'province' | 'city'> = {
     brand: formData.brand,
     model: formData.model,
     year: Number(formData.year || 0),
@@ -201,10 +233,13 @@ export function NuevoVehiculoPage() {
       const files = formData.photos.map(p => p.file)
       const uploadedUrls = await Promise.all(files.map(f => photosApi.uploadVehicleImage(f)))
 
-      const payload: CreateVehicleRequest = {
+      const payload = {
         ...formPayload,
         photos: uploadedUrls,
-      }
+        availableFrom: formData.availableFrom,
+        province: formData.province,
+        city: formData.city,
+      } as CreateVehicleRequest
 
       await vehiclesApi.publishVehicle(payload)
 
@@ -427,6 +462,35 @@ export function NuevoVehiculoPage() {
               <p className="mt-2 text-xs text-text-muted">
                 Elegí la fecha a partir de la cual el auto estará disponible para alquilar.
               </p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Provincia</label>
+                  <select
+                    value={formData.province}
+                    onChange={e => handleFieldChange('province', e.target.value)}
+                    className="mt-1 block w-full rounded-lg bg-surface-1 border border-white/6 px-3 py-2 text-sm"
+                  >
+                    <option value="">Seleccioná provincia</option>
+                    {provinces.map(p => (
+                      <option key={p.isoCode} value={p.isoCode}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Ciudad</label>
+                  <select
+                    value={formData.city}
+                    onChange={e => handleFieldChange('city', e.target.value)}
+                    disabled={!formData.province}
+                    className="mt-1 block w-full rounded-lg bg-surface-1 border border-white/6 px-3 py-2 text-sm"
+                  >
+                    <option value="">Seleccioná ciudad</option>
+                    {cities.map(c => (
+                      <option key={c.name} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -465,6 +529,7 @@ export function NuevoVehiculoPage() {
                 <p><span className="font-medium text-text-primary">Color:</span> {formData.color || '-'}</p>
                 <p><span className="font-medium text-text-primary">Kilometraje:</span> {formData.mileage || '-'}</p>
                 <p><span className="font-medium text-text-primary">Disponible desde:</span> {formData.availableFrom || '-'}</p>
+                <p><span className="font-medium text-text-primary">Ubicación:</span> {formData.province ? (provinces.find(p => p.isoCode === formData.province)?.name || formData.province) : '-'}{formData.city ? `, ${formData.city}` : ''}</p>
                 <p><span className="font-medium text-text-primary">Precio por día:</span> {formData.dailyPrice || '-'} </p>
                 <p><span className="font-medium text-text-primary">Fotos cargadas:</span> {formData.photos.length}</p>
               </div>
