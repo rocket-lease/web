@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Mail, Phone, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
+import { Mail, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
 import { useVerificationStatus } from '../hooks/useVerificationStatus'
 import { t } from '@/i18n/es'
 
@@ -20,12 +20,6 @@ export function VerificationStatusSection() {
           verified={status.email}
           channel="email"
         />
-        <VerifiedRow
-          icon={<Phone className="h-5 w-5" />}
-          label={t('auth.verify.phoneSection')}
-          verified={status.phone}
-          channel="phone"
-        />
       </div>
     </div>
   )
@@ -35,7 +29,7 @@ interface VerifiedRowProps {
   icon: React.ReactNode
   label: string
   verified: boolean
-  channel: 'email' | 'phone'
+  channel: 'email'
 }
 
 function VerifiedRow({ icon, label, verified, channel }: VerifiedRowProps) {

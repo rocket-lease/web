@@ -1,39 +1,44 @@
-import { httpClient } from '@/lib/http-client'
+import { apiClient } from '@/lib/api-client'
+import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
 import type {
   CreateVehicleRequest,
   CreateVehicleResponse,
-  GetVehicleResponse,
+  GetVehicleResponse
 } from '@rocket-lease/contracts'
 
 export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
-import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
+
 
 const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
 
 export const vehiclesApi = {
   async publishVehicle(data: CreateVehicleRequest): Promise<CreateVehicleResponse> {
-    return httpClient.post<CreateVehicleResponse>('/vehicle', data)
+    return await apiClient.post<CreateVehicleResponse>('/vehicle', data)
   },
 
   async getAll(): Promise<GetVehicleResponse[]> {
-    return httpClient.get<GetVehicleResponse[]>('/vehicle')
+    return await apiClient.get<GetVehicleResponse[]>('/vehicle')
+  },
+
+  async getById(id: string): Promise<GetVehicleResponse> {
+    return await apiClient.get<GetVehicleResponse>(`/vehicle/${id}`)
   },
 
   async getVehicleById(vehicleId: string): Promise<GetVehicleResponse> {
-    const res = await httpClient.get<unknown>(`/vehicle/${vehicleId}`)
+    const res = await apiClient.get<unknown>(`/vehicle/${vehicleId}`)
     return parseVehicle(res)
   },
 
   async getMyVehicles(): Promise<GetVehicleResponse[]> {
-    const res = await httpClient.get<unknown>('/vehicle/mine')
+    const res = await apiClient.get<unknown>('/vehicle/mine')
     return (res as unknown[]).map(parseVehicle)
   },
 
   async updateVehicle(vehicleId: string, data: UpdateVehicleRequest): Promise<void> {
-    await httpClient.patch<void>(`/vehicle/${vehicleId}`, data)
+    await apiClient.patch<void>(`/vehicle/${vehicleId}`, data)
   },
 
   async deleteVehicle(vehicleId: string): Promise<void> {
-    await httpClient.delete<void>(`/vehicle/${vehicleId}`)
+    await apiClient.delete<void>(`/vehicle/${vehicleId}`)
   },
 }
