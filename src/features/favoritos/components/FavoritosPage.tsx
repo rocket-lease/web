@@ -1,26 +1,31 @@
 import { Heart } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { t } from '@/i18n/es'
 import { VehiculoCard } from '@/features/vehiculos/components/VehiculoCard'
-import { findVehiculo } from '@/features/vehiculos/data/mock-vehiculos'
+import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { useFavoritos } from '../hooks/useFavoritos'
 
 export function FavoritosPage() {
-  const { data: favoritos = [], isLoading } = useFavoritos()
+  const { data: favoritos = [], isLoading: loadingFavs } = useFavoritos()
 
-  const vehiculosGuardados = favoritos
-    .map((fav) => ({ fav, vehiculo: findVehiculo(fav.vehicleId) }))
-    .filter((item) => item.vehiculo !== null) as Array<{
-    fav: (typeof favoritos)[0]
-    vehiculo: NonNullable<ReturnType<typeof findVehiculo>>
-  }>
+  const { data: allVehicles = [], isLoading: loadingVehicles } = useQuery({
+    queryKey: ['vehicles'],
+    queryFn: () => vehiclesApi.getAll(),
+    enabled: favoritos.length > 0,
+  })
+
+  const isLoading = loadingFavs || (favoritos.length > 0 && loadingVehicles)
+
+  const favIds = new Set(favoritos.map(f => f.vehicleId))
+  const favVehicles = allVehicles.filter(v => favIds.has(v.id))
 
   return (
     <div className="flex flex-col">
       <div className="px-4 pt-4 pb-2">
         {isLoading && (
           <div className="flex flex-col gap-4">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-52 rounded-xl bg-surface-1 animate-pulse" />
             ))}
           </div>
@@ -48,12 +53,12 @@ export function FavoritosPage() {
         {!isLoading && favoritos.length > 0 && (
           <>
             <p className="text-xs text-text-muted mb-4">
-              <span className="font-semibold text-text-primary">{favoritos.length}</span>{' '}
+              <span className="font-semibold text-text-primary">{favVehicles.length}</span>{' '}
               {t('favoritos.count')}
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {vehiculosGuardados.map(({ vehiculo }) => (
-                <VehiculoCard key={vehiculo.id} vehiculo={vehiculo} />
+              {favVehicles.map(v => (
+                <VehiculoCard key={v.id} vehiculo={v} />
               ))}
             </div>
           </>

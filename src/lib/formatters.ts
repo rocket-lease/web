@@ -24,6 +24,7 @@ const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' })
 
 export const fmt = {
   currency: (cents: number) => esAR.format(cents / 100),
+  price: (amount: number) => esAR.format(amount),
   currencyExact: (cents: number) =>
     new Intl.NumberFormat('es-AR', {
       style: 'currency',

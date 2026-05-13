@@ -30,8 +30,13 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
       await authApi.deleteAccount()
       toast.success(t('perfil.deleteAccount.success'))
       navigate({ to: '/login' })
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      const status = (err as { statusCode?: number })?.statusCode
+      if (status === 409) {
+        toast.error(t('perfil.deleteAccount.hasVehicles'), { duration: 6000 })
+      } else {
+        toast.error(t('error.default'))
+      }
     } finally {
       setSubmitting(false)
     }

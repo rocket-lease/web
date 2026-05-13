@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { Camera } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -8,8 +9,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
 import type { CreateVehicleRequest } from '@rocket-lease/contracts'
-import { State } from 'country-state-city'
-import { getCitiesForProvince } from '@/lib/argentina-cities'
+import { ARGENTINA_PROVINCES, getCitiesForProvince } from '@/lib/argentina-cities'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -69,15 +69,15 @@ const initialFormData: VehicleFormData = {
 }
 
 export function NuevoVehiculoPage() {
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<VehicleFormData>(initialFormData)
   const [photoMessage, setPhotoMessage] = useState<string | null>(null)
-  const [isPublished, setIsPublished] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photosRef = useRef(formData.photos)
 
-  const [provinces, setProvinces] = useState<Array<any>>([])
-  const [cities, setCities] = useState<Array<any>>([])
+  const provinces = ARGENTINA_PROVINCES
+  const [cities, setCities] = useState<Array<{ name: string }>>([])
 
   useEffect(() => {
     photosRef.current = formData.photos
@@ -86,15 +86,6 @@ export function NuevoVehiculoPage() {
   useEffect(() => {
     return () => {
       photosRef.current.forEach(photo => URL.revokeObjectURL(photo.previewUrl))
-    }
-  }, [])
-
-  useEffect(() => {
-    try {
-      const states = State.getStatesOfCountry('AR') || []
-      setProvinces(states)
-    } catch (e) {
-      setProvinces([])
     }
   }, [])
 
@@ -237,37 +228,18 @@ export function NuevoVehiculoPage() {
         ...formPayload,
         photos: uploadedPhotos.map(photo => photo.url),
         availableFrom: formData.availableFrom,
-        province: formData.province,
+        province: provinces.find(p => p.isoCode === formData.province)?.name ?? formData.province,
         city: formData.city,
       } as CreateVehicleRequest
 
       await vehiclesApi.publishVehicle(payload)
 
       toast.success('Vehículo publicado')
-      setIsPublished(true)
+      navigate({ to: '/' })
     } catch (err) {
       console.error(err)
       toast.error('Error al publicar el vehículo')
     }
-  }
-
-  if (isPublished) {
-    return (
-      <div className="flex min-h-full flex-col px-4 py-6">
-        <PageHeader title={t('nuevoVehiculo.title')} showBack />
-        <div className="flex flex-1 flex-col items-center justify-center text-center gap-4">
-          <div className="rounded-full bg-brand-500/15 px-4 py-2 text-sm font-semibold text-brand-400">
-            Vehículo publicado
-          </div>
-          <p className="max-w-sm text-sm text-text-secondary">
-            Publicaste {formData.brand} {formData.model}. Ya quedó listo para alquilar desde {formData.availableFrom || 'la fecha seleccionada'}.
-          </p>
-          <Button variant="secondary" onClick={() => setIsPublished(false)}>
-            Volver al formulario
-          </Button>
-        </div>
-      </div>
-    )
   }
 
   return (

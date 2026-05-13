@@ -15,8 +15,8 @@ interface FilterSheetProps {
 
 const SEAT_OPTIONS = [2, 4, 5, 7]
 const TRANSMISSION_OPTIONS = [
-  { value: 'automatic' as const, label: t('buscar.filter.transmission.automatic') },
-  { value: 'manual'    as const, label: t('buscar.filter.transmission.manual') },
+  { value: 'Automatico' as const, label: t('buscar.filter.transmission.automatic') },
+  { value: 'Manual'     as const, label: t('buscar.filter.transmission.manual') },
 ]
 const CURRENT_YEAR = new Date().getFullYear()
 

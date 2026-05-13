@@ -184,8 +184,8 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         throw new Error('Vehicle draft not ready')
       }
 
-      if (draft.photos.length === 0) {
-        throw new Error('Vehicle must keep at least one photo')
+      if (draft.photos.length < 3) {
+        throw new Error('Vehicle must have at least 3 photos')
       }
 
       const basePrice = Number(draft.basePrice)
@@ -267,8 +267,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       queryClient.invalidateQueries({ queryKey: vehicleQueryKey(vehicleId) })
       toast.success(t('editVehiculo.saveSuccess'))
     },
-    onError: () => {
-      toast.error(t('editVehiculo.saveError'))
+    onError: (error: Error) => {
+      if (error.message === 'Vehicle must have at least 3 photos') {
+        toast.error(t('editVehiculo.photoMinimum'))
+      } else {
+        toast.error(t('editVehiculo.saveError'))
+      }
     },
   })
 
@@ -341,7 +345,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const isSaving = saveMutation.isPending
   const isDeleting = deleteMutation.isPending
-  const canSave = draft.photos.length > 0 && !isSaving && !isDeleting
+  const canSave = draft.photos.length >= 3 && !isSaving && !isDeleting
 
   return (
     <div className="flex min-h-full flex-col">
@@ -448,6 +452,11 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               className="hidden"
               onChange={handlePhotoSelect}
             />
+            {draft.photos.length < 3 && (
+              <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+                {t('editVehiculo.photoMinimumHint')} ({draft.photos.length}/3)
+              </p>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -463,7 +472,6 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         <Card>
           <CardHeader>
             <CardTitle>{t('editVehiculo.formTitle')}</CardTitle>
-            <CardDescription>{t('editVehiculo.formDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

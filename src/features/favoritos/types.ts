@@ -1,4 +1,4 @@
-import type { Vehiculo } from '@/features/vehiculos/types'
+import type { GetVehicleResponse } from '@rocket-lease/contracts'
 
 export interface FavoritoItem {
   id: string
@@ -7,5 +7,5 @@ export interface FavoritoItem {
 }
 
 export interface FavoritoConDetalle extends FavoritoItem {
-  vehiculo: Vehiculo | null
+  vehiculo: GetVehicleResponse | null
 }
