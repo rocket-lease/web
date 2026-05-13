@@ -16,25 +16,30 @@ export function OwnerVehiclesSection({ ownerId }: Props) {
   })
 
   return (
-    <div className="px-4 mt-6">
-      <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-        {t('perfil.publishedVehicles')}
-      </p>
+    <section className="mt-6">
+      <div className="px-4 mb-3 flex items-baseline justify-between">
+        <p className="text-xs font-medium text-text-muted uppercase tracking-wider">
+          {t('perfil.publishedVehicles')}
+        </p>
+        {vehicles && vehicles.length > 0 && (
+          <span className="text-xs text-text-muted">{vehicles.length}</span>
+        )}
+      </div>
 
       {isLoading && (
-        <div className="rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center text-sm text-text-muted">
+        <div className="mx-4 rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center text-sm text-text-muted">
           {t('general.loading')}
         </div>
       )}
 
       {isError && (
-        <div className="rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center text-sm text-danger">
+        <div className="mx-4 rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center text-sm text-danger">
           {t('buscar.error')}
         </div>
       )}
 
       {!isLoading && !isError && vehicles && vehicles.length === 0 && (
-        <div className="rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
+        <div className="mx-4 rounded-2xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
             <Car className="h-5 w-5 text-text-muted" />
           </div>
@@ -43,12 +48,18 @@ export function OwnerVehiclesSection({ ownerId }: Props) {
       )}
 
       {!isLoading && !isError && vehicles && vehicles.length > 0 && (
-        <div className="space-y-3">
-          {vehicles.map((v) => (
-            <VehiculoCard key={v.id} vehiculo={v} />
-          ))}
+        <div className="overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-px-4">
+          <div className="flex gap-3 px-4 pb-1">
+            {vehicles.map((v) => (
+              <VehiculoCard
+                key={v.id}
+                vehiculo={v}
+                className="snap-start shrink-0 w-[80vw] max-w-[320px]"
+              />
+            ))}
+          </div>
         </div>
       )}
-    </div>
+    </section>
   )
 }
