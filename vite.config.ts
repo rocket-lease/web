@@ -16,7 +16,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'icons/*.png'],
+      includeAssets: ['favicon.ico', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'Rocket Lease',
         short_name: 'RocketLease',
