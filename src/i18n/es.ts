@@ -26,6 +26,7 @@ export const es = {
   'auth.login.register': 'Registrate',
   'auth.login.forgot': '¿Olvidaste tu contraseña?',
   'auth.login.error': 'Correo o contraseña incorrectos',
+  'auth.login.errorUnverified': 'Verificá tu correo para poder ingresar',
   'auth.register.title': 'Crear cuenta',
   'auth.register.subtitle': 'Empezá a alquilar hoy',
   'auth.register.name': 'Nombre completo',

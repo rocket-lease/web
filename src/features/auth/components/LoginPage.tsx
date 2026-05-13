@@ -36,8 +36,13 @@ export function LoginPage() {
       await authApi.signIn(data)
       navigate({ to: '/buscar' })
     } catch (err) {
-      const problem = err as ProblemDetails
-      const msg = problem?.detail ?? t('auth.login.error')
+      const problem = err as ProblemDetails & { statusCode?: number; message?: string }
+      if (problem?.statusCode === 403 || problem?.status === 403) {
+        toast.error(t('auth.login.errorUnverified'))
+        navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+        return
+      }
+      const msg = problem?.detail ?? problem?.message ?? t('auth.login.error')
       toast.error(msg)
     }
   }
