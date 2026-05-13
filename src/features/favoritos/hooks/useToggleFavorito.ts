@@ -15,14 +15,20 @@ export function useToggleFavorito() {
       await queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
       const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
 
-      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) => [
-        ...old,
-        { id: `optimistic-${vehicleId}`, vehicleId, createdAt: new Date().toISOString() },
-      ])
+      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) => {
+        if (old.some((f) => f.vehicleId === vehicleId)) return old
+        return [
+          ...old,
+          { id: `optimistic-${vehicleId}`, vehicleId, createdAt: new Date().toISOString() },
+        ]
+      })
 
       return { prev }
     },
-    onError: (_err, _vehicleId, ctx) => {
+    onError: (err, _vehicleId, ctx) => {
+      // 409 = already a fav server-side; keep optimistic (UI correct)
+      const status = (err as { status?: number })?.status
+      if (status === 409) return
       if (ctx?.prev !== undefined) {
         queryClient.setQueryData(['favoritos', 'list'], ctx.prev)
       }
@@ -42,7 +48,10 @@ export function useToggleFavorito() {
 
       return { prev }
     },
-    onError: (_err, _vehicleId, ctx) => {
+    onError: (err, _vehicleId, ctx) => {
+      // 404 = already removed server-side; keep optimistic (UI correct)
+      const status = (err as { status?: number })?.status
+      if (status === 404) return
       if (ctx?.prev !== undefined) {
         queryClient.setQueryData(['favoritos', 'list'], ctx.prev)
       }
