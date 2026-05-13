@@ -1,12 +1,13 @@
 import { apiClient } from '@/lib/api-client'
+import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
 import type {
   Characteristic,
   CreateVehicleRequest,
   CreateVehicleResponse,
   GetVehicleResponse,
-  UpdateVehicleRequest,
 } from '@rocket-lease/contracts'
-import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
+
+export type UpdateVehicleRequest = Partial<CreateVehicleRequest>
 
 const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
 const parseVehicles = (input: unknown): GetVehicleResponse[] => GetVehicleResponseSchema.array().parse(input)
@@ -29,9 +30,13 @@ export const vehiclesApi = {
     return parseVehicles(res)
   },
 
-  async getVehicleById(vehicleId: string): Promise<GetVehicleResponse> {
-    const res = await apiClient.get<unknown>(`/vehicle/${vehicleId}`)
+  async getById(id: string): Promise<GetVehicleResponse> {
+    const res = await apiClient.get<unknown>(`/vehicle/${id}`)
     return parseVehicle(res)
+  },
+
+  async getVehicleById(vehicleId: string): Promise<GetVehicleResponse> {
+    return this.getById(vehicleId)
   },
 
   async getMyVehicles(): Promise<GetVehicleResponse[]> {

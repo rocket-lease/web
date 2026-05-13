@@ -11,7 +11,8 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
-import type { Characteristic, GetVehicleResponse, UpdateVehicleRequest } from '@rocket-lease/contracts'
+import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
+import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
@@ -53,7 +54,7 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
     description: vehicle.description ?? '',
     enabled: Boolean(vehicle.enabled),
     isAccessible: Boolean(vehicle.isAccessible),
-    photos: vehicle.photos.map(url => ({
+    photos: vehicle.photos.map((url: string) => ({
       id: url,
       kind: 'existing',
       url,
@@ -196,8 +197,8 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         throw new Error('Vehicle draft not ready')
       }
 
-      if (draft.photos.length === 0) {
-        throw new Error('Vehicle must keep at least one photo')
+      if (draft.photos.length < 3) {
+        throw new Error('Vehicle must have at least 3 photos')
       }
 
       const basePrice = Number(draft.basePrice)
@@ -251,8 +252,8 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
       await vehiclesApi.updateVehicle(vehicleId, payload)
 
-      const removedPhotoUrls = vehicle.photos.filter(url => !draft.photos.some(photo => photo.url === url))
-      await Promise.allSettled(removedPhotoUrls.map(url => photosApi.deleteVehicleImage(url)))
+      const removedPhotoUrls = vehicle.photos.filter((url: string) => !draft.photos.some(photo => photo.url === url))
+      await Promise.allSettled(removedPhotoUrls.map((url: string) => photosApi.deleteVehicleImage(url)))
 
       return finalPhotoUrls
     },
@@ -268,7 +269,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
         return {
           ...current,
-          photos: finalPhotoUrls.map(url => ({
+          photos: finalPhotoUrls.map((url: string) => ({
             id: url,
             kind: 'existing',
             url,
@@ -281,8 +282,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       toast.success(t('editVehiculo.saveSuccess'))
       navigate({ to: '/mis-vehiculos' })
     },
-    onError: () => {
-      toast.error(t('editVehiculo.saveError'))
+    onError: (error: Error) => {
+      if (error.message === 'Vehicle must have at least 3 photos') {
+        toast.error(t('editVehiculo.photoMinimum'))
+      } else {
+        toast.error(t('editVehiculo.saveError'))
+      }
     },
   })
 
@@ -293,7 +298,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       }
 
       await vehiclesApi.deleteVehicle(vehicle.id)
-      await Promise.allSettled(vehicle.photos.map(url => photosApi.deleteVehicleImage(url)))
+      await Promise.allSettled(vehicle.photos.map((url: string) => photosApi.deleteVehicleImage(url)))
     },
     onSuccess: () => {
       if (draftRef.current) {
@@ -355,7 +360,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const isSaving = saveMutation.isPending
   const isDeleting = deleteMutation.isPending
-  const canSave = draft.photos.length > 0 && !isSaving && !isDeleting
+  const canSave = draft.photos.length >= 3 && !isSaving && !isDeleting
 
   return (
     <div className="flex min-h-full flex-col">
@@ -462,6 +467,11 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               className="hidden"
               onChange={handlePhotoSelect}
             />
+            {draft.photos.length < 3 && (
+              <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
+                {t('editVehiculo.photoMinimumHint')} ({draft.photos.length}/3)
+              </p>
+            )}
             <Button
               type="button"
               variant="secondary"
@@ -477,7 +487,6 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         <Card>
           <CardHeader>
             <CardTitle>{t('editVehiculo.formTitle')}</CardTitle>
-            <CardDescription>{t('editVehiculo.formDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
