@@ -101,7 +101,7 @@ export function NuevoVehiculoPage() {
     try {
       const list = getCitiesForProvince(formData.province)
       setCities(list)
-    } catch (e) {
+    } catch {
       setCities([])
     }
   }, [formData.province])
