@@ -5,5 +5,7 @@
       "main": true,
       "dev": true
     }
-  }
+  },
+  "installCommand": "scripts/vercel-install.sh",
+  "buildCommand": "pnpm build"
 }
