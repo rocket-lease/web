@@ -50,6 +50,10 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@11.0.8
 
+      - name: Install contracts dependencies
+        working-directory: contracts
+        run: pnpm install --frozen-lockfile
+
       - name: Install dependencies
         working-directory: web
         run: pnpm install --frozen-lockfile
