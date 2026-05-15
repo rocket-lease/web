@@ -3,10 +3,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import tsconfigPaths from 'vite-tsconfig-paths'
 import path from 'path'
 
 export default defineConfig({
   plugins: [
+    // Resolves @rocket-lease/contracts → ../contracts/src/index.ts via tsconfig
+    // paths. See ../api/docs/adr/0007-contracts-as-source.md.
+    tsconfigPaths(),
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.ts',
@@ -88,7 +92,12 @@ export default defineConfig({
   server: {
     allowedHosts: ['dreamy-anyplace-zebra.ngrok-free.dev'],
     fs: {
-      allow: [path.resolve(__dirname, './')],
+      // Vite refuses to serve files outside the project root by default.
+      // Allow the sibling contracts/ folder so its TS source can be imported.
+      allow: [
+        path.resolve(__dirname, './'),
+        path.resolve(__dirname, '../contracts'),
+      ],
     },
   },
 })

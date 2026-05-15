@@ -6,7 +6,9 @@
     "module": "esnext",
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@rocket-lease/contracts": ["../contracts/src/index.ts"],
+      "@rocket-lease/contracts/*": ["../contracts/src/*"]
     },
     "skipLibCheck": true,
 
@@ -24,5 +26,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src", "../contracts/src"]
 }
