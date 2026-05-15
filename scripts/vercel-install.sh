@@ -25,6 +25,6 @@ if ! git clone --depth=1 --branch "$REF" "$REPO_URL" "$TARGET" 2>/dev/null; then
   git clone --depth=1 "$REPO_URL" "$TARGET"
 fi
 
-corepack enable
+npm install -g pnpm@11.0.8
 (cd "$TARGET" && pnpm install --frozen-lockfile)
 pnpm install --frozen-lockfile
