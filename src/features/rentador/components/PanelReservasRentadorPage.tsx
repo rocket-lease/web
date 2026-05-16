@@ -134,29 +134,43 @@ export function PanelReservasRentadorPage() {
 }
 
 function ReservaCard({ reserva }: { reserva: OwnerReservation }) {
+  const photo = reserva.vehicle.photo
   return (
     <Link
       to="/rentador/reservas/$id"
       params={{ id: reserva.id }}
-      className="card p-4 flex flex-col gap-3 active:opacity-80"
+      className="card p-3 flex gap-3 active:opacity-80"
     >
-      <div className="flex items-center justify-between">
-        <p className="font-semibold text-text-primary">
-          {reserva.vehicle.brand} {reserva.vehicle.model}
-        </p>
-        <ReservaStatusBadge estado={reserva.status} />
+      <div className="h-20 w-20 shrink-0 rounded-xl overflow-hidden bg-surface-2 flex items-center justify-center">
+        {photo ? (
+          <img
+            src={photo}
+            alt={`${reserva.vehicle.brand} ${reserva.vehicle.model}`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <CalendarDays className="h-6 w-6 text-text-muted" />
+        )}
       </div>
-      <div className="flex items-center gap-2 text-sm text-text-secondary">
-        <CalendarDays className="h-4 w-4 text-text-muted" />
-        <span>
-          {fmt.dateTime(reserva.startAt)} → {fmt.dateTime(reserva.endAt)}
-        </span>
-      </div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-text-muted">{reserva.conductor.name}</span>
-        <span className="font-bold text-brand-400">
-          {fmt.currency(reserva.totalCents)}
-        </span>
+      <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-semibold text-text-primary truncate">
+            {reserva.vehicle.brand} {reserva.vehicle.model}
+          </p>
+          <ReservaStatusBadge estado={reserva.status} />
+        </div>
+        <div className="flex items-center gap-2 text-xs text-text-secondary">
+          <CalendarDays className="h-3.5 w-3.5 text-text-muted shrink-0" />
+          <span className="truncate">
+            {fmt.dateTime(reserva.startAt)} → {fmt.dateTime(reserva.endAt)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-sm pt-0.5">
+          <span className="text-text-muted truncate">{reserva.conductor.name}</span>
+          <span className="font-bold text-brand-400 shrink-0">
+            {fmt.currency(reserva.totalCents)}
+          </span>
+        </div>
       </div>
     </Link>
   )

@@ -1,5 +1,5 @@
-import { useParams } from '@tanstack/react-router'
-import { CalendarDays, User } from 'lucide-react'
+import { Link, useParams } from '@tanstack/react-router'
+import { CalendarDays, ChevronRight, User } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
 import { Separator } from '@/ui/separator'
@@ -112,7 +112,12 @@ export function ReservaRentadorDetailPage() {
 
         <Separator />
 
-        <div className="flex items-center gap-3">
+        <Link
+          to="/perfil/$id"
+          params={{ id: reserva.conductor.id }}
+          aria-label={`Ver perfil de ${reserva.conductor.name}`}
+          className="flex items-center gap-3 -mx-2 px-2 py-2 rounded-xl hover:bg-surface-2 transition-colors active:scale-[0.99]"
+        >
           {reserva.conductor.avatarUrl ? (
             <Avatar
               src={reserva.conductor.avatarUrl}
@@ -124,15 +129,16 @@ export function ReservaRentadorDetailPage() {
               <User className="h-5 w-5 text-text-muted" />
             </div>
           )}
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-xs text-text-muted">
               {t('rentador.reservas.detalle.conductor')}
             </p>
-            <p className="font-semibold text-text-primary">
+            <p className="font-semibold text-text-primary truncate">
               {reserva.conductor.name}
             </p>
           </div>
-        </div>
+          <ChevronRight className="h-5 w-5 text-text-muted shrink-0" />
+        </Link>
 
         <Separator />
 
