@@ -141,7 +141,7 @@ function ReservaCard({ reserva }: { reserva: OwnerReservation }) {
       params={{ id: reserva.id }}
       className="card p-2 flex gap-3 active:opacity-80"
     >
-      <div className="h-20 w-20 shrink-0 rounded overflow-hidden bg-surface-2 flex items-center justify-center">
+      <div className="h-20 w-20 shrink-0 rounded-lg overflow-hidden bg-surface-2 flex items-center justify-center">
         {photo ? (
           <img
             src={photo}
