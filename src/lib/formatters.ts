@@ -20,6 +20,18 @@ const dateTimeFmt = new Intl.DateTimeFormat('es-AR', {
   timeZone: 'America/Argentina/Buenos_Aires',
 })
 
+const timeFmt = new Intl.DateTimeFormat('es-AR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'America/Argentina/Buenos_Aires',
+})
+
+const dayMonthFmt = new Intl.DateTimeFormat('es-AR', {
+  day: '2-digit',
+  month: 'short',
+  timeZone: 'America/Argentina/Buenos_Aires',
+})
+
 const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' })
 
 export const fmt = {
@@ -33,6 +45,8 @@ export const fmt = {
 
   dateShort: (d: string | Date) => dateShortFmt.format(new Date(d)).replace(/-/g, ' '),
   dateTime: (d: string | Date) => dateTimeFmt.format(new Date(d)).replace(/-/g, ' '),
+  dayMonth: (d: string | Date) => dayMonthFmt.format(new Date(d)).replace(/-/g, ' '),
+  time: (d: string | Date) => timeFmt.format(new Date(d)),
 
   relativeTime: (d: string | Date) => {
     const diff = Date.now() - new Date(d).getTime()

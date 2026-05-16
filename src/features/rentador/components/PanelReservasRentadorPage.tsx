@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { CalendarDays, ClipboardList } from 'lucide-react'
+import { ArrowRight, CalendarDays, ClipboardList, User } from 'lucide-react'
 import type {
   OwnerReservation,
   ReservationStatus,
@@ -162,12 +162,23 @@ function ReservaCard({ reserva }: { reserva: OwnerReservation }) {
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <CalendarDays className="h-3.5 w-3.5 text-text-muted shrink-0" />
           <span className="truncate">
-            {fmt.dateTime(reserva.startAt)} → {fmt.dateTime(reserva.endAt)}
+            <span className="font-semibold text-text-primary">
+              {fmt.dayMonth(reserva.startAt)}
+            </span>{' '}
+            {fmt.time(reserva.startAt)}
+            <ArrowRight className="inline h-3 w-3 mx-1 text-text-muted align-text-bottom" />
+            <span className="font-semibold text-text-primary">
+              {fmt.dayMonth(reserva.endAt)}
+            </span>{' '}
+            {fmt.time(reserva.endAt)}
           </span>
         </div>
-        <div className="flex items-center justify-between text-sm pt-0.5">
-          <span className="text-text-muted truncate">{reserva.conductor.name}</span>
-          <span className="font-bold text-brand-400 shrink-0">
+        <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
+          <div className="flex items-center gap-2 min-w-0">
+            <User className="h-3.5 w-3.5 text-text-muted shrink-0" />
+            <span className="truncate">{reserva.conductor.name}</span>
+          </div>
+          <span className="font-bold text-brand-400 shrink-0 text-sm">
             {fmt.currency(reserva.totalCents)}
           </span>
         </div>
