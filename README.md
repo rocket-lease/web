@@ -1,4 +1,4 @@
-# Running the frontend.
+c# Running the frontend.
 
 ```bash
 npm run dev -- --host
