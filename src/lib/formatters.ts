@@ -31,8 +31,8 @@ export const fmt = {
       currency: 'ARS',
     }).format(cents / 100),
 
-  dateShort: (d: string | Date) => dateShortFmt.format(new Date(d)),
-  dateTime: (d: string | Date) => dateTimeFmt.format(new Date(d)),
+  dateShort: (d: string | Date) => dateShortFmt.format(new Date(d)).replace(/-/g, ' '),
+  dateTime: (d: string | Date) => dateTimeFmt.format(new Date(d)).replace(/-/g, ' '),
 
   relativeTime: (d: string | Date) => {
     const diff = Date.now() - new Date(d).getTime()
