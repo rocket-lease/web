@@ -66,7 +66,7 @@ export function ReservasConductorPage() {
                       </p>
                     </div>
                     <p className="text-base font-bold text-brand-400 shrink-0">
-                      {fmt.price(r.totalCents)}
+                      {fmt.currency(r.totalCents)}
                     </p>
                   </div>
                   <p className="text-xs text-text-muted">

@@ -194,7 +194,7 @@ export function NuevoVehiculoPage() {
     color: formData.color,
     mileage: Number(formData.mileage || 0),
     description: formData.description.trim() ? formData.description.trim() : null,
-    basePrice: Number(formData.dailyPrice || 0),
+    basePriceCents: Math.round(Number(formData.dailyPrice || 0) * 100),
     // photos: [],
   }
 
@@ -513,7 +513,8 @@ export function NuevoVehiculoPage() {
                 onChange={e => handleFieldChange('dailyPrice', e.target.value)}
                 type="number"
                 placeholder="25000"
-                min="1"
+                min="0.01"
+                step="0.01"
               />
               <p className="mt-2 text-xs text-text-muted">
                 Definí el valor diario del alquiler.

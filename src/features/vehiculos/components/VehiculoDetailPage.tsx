@@ -164,7 +164,7 @@ export function VehiculoDetailPage() {
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wider text-text-muted">Tarifa</p>
-              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.price(vehicle.basePrice)}</p>
+              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(vehicle.basePriceCents)}</p>
               <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
             </div>
             {!vehicle.enabled ? (

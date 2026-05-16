@@ -407,7 +407,7 @@ export function ReservarVehiculoPage() {
     if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
       return 0
     }
-    return estimateReservationTotalCents(vehicle.basePrice, startAt, endAt)
+    return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt)
   }, [vehicle, startAtLocal, endAtLocal])
 
   const validRange =
@@ -549,7 +549,7 @@ export function ReservarVehiculoPage() {
                 {t('reservar.total')}
               </span>
               <span className="text-base font-semibold text-text-primary">
-                {fmt.price(estimatedTotal)}
+                {fmt.currency(estimatedTotal)}
               </span>
             </div>
             <Button
@@ -624,7 +624,7 @@ export function ReservarVehiculoPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">{t('reservar.total')}</span>
                 <span className="font-semibold text-text-primary">
-                  {fmt.price(
+                  {fmt.currency(
                     createReservation.data?.totalCents ?? estimatedTotal,
                   )}
                 </span>
