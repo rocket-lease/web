@@ -9,6 +9,7 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
 import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
+import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
@@ -52,8 +53,6 @@ export function PanelReservasRentadorPage() {
     setPage(1)
   }
 
-  const onFiltersChange = () => setPage(1)
-
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   return (
@@ -79,44 +78,17 @@ export function PanelReservasRentadorPage() {
         </div>
       </div>
 
-      <div className="px-4 pb-3 grid grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-text-muted">{t('rentador.reservas.filtros.desde')}</span>
-          <input
-            type="date"
-            value={from}
-            onChange={(e) => {
-              setFrom(e.target.value)
-              onFiltersChange()
-            }}
-            className="rounded-xl bg-surface-2 text-text-primary px-3 py-2 text-sm border border-white/6"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-text-muted">{t('rentador.reservas.filtros.hasta')}</span>
-          <input
-            type="date"
-            value={to}
-            onChange={(e) => {
-              setTo(e.target.value)
-              onFiltersChange()
-            }}
-            className="rounded-xl bg-surface-2 text-text-primary px-3 py-2 text-sm border border-white/6"
-          />
-        </label>
-        {(from || to) && (
-          <button
-            type="button"
-            onClick={() => {
-              setFrom('')
-              setTo('')
-              setPage(1)
-            }}
-            className="col-span-2 text-xs text-brand-400 underline self-start"
-          >
-            {t('rentador.reservas.filtros.limpiar')}
-          </button>
-        )}
+      <div className="px-4 pb-3">
+        <DateRangeSheet
+          value={{ from, to }}
+          onApply={(range) => {
+            setFrom(range.from ?? '')
+            setTo(range.to ?? '')
+            setPage(1)
+          }}
+          placeholder={t('rentador.reservas.filtros.placeholder')}
+          title={t('rentador.reservas.filtros.title')}
+        />
       </div>
 
       <div className="px-4 pb-6 flex flex-col gap-3">

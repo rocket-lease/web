@@ -181,6 +181,8 @@ export const es = {  // --- App ---
   'rentador.reservas.filtros.desde': 'Desde',
   'rentador.reservas.filtros.hasta': 'Hasta',
   'rentador.reservas.filtros.limpiar': 'Limpiar filtros',
+  'rentador.reservas.filtros.placeholder': 'Filtrar por fecha',
+  'rentador.reservas.filtros.title': 'Elegí un rango',
   'rentador.reservas.empty.sinReservas': 'No tenes reservas en esta categoria todavia.',
   'rentador.reservas.empty.sinVehiculos': 'Publica un vehiculo para empezar a recibir reservas.',
   'rentador.reservas.error': 'No pudimos cargar tus reservas. Intenta de nuevo.',
