@@ -184,9 +184,9 @@ export function PanelReservasRentadorPage() {
           </div>
         )}
         {isRefetching && (
-          <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-24">
+          <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
             <Loader2
-              className="h-10 w-10 text-brand-400 animate-spin drop-shadow-lg"
+              className="h-12 w-12 text-brand-400 animate-spin drop-shadow-lg"
               aria-label={t('rentador.reservas.cargando')}
             />
           </div>
