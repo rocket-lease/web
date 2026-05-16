@@ -14,9 +14,11 @@ import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
 
-type TabKey = 'pending' | 'confirmed' | 'inProgress' | 'completed' | 'cancelled'
+type TabKey = 'all' | 'pending' | 'confirmed' | 'inProgress' | 'completed' | 'cancelled'
 
-const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[]> = {
+// `undefined` = sin filtro de estado (el endpoint devuelve todas).
+const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
+  all: undefined,
   pending: ['pending_payment'],
   confirmed: ['confirmed'],
   inProgress: ['in_progress'],
@@ -25,6 +27,7 @@ const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[]> = {
 }
 
 const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
+  { key: 'all', labelKey: 'rentador.reservas.tabs.todas' },
   { key: 'pending', labelKey: 'rentador.reservas.tabs.pendientes' },
   { key: 'confirmed', labelKey: 'rentador.reservas.tabs.confirmadas' },
   { key: 'inProgress', labelKey: 'rentador.reservas.tabs.enCurso' },
@@ -35,7 +38,7 @@ const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
 const PAGE_SIZE = 20
 
 export function PanelReservasRentadorPage() {
-  const [tab, setTab] = useState<TabKey>('pending')
+  const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
   const [to, setTo] = useState<string>('')
   const [page, setPage] = useState(1)

@@ -173,6 +173,7 @@ export const es = {  // --- App ---
 
   // --- Rentador / Panel de reservas (US-46) ---
   'rentador.reservas.title': 'Mis reservas',
+  'rentador.reservas.tabs.todas': 'Todas',
   'rentador.reservas.tabs.pendientes': 'Pendientes',
   'rentador.reservas.tabs.confirmadas': 'Confirmadas',
   'rentador.reservas.tabs.enCurso': 'En curso',
