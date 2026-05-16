@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react'
 import { CalendarDays } from 'lucide-react'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import type { DateRange } from 'react-day-picker'
 import { Drawer, DrawerContent, DrawerTrigger } from './drawer'
-import { Calendar } from './calendar'
+import { Calendar, type DateRange } from './calendar'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 
 export interface DateRangeSheetProps {
-  /** Rango actual (controlado). */
-  value: { from?: string; to?: string }
-  /** Se llama con strings ISO `yyyy-MM-dd` al aplicar. `null` = limpiar. */
-  onApply: (range: { from?: string; to?: string }) => void
+  /** Rango actual (controlado). Strings ISO `yyyy-MM-dd`. */
+  value: DateRange
+  /** Se llama con strings ISO `yyyy-MM-dd` al aplicar. */
+  onApply: (range: DateRange) => void
   /** Texto cuando no hay rango. */
   placeholder?: string
   /** Texto del header del sheet. */
@@ -20,24 +17,23 @@ export interface DateRangeSheetProps {
   className?: string
 }
 
-function toDate(iso?: string): Date | undefined {
+const MONTH_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+
+function parse(iso?: string): Date | undefined {
   if (!iso) return undefined
   const [y, m, d] = iso.split('-').map(Number)
   return new Date(y, m - 1, d)
 }
 
-function toIso(date?: Date): string | undefined {
-  if (!date) return undefined
-  return format(date, 'yyyy-MM-dd')
-}
-
-function fmtLabel(from?: Date, to?: Date): string | null {
+function fmtLabel(value: DateRange): string | null {
+  const from = parse(value.from)
+  const to = parse(value.to)
   if (!from && !to) return null
-  if (from && to) {
-    return `${format(from, "d 'de' MMM", { locale: es })} – ${format(to, "d 'de' MMM yyyy", { locale: es })}`
-  }
-  if (from) return `Desde ${format(from, "d 'de' MMM yyyy", { locale: es })}`
-  return `Hasta ${format(to!, "d 'de' MMM yyyy", { locale: es })}`
+  const day = (d: Date) => `${d.getDate()} de ${MONTH_SHORT[d.getMonth()]}`
+  const dayY = (d: Date) => `${d.getDate()} de ${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`
+  if (from && to) return `${day(from)} – ${dayY(to)}`
+  if (from) return `Desde ${dayY(from)}`
+  return `Hasta ${dayY(to!)}`
 }
 
 export function DateRangeSheet({
@@ -48,29 +44,24 @@ export function DateRangeSheet({
   className,
 }: DateRangeSheetProps) {
   const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState<DateRange | undefined>(() => ({
-    from: toDate(value.from),
-    to: toDate(value.to),
-  }))
+  const [draft, setDraft] = useState<DateRange>(value)
 
   // Sincronizar el draft con el value cuando el sheet se abre, así si el padre
   // cambia el value externamente, el calendar arranca consistente.
   useEffect(() => {
-    if (open) {
-      setDraft({ from: toDate(value.from), to: toDate(value.to) })
-    }
+    if (open) setDraft(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const label = fmtLabel(toDate(value.from), toDate(value.to))
+  const label = fmtLabel(value)
   const hasRange = Boolean(value.from || value.to)
 
   const apply = () => {
-    onApply({ from: toIso(draft?.from), to: toIso(draft?.to) })
+    onApply(draft)
     setOpen(false)
   }
   const clear = () => {
-    setDraft(undefined)
+    setDraft({ from: undefined, to: undefined })
     onApply({ from: undefined, to: undefined })
     setOpen(false)
   }
@@ -103,23 +94,8 @@ export function DateRangeSheet({
           <div className="flex justify-center">
             <Calendar
               mode="range"
-              selected={draft}
-              onSelect={(_range, day) => {
-                // UX pattern airbnb/booking: si ya hay rango completo,
-                // el siguiente tap empieza un rango nuevo desde ese día.
-                if (draft?.from && draft?.to) {
-                  setDraft({ from: day, to: undefined })
-                  return
-                }
-                // Si solo hay from y el nuevo día es anterior, reset desde ahí.
-                if (draft?.from && !draft.to && day < draft.from) {
-                  setDraft({ from: day, to: undefined })
-                  return
-                }
-                // Default: deja que rdp arme el rango (from → to).
-                setDraft(_range)
-              }}
-              numberOfMonths={1}
+              value={draft}
+              onChange={setDraft}
             />
           </div>
 
@@ -127,7 +103,7 @@ export function DateRangeSheet({
             <Button variant="secondary" onClick={clear} className="flex-1">
               Limpiar
             </Button>
-            <Button onClick={apply} className="flex-1" disabled={!draft?.from && !draft?.to}>
+            <Button onClick={apply} className="flex-1" disabled={!draft.from && !draft.to}>
               Aplicar
             </Button>
           </div>

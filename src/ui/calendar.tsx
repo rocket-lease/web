@@ -1,65 +1,213 @@
-import { DayPicker, type DayPickerProps } from 'react-day-picker'
-import { es } from 'date-fns/locale'
-import 'react-day-picker/style.css'
+import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type CalendarProps = DayPickerProps & { className?: string }
+const MONTH_NAMES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+]
+const WEEKDAY_NAMES = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
-// Override de las CSS variables de react-day-picker para alinearlas al theme dark/brand.
-// Sin esto, las defaults tiran `blue` literal en today/selected/range.
-const themeStyle = {
-  '--rdp-accent-color': 'var(--color-brand-500)',
-  '--rdp-accent-background-color': 'transparent',
-  '--rdp-today-color': 'var(--color-brand-300)',
-  '--rdp-selected-border': '0',
-  '--rdp-range_middle-background-color': 'transparent',
-  '--rdp-range_middle-color': 'var(--color-text-primary)',
-  '--rdp-range_start-color': 'white',
-  '--rdp-range_start-date-background-color': 'var(--color-brand-500)',
-  '--rdp-range_start-background': 'transparent',
-  '--rdp-range_end-color': 'white',
-  '--rdp-range_end-date-background-color': 'var(--color-brand-500)',
-  '--rdp-range_end-background': 'transparent',
-  '--rdp-day-height': '2.5rem',
-  '--rdp-day-width': '2.5rem',
-} as React.CSSProperties
+function pad(n: number): string {
+  return n.toString().padStart(2, '0')
+}
 
-export function Calendar({ className, ...props }: CalendarProps) {
+function formatYmd(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+function parseYmd(s: string): Date {
+  return new Date(`${s}T00:00:00`)
+}
+
+export interface DateRange {
+  from?: string
+  to?: string
+}
+
+interface BaseProps {
+  /** Fecha mínima seleccionable (inclusive), formato YYYY-MM-DD. */
+  minDate?: string
+  /** Override de fechas deshabilitadas (además de minDate). */
+  isDateDisabled?: (dateStr: string) => boolean
+  className?: string
+}
+
+interface SingleProps extends BaseProps {
+  mode: 'single'
+  value: string
+  onChange: (date: string) => void
+}
+
+interface RangeProps extends BaseProps {
+  mode: 'range'
+  value: DateRange
+  onChange: (range: DateRange) => void
+}
+
+export type CalendarProps = SingleProps | RangeProps
+
+export function Calendar(props: CalendarProps) {
+  const { mode, minDate, isDateDisabled, className } = props
+
+  // Posicionamiento inicial: en el mes de la fecha de referencia o el actual.
+  const reference =
+    mode === 'single'
+      ? props.value || minDate || formatYmd(new Date())
+      : props.value.from || minDate || formatYmd(new Date())
+  const refDate = parseYmd(reference)
+  const [viewYear, setViewYear] = useState(refDate.getFullYear())
+  const [viewMonth, setViewMonth] = useState(refDate.getMonth())
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1)
+  // Monday-first: 0=Sunday → 6, 1=Mon → 0
+  const startOffset = (firstOfMonth.getDay() + 6) % 7
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+
+  const cells: Array<{ date: string; day: number } | null> = []
+  for (let i = 0; i < startOffset; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ date: formatYmd(new Date(viewYear, viewMonth, d)), day: d })
+  }
+
+  const goPrev = () => {
+    if (viewMonth === 0) {
+      setViewYear(viewYear - 1)
+      setViewMonth(11)
+    } else {
+      setViewMonth(viewMonth - 1)
+    }
+  }
+  const goNext = () => {
+    if (viewMonth === 11) {
+      setViewYear(viewYear + 1)
+      setViewMonth(0)
+    } else {
+      setViewMonth(viewMonth + 1)
+    }
+  }
+
+  const handlePick = (date: string) => {
+    if (mode === 'single') {
+      props.onChange(date)
+      return
+    }
+    const { from, to } = props.value
+    // Patrón airbnb: si ya hay rango completo, arrancar nuevo desde el día.
+    if (from && to) {
+      props.onChange({ from: date, to: undefined })
+      return
+    }
+    // Si solo hay from y el nuevo día es anterior, reiniciar desde ahí.
+    if (from && !to && date < from) {
+      props.onChange({ from: date, to: undefined })
+      return
+    }
+    // Si no hay from, setear.
+    if (!from) {
+      props.onChange({ from: date, to: undefined })
+      return
+    }
+    // Hay from y el día es >= from → cerrar rango.
+    props.onChange({ from, to: date })
+  }
+
+  type Visual = 'none' | 'start' | 'end' | 'middle' | 'single'
+  const visualFor = (date: string): Visual => {
+    if (mode === 'single') {
+      return date === props.value ? 'single' : 'none'
+    }
+    const { from, to } = props.value
+    if (!from && !to) return 'none'
+    if (from && !to) return date === from ? 'single' : 'none'
+    if (from === to && date === from) return 'single'
+    if (date === from) return 'start'
+    if (date === to) return 'end'
+    if (from && to && date > from && date < to) return 'middle'
+    return 'none'
+  }
+
   return (
-    <DayPicker
-      locale={es}
-      showOutsideDays
-      style={themeStyle}
-      className={cn('rdp-rocket', className)}
-      classNames={{
-        month: 'space-y-2',
-        month_caption: 'flex justify-center pt-1 pb-2 text-sm font-medium text-text-primary',
-        nav: 'flex items-center justify-between absolute top-1 left-2 right-2 pointer-events-none',
-        button_previous:
-          'pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-text-secondary hover:bg-surface-3 transition-colors',
-        button_next:
-          'pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-text-secondary hover:bg-surface-3 transition-colors',
-        weekdays: 'flex',
-        weekday: 'w-10 text-center text-xs text-text-muted font-medium uppercase',
-        weeks: 'space-y-1',
-        week: 'flex',
-        day: 'w-10 h-10 text-sm relative',
-        day_button:
-          'w-full h-full inline-flex items-center justify-center rounded-full text-text-primary hover:bg-surface-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
-        selected:
-          '[&>button]:bg-brand-500 [&>button]:text-white [&>button]:hover:bg-brand-600',
-        range_start:
-          '[&>button]:bg-brand-500 [&>button]:text-white [&>button]:hover:bg-brand-600 rounded-l-full bg-brand-500/15',
-        range_end:
-          '[&>button]:bg-brand-500 [&>button]:text-white [&>button]:hover:bg-brand-600 rounded-r-full bg-brand-500/15',
-        range_middle:
-          '[&>button]:bg-transparent [&>button]:hover:bg-brand-500/30 [&>button]:text-text-primary bg-brand-500/15 rounded-none',
-        today: '[&>button]:border [&>button]:border-brand-400/40',
-        outside: 'opacity-30',
-        disabled: 'opacity-20 [&>button]:pointer-events-none',
-        hidden: 'invisible',
-      }}
-      {...props}
-    />
+    <div
+      className={cn(
+        'w-72 rounded-2xl border border-white/8 bg-surface-1 p-3',
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <button
+          type="button"
+          onClick={goPrev}
+          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-surface-2 text-text-secondary"
+          aria-label="Mes anterior"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="text-sm font-semibold text-text-primary capitalize">
+          {MONTH_NAMES[viewMonth]} {viewYear}
+        </span>
+        <button
+          type="button"
+          onClick={goNext}
+          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-surface-2 text-text-secondary"
+          aria-label="Mes siguiente"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {WEEKDAY_NAMES.map((w) => (
+          <div key={w} className="text-center text-[10px] text-text-muted py-1 font-medium">
+            {w}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-y-1">
+        {cells.map((c, i) => {
+          if (!c) return <div key={i} />
+          const disabled =
+            (!!minDate && c.date < minDate) ||
+            (isDateDisabled?.(c.date) ?? false)
+          const visual = visualFor(c.date)
+
+          // Background del CELL (para el efecto continuo del range).
+          const cellBg =
+            visual === 'middle'
+              ? 'bg-brand-500/15'
+              : visual === 'start'
+                ? 'bg-brand-500/15 rounded-l-lg'
+                : visual === 'end'
+                  ? 'bg-brand-500/15 rounded-r-lg'
+                  : ''
+
+          const buttonStyle =
+            visual === 'start' || visual === 'end' || visual === 'single'
+              ? 'bg-brand-500 text-white hover:bg-brand-600'
+              : visual === 'middle'
+                ? 'text-text-primary hover:bg-brand-500/30'
+                : disabled
+                  ? 'text-text-muted/40 line-through cursor-not-allowed'
+                  : 'text-text-primary hover:bg-surface-2'
+
+          return (
+            <div key={c.date} className={cellBg}>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => handlePick(c.date)}
+                className={cn(
+                  'h-9 w-full rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400',
+                  buttonStyle,
+                )}
+              >
+                {c.day}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
