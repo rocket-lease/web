@@ -32,6 +32,7 @@ import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehi
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppMisReservasIdRouteImport } from './routes/_app/mis-reservas.$id'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
+import { Route as AppRentadorReservasIdRouteImport } from './routes/_app/rentador.reservas.$id'
 
 const VerificarRoute = VerificarRouteImport.update({
   id: '/verificar',
@@ -147,6 +148,11 @@ const AppVehiculosIdReservarRoute = AppVehiculosIdReservarRouteImport.update({
   path: '/vehiculos/$id/reservar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRentadorReservasIdRoute = AppRentadorReservasIdRouteImport.update({
+  id: '/rentador/reservas/$id',
+  path: '/rentador/reservas/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/perfil/datos': typeof AppPerfilDatosRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/rentador/reservas/$id': typeof AppRentadorReservasIdRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesByTo {
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/perfil/datos': typeof AppPerfilDatosRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/rentador/reservas/$id': typeof AppRentadorReservasIdRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesById {
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/_app/perfil_/datos': typeof AppPerfilDatosRoute
   '/_app/reservas_/$id': typeof AppReservasIdRoute
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/_app/rentador/reservas/$id': typeof AppRentadorReservasIdRoute
   '/_app/vehiculos/$id_/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRouteTypes {
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/perfil/datos'
     | '/reservas/$id'
     | '/vehiculos/$id'
+    | '/rentador/reservas/$id'
     | '/vehiculos/$id/reservar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/perfil/datos'
     | '/reservas/$id'
     | '/vehiculos/$id'
+    | '/rentador/reservas/$id'
     | '/vehiculos/$id/reservar'
   id:
     | '__root__'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/_app/perfil_/datos'
     | '/_app/reservas_/$id'
     | '/_app/vehiculos/$id'
+    | '/_app/rentador/reservas/$id'
     | '/_app/vehiculos/$id_/reservar'
   fileRoutesById: FileRoutesById
 }
@@ -470,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVehiculosIdReservarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/rentador/reservas/$id': {
+      id: '/_app/rentador/reservas/$id'
+      path: '/rentador/reservas/$id'
+      fullPath: '/rentador/reservas/$id'
+      preLoaderRoute: typeof AppRentadorReservasIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -513,6 +532,7 @@ interface AppRouteChildren {
   AppPerfilDatosRoute: typeof AppPerfilDatosRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
+  AppRentadorReservasIdRoute: typeof AppRentadorReservasIdRoute
   AppVehiculosIdReservarRoute: typeof AppVehiculosIdReservarRoute
 }
 
@@ -530,6 +550,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPerfilDatosRoute: AppPerfilDatosRoute,
   AppReservasIdRoute: AppReservasIdRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
+  AppRentadorReservasIdRoute: AppRentadorReservasIdRoute,
   AppVehiculosIdReservarRoute: AppVehiculosIdReservarRoute,
 }
 
