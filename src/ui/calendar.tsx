@@ -47,10 +47,29 @@ interface RangeProps extends BaseProps {
 
 export type CalendarProps = SingleProps | RangeProps
 
+/**
+ * Calendario inline custom. Soporta selección de una sola fecha o rango,
+ * navegación mes-a-mes con chevrons, locale español (lunes-primero), y
+ * estilos consistentes con el theme dark/purple del proyecto.
+ *
+ * Para selección de rango aplica el patrón "tap-to-reset" tipo Airbnb:
+ * - Sin selección → primer tap setea `from`.
+ * - Con `from` y tap posterior → setea `to` (si tap > from) o reinicia
+ *   desde el nuevo día (si tap < from).
+ * - Con rango completo y nuevo tap → reinicia el rango desde ese día.
+ *
+ * @param props.mode - `'single'` o `'range'`. Determina el shape de
+ *   `value`/`onChange` (discriminated union).
+ * @param props.value - Fecha YYYY-MM-DD (mode single) o `{from?, to?}` (range).
+ * @param props.onChange - Callback con el nuevo valor seleccionado.
+ * @param props.minDate - Opcional: día más temprano seleccionable (YYYY-MM-DD).
+ *   Los días anteriores quedan deshabilitados y tachados.
+ * @param props.isDateDisabled - Opcional: hook custom para deshabilitar días
+ *   adicionales (ej. fechas ocupadas).
+ */
 export function Calendar(props: CalendarProps) {
   const { mode, minDate, isDateDisabled, className } = props
 
-  // Posicionamiento inicial: en el mes de la fecha de referencia o el actual.
   const reference =
     mode === 'single'
       ? props.value || minDate || formatYmd(new Date())
@@ -60,7 +79,7 @@ export function Calendar(props: CalendarProps) {
   const [viewMonth, setViewMonth] = useState(refDate.getMonth())
 
   const firstOfMonth = new Date(viewYear, viewMonth, 1)
-  // Monday-first: 0=Sunday → 6, 1=Mon → 0
+  // 0=Sunday → 6, 1=Mon → 0 (lunes primero).
   const startOffset = (firstOfMonth.getDay() + 6) % 7
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
 
@@ -93,22 +112,18 @@ export function Calendar(props: CalendarProps) {
       return
     }
     const { from, to } = props.value
-    // Patrón airbnb: si ya hay rango completo, arrancar nuevo desde el día.
     if (from && to) {
       props.onChange({ from: date, to: undefined })
       return
     }
-    // Si solo hay from y el nuevo día es anterior, reiniciar desde ahí.
     if (from && !to && date < from) {
       props.onChange({ from: date, to: undefined })
       return
     }
-    // Si no hay from, setear.
     if (!from) {
       props.onChange({ from: date, to: undefined })
       return
     }
-    // Hay from y el día es >= from → cerrar rango.
     props.onChange({ from, to: date })
   }
 

@@ -39,6 +39,21 @@ const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
 
 const PAGE_SIZE = 20
 
+/**
+ * Panel del rentador con todas sus reservas, organizadas en tabs por estado
+ * (Todas, Pendientes, Confirmadas, En curso, Completadas, Canceladas) y con
+ * filtro de rango de fechas via bottom sheet.
+ *
+ * Optimización smart-cache: la primera request al endpoint trae todas las
+ * reservas (sin filtro de estado). Si el rentador tiene `total <= PAGE_SIZE`
+ * (caso común), las demás tabs filtran client-side desde ese cache sin
+ * round-trips adicionales. Si tiene más, cada tab dispara su propia request
+ * server-side.
+ *
+ * Empty state diferenciado: si no hay reservas Y el rentador tampoco tiene
+ * vehículos publicados, sugiere publicar uno con CTA. Si tiene vehículos
+ * pero 0 reservas en la tab activa, mostrar copy genérico.
+ */
 export function PanelReservasRentadorPage() {
   const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
@@ -48,9 +63,6 @@ export function PanelReservasRentadorPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined
   const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
 
-  // Probe: traer la primera página sin filtro de estado. Si entra toda la data
-  // del rentador en una página, las demás tabs se filtran client-side (sin
-  // round-trips). Si no, cada tab dispara su propia request al backend.
   const probeQuery = useOwnerReservations({
     status: undefined,
     from: fromIso,
@@ -75,7 +87,6 @@ export function PanelReservasRentadorPage() {
     { enabled: needsTabQuery },
   )
 
-  // Computar data a mostrar según de dónde sale.
   const data = (() => {
     if (isProbeMatch) return probeQuery.data
     if (canFilterFromCache) {
@@ -93,10 +104,6 @@ export function PanelReservasRentadorPage() {
     return tabQuery.data
   })()
 
-  // Para diferenciar el empty state: si el rentador no publicó vehículos todavía,
-  // mostramos copy distinto ("publicá un vehículo") en vez de "no hay reservas".
-  // Solo lo consultamos cuando el listado viene vacío, para no agregar un round-trip
-  // en el caso común de un rentador con reservas.
   const reservasVacias = !!data && data.items.length === 0
   const myVehiclesQuery = useQuery({
     queryKey: ['myVehicles'],

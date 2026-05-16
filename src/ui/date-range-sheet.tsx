@@ -36,6 +36,20 @@ function fmtLabel(value: DateRange): string | null {
   return `Hasta ${dayY(to!)}`
 }
 
+/**
+ * Trigger button + bottom sheet con calendario inline para seleccionar un
+ * rango de fechas. Mobile-first: el sheet sube desde abajo, respeta
+ * safe-area-inset, soporta swipe-to-close.
+ *
+ * El componente mantiene un `draft` interno mientras el usuario juguetea con
+ * el calendario; solo cuando aprieta "Aplicar" llama `onApply` con el rango
+ * final. "Limpiar" descarta y llama `onApply` con `{from: undefined, to: undefined}`.
+ *
+ * @param props.value - Rango actual (controlado por el padre).
+ * @param props.onApply - Callback con el rango elegido al apretar Aplicar/Limpiar.
+ * @param props.placeholder - Texto del trigger cuando no hay rango activo.
+ * @param props.title - Título arriba del calendario en el sheet.
+ */
 export function DateRangeSheet({
   value,
   onApply,
@@ -46,8 +60,6 @@ export function DateRangeSheet({
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange>(value)
 
-  // Sincronizar el draft con el value cuando el sheet se abre, así si el padre
-  // cambia el value externamente, el calendar arranca consistente.
   useEffect(() => {
     if (open) setDraft(value)
     // eslint-disable-next-line react-hooks/exhaustive-deps

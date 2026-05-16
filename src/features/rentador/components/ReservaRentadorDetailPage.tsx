@@ -12,10 +12,18 @@ import { useOwnerReservations } from '../hooks/useOwnerReservations'
 
 const LARGE_PAGE = 100
 
+/**
+ * Pantalla de detalle de una reserva desde la perspectiva del rentador.
+ * Read-only — sin acciones de cambio de estado (eso llega con US-40).
+ *
+ * Reusa el listado en cache de `useOwnerReservations` (tanstack-query lo
+ * comparte por queryKey). Si el usuario entra por deep-link sin pasar por
+ * el panel, refetch del listado y se busca la reserva por id.
+ *
+ * Lee `id` de los params de la ruta `/rentador/reservas/$id`.
+ */
 export function ReservaRentadorDetailPage() {
   const { id = '' } = useParams({ strict: false })
-  // El detalle reusa el listado en cache (tanstack-query lo comparte por queryKey).
-  // Si el usuario entra por deep-link, refetch del listado y buscamos por id.
   const { data, isLoading, error } = useOwnerReservations({
     page: 1,
     pageSize: LARGE_PAGE,
