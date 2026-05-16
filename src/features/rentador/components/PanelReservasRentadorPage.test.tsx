@@ -30,6 +30,7 @@ vi.mock('@tanstack/react-router', () => ({
 const RENT = '11111111-1111-1111-1111-111111111111'
 const VEH = '22222222-2222-2222-2222-222222222222'
 const CON = '33333333-3333-3333-3333-333333333333'
+const RENT_NAME = 'Lucas'
 
 const fetchOwner = vi.mocked(ownerApi.fetchOwnerReservations)
 const vehiclesApi = vi.mocked(vehiclesApiMod.vehiclesApi)
@@ -52,6 +53,7 @@ function makeReservation(overrides: Record<string, unknown> = {}) {
     updatedAt: '2026-05-15T10:00:00.000Z',
     vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null },
     conductor: { id: CON, name: 'Julian', avatarUrl: null },
+    rentador: { id: RENT, name: RENT_NAME, avatarUrl: null },
     ...overrides,
   }
 }

@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import type { OwnerReservationsListRequest } from '@rocket-lease/contracts'
+import type { ReservationsListRequest } from '@rocket-lease/contracts'
 import { fetchOwnerReservations } from '../api/owner-reservations.api'
 
 interface UseOwnerReservationsOptions {
@@ -7,7 +7,7 @@ interface UseOwnerReservationsOptions {
 }
 
 export function useOwnerReservations(
-  filters: Partial<OwnerReservationsListRequest>,
+  filters: Omit<Partial<ReservationsListRequest>, 'role'>,
   { enabled = true }: UseOwnerReservationsOptions = {},
 ) {
   return useQuery({

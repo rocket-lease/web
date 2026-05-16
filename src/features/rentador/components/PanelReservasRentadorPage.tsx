@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, ClipboardList, User } from 'lucide-react'
 import type {
-  OwnerReservation,
+  ReservationListItem,
   ReservationStatus,
 } from '@rocket-lease/contracts'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -191,7 +191,7 @@ export function PanelReservasRentadorPage() {
   )
 }
 
-function ReservaCard({ reserva }: { reserva: OwnerReservation }) {
+function ReservaCard({ reserva }: { reserva: ReservationListItem }) {
   const photo = reserva.vehicle.photo
   return (
     <Link

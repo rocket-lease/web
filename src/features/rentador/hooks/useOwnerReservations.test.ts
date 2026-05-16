@@ -31,6 +31,7 @@ function makeReservation(overrides: Partial<Record<string, unknown>> = {}) {
     updatedAt: '2026-05-15T10:00:00.000Z',
     vehicle: { id: VEH_ID, brand: 'Toyota', model: 'Etios', year: 2020, photo: null },
     conductor: { id: CON_ID, name: 'Julian', avatarUrl: null },
+    rentador: { id: RENT_ID, name: 'Lucas', avatarUrl: null },
     ...overrides,
   }
 }
