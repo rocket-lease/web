@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, ClipboardList, User } from 'lucide-react'
+import { ArrowRight, CalendarDays, ClipboardList, Loader2, User } from 'lucide-react'
 import type {
   ReservationListItem,
   ReservationStatus,
@@ -114,6 +114,9 @@ export function PanelReservasRentadorPage() {
   const sinVehiculos = !!myVehiclesQuery.data && myVehiclesQuery.data.length === 0
 
   const isLoading = probeQuery.isLoading || (needsTabQuery && tabQuery.isLoading)
+  const isRefetching =
+    !isLoading &&
+    (probeQuery.isFetching || (needsTabQuery && tabQuery.isFetching))
   const error = probeQuery.error || (needsTabQuery && tabQuery.error)
 
   const onTabChange = (next: TabKey) => {
@@ -159,7 +162,7 @@ export function PanelReservasRentadorPage() {
         />
       </div>
 
-      <div className="px-4 pb-6 flex flex-col gap-3">
+      <div className="relative px-4 pb-6 flex flex-col gap-3">
         {isLoading && <ReservasListSkeleton />}
         {error && (
           <p className="text-sm text-danger-400 py-6 text-center">
@@ -167,10 +170,25 @@ export function PanelReservasRentadorPage() {
           </p>
         )}
         {data && data.items.length === 0 && <EmptyTab sinVehiculos={sinVehiculos} />}
-        {data &&
-          data.items.map((reserva) => (
-            <ReservaCard key={reserva.id} reserva={reserva} />
-          ))}
+        {data && (
+          <div
+            className={
+              isRefetching
+                ? 'flex flex-col gap-3 opacity-50 pointer-events-none transition-opacity'
+                : 'flex flex-col gap-3 transition-opacity'
+            }
+          >
+            {data.items.map((reserva) => (
+              <ReservaCard key={reserva.id} reserva={reserva} />
+            ))}
+          </div>
+        )}
+        {isRefetching && (
+          <Loader2
+            className="absolute top-2 right-4 h-5 w-5 text-text-muted animate-spin"
+            aria-label={t('rentador.reservas.cargando')}
+          />
+        )}
       </div>
 
       {data && data.total > PAGE_SIZE && (

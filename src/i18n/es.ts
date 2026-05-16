@@ -188,6 +188,7 @@ export const es = {  // --- App ---
   'rentador.reservas.empty.sinVehiculos': 'Publica un vehiculo para empezar a recibir reservas.',
   'rentador.reservas.empty.publicarCta': 'Publicar vehículo',
   'rentador.reservas.error': 'No pudimos cargar tus reservas. Intenta de nuevo.',
+  'rentador.reservas.cargando': 'Cargando reservas',
   'rentador.reservas.paginacion.anterior': 'Anterior',
   'rentador.reservas.paginacion.siguiente': 'Siguiente',
   'rentador.reservas.detalle.title': 'Detalle de reserva',
