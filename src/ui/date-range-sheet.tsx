@@ -104,7 +104,21 @@ export function DateRangeSheet({
             <Calendar
               mode="range"
               selected={draft}
-              onSelect={setDraft}
+              onSelect={(_range, day) => {
+                // UX pattern airbnb/booking: si ya hay rango completo,
+                // el siguiente tap empieza un rango nuevo desde ese día.
+                if (draft?.from && draft?.to) {
+                  setDraft({ from: day, to: undefined })
+                  return
+                }
+                // Si solo hay from y el nuevo día es anterior, reset desde ahí.
+                if (draft?.from && !draft.to && day < draft.from) {
+                  setDraft({ from: day, to: undefined })
+                  return
+                }
+                // Default: deja que rdp arme el rango (from → to).
+                setDraft(_range)
+              }}
               numberOfMonths={1}
             />
           </div>
