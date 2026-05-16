@@ -1,7 +1,7 @@
 .PHONY: run build preview test check-siblings
 
 run: check-siblings
-	pnpm dev
+	pnpm dev --host
 
 build: check-siblings
 	pnpm build
