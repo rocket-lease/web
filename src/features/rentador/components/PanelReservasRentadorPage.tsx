@@ -149,7 +149,7 @@ function ReservaCard({ reserva }: { reserva: OwnerReservation }) {
       <div className="flex items-center gap-2 text-sm text-text-secondary">
         <CalendarDays className="h-4 w-4 text-text-muted" />
         <span>
-          {fmt.dateShort(reserva.startAt)} → {fmt.dateShort(reserva.endAt)}
+          {fmt.dateTime(reserva.startAt)} → {fmt.dateTime(reserva.endAt)}
         </span>
       </div>
       <div className="flex items-center justify-between text-sm">

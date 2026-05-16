@@ -93,7 +93,7 @@ export function ReservaRentadorDetailPage() {
                 </span>
               </div>
               <p className="font-semibold text-text-primary">
-                {fmt.dateShort(reserva.startAt)}
+                {fmt.dateTime(reserva.startAt)}
               </p>
             </div>
             <div className="flex-1 rounded-xl bg-surface-2 p-3">
@@ -104,7 +104,7 @@ export function ReservaRentadorDetailPage() {
                 </span>
               </div>
               <p className="font-semibold text-text-primary">
-                {fmt.dateShort(reserva.endAt)}
+                {fmt.dateTime(reserva.endAt)}
               </p>
             </div>
           </div>
