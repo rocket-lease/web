@@ -17,6 +17,7 @@ export const GetMyProfileResponseSchema = z.object({
   level: z.enum(['bronze', 'silver', 'gold', 'platinum']),
   reputationScore: z.number().min(0).max(5),
   preferences: VehiclePreferencesSchema,
+  autoAccept: z.boolean(),
 })
 export type GetMyProfileResponse = z.infer<typeof GetMyProfileResponseSchema>
 
@@ -28,6 +29,7 @@ export const UpdateMyProfileRequestSchema = z.object({
   phone: z.string().trim().min(1).max(20),
   avatarUrl: z.string().url().nullable(),
   preferences: VehiclePreferencesSchema,
+  autoAccept: z.boolean().optional(),
 })
 export type UpdateMyProfileRequest = z.infer<typeof UpdateMyProfileRequestSchema>
 

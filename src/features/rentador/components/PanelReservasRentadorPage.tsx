@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, ClipboardList, Loader2, User } from 'lucide-react'
+import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
 import type {
   ReservationListItem,
   ReservationStatus,
@@ -14,13 +14,22 @@ import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { fetchOwnerReservations } from '../api/owner-reservations.api'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
 
-type TabKey = 'all' | 'pending' | 'confirmed' | 'inProgress' | 'completed' | 'cancelled'
+type TabKey =
+  | 'all'
+  | 'solicitudes'
+  | 'pending'
+  | 'confirmed'
+  | 'inProgress'
+  | 'completed'
+  | 'cancelled'
 
 // `undefined` = sin filtro de estado (el endpoint devuelve todas).
 const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
   all: undefined,
+  solicitudes: ['pending_approval'],
   pending: ['pending_payment'],
   confirmed: ['confirmed'],
   inProgress: ['in_progress'],
@@ -30,6 +39,7 @@ const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
 
 const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
   { key: 'all', labelKey: 'rentador.reservas.tabs.todas' },
+  { key: 'solicitudes', labelKey: 'rentador.reservas.tabs.solicitudes' },
   { key: 'pending', labelKey: 'rentador.reservas.tabs.pendientes' },
   { key: 'confirmed', labelKey: 'rentador.reservas.tabs.confirmadas' },
   { key: 'inProgress', labelKey: 'rentador.reservas.tabs.enCurso' },
@@ -70,6 +80,24 @@ export function PanelReservasRentadorPage() {
     page: 1,
     pageSize: PAGE_SIZE,
   })
+
+  /**
+   * Conteo de solicitudes en estado `pending_approval` para el badge del
+   * header. Query dedicada con `pageSize=1` (solo nos interesa `total`),
+   * cacheada por 30s para no machacar el backend al navegar.
+   */
+  const solicitudesCountQuery = useQuery({
+    queryKey: ['ownerReservations', 'pendingApprovalCount'],
+    queryFn: () =>
+      fetchOwnerReservations({
+        status: ['pending_approval'],
+        page: 1,
+        pageSize: 1,
+      }),
+    select: (response) => response.total,
+    staleTime: 30_000,
+  })
+  const solicitudesCount = solicitudesCountQuery.data ?? 0
 
   const allFitsInCache = !!(probeQuery.data && probeQuery.data.total <= PAGE_SIZE)
   const isProbeMatch = tab === 'all' && page === 1
@@ -128,7 +156,24 @@ export function PanelReservasRentadorPage() {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={t('rentador.reservas.title')} />
+      <PageHeader
+        title={t('rentador.reservas.title')}
+        actions={
+          solicitudesCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => onTabChange('solicitudes')}
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
+              aria-label={`${t('rentador.reservas.badge.solicitudes')} (${solicitudesCount})`}
+            >
+              <Inbox className="h-3.5 w-3.5" />
+              <span>
+                {t('rentador.reservas.badge.solicitudes')} ({solicitudesCount})
+              </span>
+            </button>
+          ) : undefined
+        }
+      />
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">

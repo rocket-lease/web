@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { CalendarDays, ChevronRight, User } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
 import { Separator } from '@/ui/separator'
 import { Skeleton } from '@/ui/skeleton'
 import { Avatar } from '@/ui/avatar'
+import { Button } from '@/ui/button'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
+import { useApproveReservation } from '../hooks/useApproveReservation'
+import { useRejectReservation } from '../hooks/useRejectReservation'
 
 const LARGE_PAGE = 100
 
@@ -181,9 +185,246 @@ export function ReservaRentadorDetailPage() {
         {reserva.status === 'pending_payment' && reserva.holdExpiresAt && (
           <HoldNotice expiresAt={reserva.holdExpiresAt} />
         )}
+
+        {reserva.status === 'rejected' && reserva.rejectionReason && (
+          <RejectionReasonCard reason={reserva.rejectionReason} />
+        )}
+
+        {reserva.status === 'pending_approval' && (
+          <ApprovalActions reservationId={reserva.id} />
+        )}
       </div>
     </div>
   )
+}
+
+/**
+ * Card destacada con el motivo del rechazo, visible cuando la reserva está
+ * en estado `rejected` y el rentador (o el sistema) dejó una `rejectionReason`.
+ */
+function RejectionReasonCard({ reason }: { reason: string }) {
+  return (
+    <div className="rounded-xl border border-danger/20 bg-danger/10 p-3 flex gap-3">
+      <AlertOctagon className="h-4 w-4 text-danger-400 shrink-0 mt-0.5" />
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-danger-400 uppercase tracking-wider">
+          {t('rentador.reservas.detalle.rejectionReason.titulo')}
+        </p>
+        <p className="mt-1 text-sm text-text-secondary break-words">{reason}</p>
+      </div>
+    </div>
+  )
+}
+
+interface ApprovalActionsProps {
+  reservationId: string
+}
+
+/**
+ * Bloque de acciones para una solicitud en `pending_approval`:
+ * botones "Aprobar" (primary, brand) y "Rechazar" (outline, danger).
+ *
+ * El click en "Aprobar" abre un confirm corto que recuerda al rentador
+ * que se dispara la cascada de auto-rechazo. El click en "Rechazar" abre
+ * un modal con textarea opcional (max 280 chars) para dejar la razón.
+ */
+function ApprovalActions({ reservationId }: ApprovalActionsProps) {
+  const approveMutation = useApproveReservation()
+  const rejectMutation = useRejectReservation()
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false)
+
+  const handleApprove = async () => {
+    try {
+      await approveMutation.mutateAsync(reservationId)
+      toast.success(t('rentador.reservas.aprobada'))
+      setShowApproveConfirm(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const handleReject = async (reason: string) => {
+    try {
+      await rejectMutation.mutateAsync({
+        reservationId,
+        reason: reason.trim().length > 0 ? reason.trim() : undefined,
+      })
+      toast.success(t('rentador.reservas.rechazada'))
+      setShowRejectModal(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const isBusy = approveMutation.isPending || rejectMutation.isPending
+
+  return (
+    <>
+      <div className="rounded-xl bg-brand-500/10 border border-brand-500/20 px-3 py-2 text-sm text-text-secondary">
+        {t('rentador.reservas.detalle.solicitudInfo')}
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 border-danger/40 text-danger-400 hover:bg-danger/10"
+          onClick={() => setShowRejectModal(true)}
+          disabled={isBusy}
+        >
+          <X className="h-4 w-4" />
+          {t('rentador.reservas.detalle.rechazar')}
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={() => setShowApproveConfirm(true)}
+          disabled={isBusy}
+        >
+          <Check className="h-4 w-4" />
+          {approveMutation.isPending
+            ? t('rentador.reservas.detalle.aprobando')
+            : t('rentador.reservas.detalle.aprobar')}
+        </Button>
+      </div>
+
+      {showApproveConfirm && (
+        <ApproveConfirmModal
+          submitting={approveMutation.isPending}
+          onConfirm={handleApprove}
+          onCancel={() => setShowApproveConfirm(false)}
+        />
+      )}
+
+      {showRejectModal && (
+        <RejectReasonModal
+          submitting={rejectMutation.isPending}
+          onSubmit={handleReject}
+          onCancel={() => setShowRejectModal(false)}
+        />
+      )}
+    </>
+  )
+}
+
+interface ApproveConfirmModalProps {
+  submitting: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+function ApproveConfirmModal({ submitting, onConfirm, onCancel }: ApproveConfirmModalProps) {
+  useLockBodyScroll()
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      style={{ minHeight: '100dvh' }}
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-text-primary">
+          {t('rentador.reservas.aprobar.confirmTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          {t('rentador.reservas.aprobar.confirmBody')}
+        </p>
+        <div className="mt-5 flex gap-2 justify-end">
+          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+            {t('rentador.reservas.rechazar.cancelar')}
+          </Button>
+          <Button onClick={onConfirm} disabled={submitting}>
+            {submitting
+              ? t('rentador.reservas.detalle.aprobando')
+              : t('rentador.reservas.aprobar.confirmar')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface RejectReasonModalProps {
+  submitting: boolean
+  onSubmit: (reason: string) => void
+  onCancel: () => void
+}
+
+const REJECT_REASON_MAX = 280
+
+function RejectReasonModal({ submitting, onSubmit, onCancel }: RejectReasonModalProps) {
+  const [reason, setReason] = useState('')
+  useLockBodyScroll()
+  const overLimit = reason.length > REJECT_REASON_MAX
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      style={{ minHeight: '100dvh' }}
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-text-primary">
+          {t('rentador.reservas.rechazar.modalTitle')}
+        </h2>
+
+        <label className="mt-4 mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+          {t('rentador.reservas.rechazar.razonLabel')}
+        </label>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder={t('rentador.reservas.rechazar.razonPlaceholder')}
+          rows={4}
+          maxLength={REJECT_REASON_MAX}
+          className="w-full rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500"
+          disabled={submitting}
+        />
+        <p
+          className={`mt-1 text-right text-xs ${
+            overLimit ? 'text-danger-400' : 'text-text-muted'
+          }`}
+        >
+          {t('rentador.reservas.rechazar.charCounter').replace(
+            '{count}',
+            String(reason.length),
+          )}
+        </p>
+
+        <div className="mt-5 flex gap-2 justify-end">
+          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
+            {t('rentador.reservas.rechazar.cancelar')}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => onSubmit(reason)}
+            disabled={submitting || overLimit}
+          >
+            {submitting
+              ? t('rentador.reservas.detalle.rechazando')
+              : t('rentador.reservas.rechazar.confirmar')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Bloquea el scroll del body mientras el modal está montado, restaura el
+ * valor previo al desmontar.
+ */
+function useLockBodyScroll() {
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [])
 }
 
 function HoldNotice({ expiresAt }: { expiresAt: string }) {

@@ -1,10 +1,12 @@
 import { apiClient } from '@/lib/api-client'
 import {
+  CancelReservationResponseSchema,
   CreateReservationResponseSchema,
   ConfirmReservationPaymentResponseSchema,
   GetReservationResponseSchema,
   ReservationsListResponseSchema,
   VehicleBusyRangesResponseSchema,
+  type CancelReservationResponse,
   type CreateReservationRequest,
   type CreateReservationResponse,
   type ConfirmReservationPaymentRequest,
@@ -48,5 +50,13 @@ export const reservarApi = {
       `/reservations/vehicle/${vehicleId}/busy-ranges`,
     )
     return VehicleBusyRangesResponseSchema.parse(res)
+  },
+
+  async cancel(reservationId: string): Promise<CancelReservationResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/cancel`,
+      {},
+    )
+    return CancelReservationResponseSchema.parse(res)
   },
 }
