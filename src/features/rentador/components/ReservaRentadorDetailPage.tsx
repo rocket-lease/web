@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { CalendarDays, ChevronRight, User } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -150,7 +151,56 @@ export function ReservaRentadorDetailPage() {
             {fmt.currency(reserva.totalCents)}
           </p>
         </div>
+
+        {/* Estado de pago para confirmed/in_progress/completed */}
+        {reserva.paidAt && reserva.paymentMethod && (
+          <div className="flex items-center justify-between text-sm">
+            <p className="text-text-muted">
+              {t('rentador.reservas.detalle.pago')}
+            </p>
+            <p className="text-text-secondary">
+              {t(
+                `rentador.reservas.detalle.metodo.${reserva.paymentMethod}` as Parameters<
+                  typeof t
+                >[0],
+              )}{' '}
+              · {fmt.dateShort(reserva.paidAt)}
+            </p>
+          </div>
+        )}
+
+        {/* Hold countdown solo para pending_payment */}
+        {reserva.status === 'pending_payment' && reserva.holdExpiresAt && (
+          <HoldNotice expiresAt={reserva.holdExpiresAt} />
+        )}
       </div>
+    </div>
+  )
+}
+
+function HoldNotice({ expiresAt }: { expiresAt: string }) {
+  const expiresMs = new Date(expiresAt).getTime()
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  const remainingMs = expiresMs - now
+  const expired = remainingMs <= 0
+  const minutes = Math.max(0, Math.floor(remainingMs / 60_000))
+  return (
+    <div
+      className={`rounded-xl px-3 py-2 text-sm ${
+        expired
+          ? 'bg-danger-500/10 text-danger-400'
+          : 'bg-warning/10 text-warning'
+      }`}
+    >
+      {expired
+        ? t('rentador.reservas.detalle.holdExpirado')
+        : `${t('rentador.reservas.detalle.holdActivo')} (${minutes} min)`}
     </div>
   )
 }

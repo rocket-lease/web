@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, ClipboardList, User } from 'lucide-react'
 import type {
   OwnerReservation,
@@ -12,6 +13,7 @@ import { Skeleton } from '@/ui/skeleton'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
+import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
 
 type TabKey = 'all' | 'pending' | 'confirmed' | 'inProgress' | 'completed' | 'cancelled'
@@ -91,6 +93,19 @@ export function PanelReservasRentadorPage() {
     return tabQuery.data
   })()
 
+  // Para diferenciar el empty state: si el rentador no publicó vehículos todavía,
+  // mostramos copy distinto ("publicá un vehículo") en vez de "no hay reservas".
+  // Solo lo consultamos cuando el listado viene vacío, para no agregar un round-trip
+  // en el caso común de un rentador con reservas.
+  const reservasVacias = !!data && data.items.length === 0
+  const myVehiclesQuery = useQuery({
+    queryKey: ['myVehicles'],
+    queryFn: () => vehiclesApi.getMyVehicles(),
+    enabled: reservasVacias,
+    staleTime: 60_000,
+  })
+  const sinVehiculos = !!myVehiclesQuery.data && myVehiclesQuery.data.length === 0
+
   const isLoading = probeQuery.isLoading || (needsTabQuery && tabQuery.isLoading)
   const error = probeQuery.error || (needsTabQuery && tabQuery.error)
 
@@ -144,7 +159,7 @@ export function PanelReservasRentadorPage() {
             {t('rentador.reservas.error')}
           </p>
         )}
-        {data && data.items.length === 0 && <EmptyTab />}
+        {data && data.items.length === 0 && <EmptyTab sinVehiculos={sinVehiculos} />}
         {data &&
           data.items.map((reserva) => (
             <ReservaCard key={reserva.id} reserva={reserva} />
@@ -240,11 +255,22 @@ function ReservasListSkeleton() {
   )
 }
 
-function EmptyTab() {
+function EmptyTab({ sinVehiculos }: { sinVehiculos: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
       <ClipboardList className="h-12 w-12 text-text-muted" />
-      <p className="text-text-secondary">{t('rentador.reservas.empty.sinReservas')}</p>
+      <p className="text-text-secondary">
+        {t(
+          sinVehiculos
+            ? 'rentador.reservas.empty.sinVehiculos'
+            : 'rentador.reservas.empty.sinReservas',
+        )}
+      </p>
+      {sinVehiculos && (
+        <Link to="/mis-vehiculos/nuevo">
+          <Button variant="default">{t('rentador.reservas.empty.publicarCta')}</Button>
+        </Link>
+      )}
     </div>
   )
 }

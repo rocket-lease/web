@@ -186,6 +186,7 @@ export const es = {  // --- App ---
   'rentador.reservas.filtros.title': 'Elegí un rango',
   'rentador.reservas.empty.sinReservas': 'No tenes reservas en esta categoria todavia.',
   'rentador.reservas.empty.sinVehiculos': 'Publica un vehiculo para empezar a recibir reservas.',
+  'rentador.reservas.empty.publicarCta': 'Publicar vehículo',
   'rentador.reservas.error': 'No pudimos cargar tus reservas. Intenta de nuevo.',
   'rentador.reservas.paginacion.anterior': 'Anterior',
   'rentador.reservas.paginacion.siguiente': 'Siguiente',
@@ -195,6 +196,12 @@ export const es = {  // --- App ---
   'rentador.reservas.detalle.desde': 'Desde',
   'rentador.reservas.detalle.hasta': 'Hasta',
   'rentador.reservas.detalle.total': 'Total',
+  'rentador.reservas.detalle.pago': 'Pago',
+  'rentador.reservas.detalle.metodo.credit_card': 'Tarjeta de crédito',
+  'rentador.reservas.detalle.metodo.debit_card': 'Tarjeta de débito',
+  'rentador.reservas.detalle.metodo.bank_transfer': 'Transferencia',
+  'rentador.reservas.detalle.holdActivo': 'Esperando pago del conductor',
+  'rentador.reservas.detalle.holdExpirado': 'Hold expirado',
   'rentador.reservas.detalle.noEncontrada': 'No encontramos esta reserva en tu panel.',
 
   // --- Perfil ---
