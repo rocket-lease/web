@@ -11,6 +11,12 @@ import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { getCharacteristicLabel } from '../utils/characteristics'
+import {
+  getCancellationPolicyLabel,
+  getDepositLabel,
+  formatMaxKilometrage,
+  formatRentalTimeConstraints,
+} from '../utils/rules-formatter'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 
 const SWIPE_THRESHOLD_PX = 40
@@ -216,6 +222,31 @@ export function VehiculoDetailPage() {
                 {vehicle.characteristics.map(c => (
                   <Badge key={c} variant="secondary">{getCharacteristicLabel(c)}</Badge>
                 ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {(vehicle as any).reservationRuleSetId && (
+          <>
+            <Separator />
+            <div>
+              <p className="text-sm text-text-muted mb-2">{t('vehiculo.rules')}</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-text-muted">Cancelación:</span>
+                  <Badge variant="outline">{getCancellationPolicyLabel((vehicle as any).cancellationPolicy || 'FLEXIBLE')}</Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-text-muted">Seña:</span>
+                  <Badge variant="outline">{getDepositLabel((vehicle as any).deposit || 'NONE')}</Badge>
+                </div>
+                {(vehicle as any).maxKilometrage && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-text-muted">Km:</span>
+                    <Badge variant="outline">{formatMaxKilometrage((vehicle as any).maxKilometrage)}</Badge>
+                  </div>
+                )}
               </div>
             </div>
           </>

@@ -14,6 +14,15 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
+import { useReservationRuleSets } from '@/features/rentador/hooks/useReservationRules'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/ui/select'
+import { ReservationRuleSetSelector } from './ReservationRuleSetSelector'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const MAX_PHOTOS = 10
@@ -41,6 +50,7 @@ type VehicleDraft = {
   isAccessible: boolean
   photos: EditablePhoto[]
   characteristics: Characteristic[]
+  reservationRuleSetId?: string
 }
 
 function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
@@ -60,6 +70,7 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
       url,
     })),
     characteristics: vehicle.characteristics ?? [],
+    reservationRuleSetId: (vehicle as any).reservationRuleSetId,
   }
 }
 
@@ -602,6 +613,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
                 })}
               </div>
             </div>
+
+            <ReservationRuleSetSelector
+              selectedId={draft.reservationRuleSetId}
+              onSelect={(id) => handleFieldChange('reservationRuleSetId', id)}
+              disabled={isSaving || isDeleting}
+            />
 
             <div>
               <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.description')}</label>
