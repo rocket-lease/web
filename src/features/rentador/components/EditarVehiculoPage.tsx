@@ -45,7 +45,7 @@ type VehicleDraft = {
 
 function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
   return {
-    basePrice: String(vehicle.basePrice ?? ''),
+    basePrice: String((vehicle.basePriceCents ?? 0) / 100),
     color: vehicle.color ?? '',
     mileage: String(vehicle.mileage ?? ''),
     availableFrom: vehicle.availableFrom ?? '',
@@ -237,7 +237,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       })
 
       const payload: UpdateVehicleRequest = {
-        basePrice,
+        basePriceCents: Math.round(basePrice * 100),
         color: draft.color.trim(),
         mileage,
         availableFrom: draft.availableFrom,
@@ -516,7 +516,9 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
                   value={draft.basePrice}
                   onChange={e => handleFieldChange('basePrice', e.target.value)}
                   placeholder={t('editVehiculo.field.basePrice')}
-                  inputMode="numeric"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
                   disabled={isSaving || isDeleting}
                 />
               </div>

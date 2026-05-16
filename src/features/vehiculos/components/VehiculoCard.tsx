@@ -64,7 +64,7 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
 
           {/* Precio */}
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-text-primary">{fmt.price(vehiculo.basePrice)}</span>
+            <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>
             <span className="text-xs text-text-muted">{t('vehiculo.perDay')}</span>
           </div>
 

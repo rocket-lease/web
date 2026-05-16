@@ -77,7 +77,7 @@ export function MisVehiculosPage() {
                     </Badge>
                   </div>
                   <p className="mt-1 text-sm text-text-secondary">
-                    {fmt.currency(v.basePrice * 100)} {t('vehiculo.perDay')}
+                    {fmt.currency(v.basePriceCents)} {t('vehiculo.perDay')}
                   </p>
                   {v.characteristics?.length ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">

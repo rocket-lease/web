@@ -156,7 +156,7 @@ export function ReservaDetailPage() {
         {/* Total */}
         <div className="flex items-center justify-between">
           <p className="font-semibold text-text-primary">{t('reservas.detail.total')}</p>
-          <p className="text-xl font-bold text-brand-400">{fmt.price(totalCents)}</p>
+          <p className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</p>
         </div>
 
         {canPay && (
