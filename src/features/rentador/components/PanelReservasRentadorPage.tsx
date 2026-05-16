@@ -43,13 +43,56 @@ export function PanelReservasRentadorPage() {
   const [to, setTo] = useState<string>('')
   const [page, setPage] = useState(1)
 
-  const { data, isLoading, error } = useOwnerReservations({
-    status: TAB_TO_STATUSES[tab],
-    from: from ? new Date(from).toISOString() : undefined,
-    to: to ? new Date(to + 'T23:59:59').toISOString() : undefined,
-    page,
+  const fromIso = from ? new Date(from).toISOString() : undefined
+  const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
+
+  // Probe: traer la primera página sin filtro de estado. Si entra toda la data
+  // del rentador en una página, las demás tabs se filtran client-side (sin
+  // round-trips). Si no, cada tab dispara su propia request al backend.
+  const probeQuery = useOwnerReservations({
+    status: undefined,
+    from: fromIso,
+    to: toIso,
+    page: 1,
     pageSize: PAGE_SIZE,
   })
+
+  const allFitsInCache = !!(probeQuery.data && probeQuery.data.total <= PAGE_SIZE)
+  const isProbeMatch = tab === 'all' && page === 1
+  const canFilterFromCache = tab !== 'all' && allFitsInCache && page === 1
+  const needsTabQuery = !isProbeMatch && !canFilterFromCache
+
+  const tabQuery = useOwnerReservations(
+    {
+      status: TAB_TO_STATUSES[tab],
+      from: fromIso,
+      to: toIso,
+      page,
+      pageSize: PAGE_SIZE,
+    },
+    { enabled: needsTabQuery },
+  )
+
+  // Computar data a mostrar según de dónde sale.
+  const data = (() => {
+    if (isProbeMatch) return probeQuery.data
+    if (canFilterFromCache) {
+      const statuses = TAB_TO_STATUSES[tab]
+      const items = (probeQuery.data?.items ?? []).filter((r) =>
+        !statuses || statuses.includes(r.status),
+      )
+      return {
+        items,
+        page: 1,
+        pageSize: PAGE_SIZE,
+        total: items.length,
+      }
+    }
+    return tabQuery.data
+  })()
+
+  const isLoading = probeQuery.isLoading || (needsTabQuery && tabQuery.isLoading)
+  const error = probeQuery.error || (needsTabQuery && tabQuery.error)
 
   const onTabChange = (next: TabKey) => {
     setTab(next)
