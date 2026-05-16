@@ -45,7 +45,7 @@ type VehicleDraft = {
 
 function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
   return {
-    basePrice: String(Math.round((vehicle.basePriceCents ?? 0) / 100)),
+    basePrice: String((vehicle.basePriceCents ?? 0) / 100),
     color: vehicle.color ?? '',
     mileage: String(vehicle.mileage ?? ''),
     availableFrom: vehicle.availableFrom ?? '',

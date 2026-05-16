@@ -47,8 +47,8 @@ export function BuscarPage() {
       if (!(`${v.brand} ${v.model} ${v.city}`.toLowerCase().includes(q))) return false
     }
     if (filters.transmission && v.transmission !== filters.transmission) return false
-    if (filters.minPrice != null && v.basePriceCents < filters.minPrice) return false
-    if (filters.maxPrice != null && v.basePriceCents > filters.maxPrice) return false
+    if (filters.minPrice != null && v.basePriceCents / 100 < filters.minPrice) return false
+    if (filters.maxPrice != null && v.basePriceCents / 100 > filters.maxPrice) return false
     if (filters.minSeats != null && v.passengers < filters.minSeats) return false
     if (filters.minYear  != null && v.year < filters.minYear) return false
     if (filters.maxYear  != null && v.year > filters.maxYear) return false
