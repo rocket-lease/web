@@ -4,23 +4,26 @@ import { useVerificationStatus } from '../hooks/useVerificationStatus'
 import { t } from '@/i18n/es'
 
 export function VerificationStatusSection() {
-  const { status } = useVerificationStatus()
+  const { status, loading } = useVerificationStatus()
+
+  if (loading) {
+    return (
+      <div className="px-4 mt-3 space-y-2">
+        <div className="h-[58px] rounded-xl bg-surface-1 border border-white/6 animate-pulse" />
+      </div>
+    )
+  }
 
   if (!status) return null
 
   return (
-    <div className="px-4 mt-5">
-      <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-        {t('perfil.verification')}
-      </p>
-      <div className="space-y-2">
-        <VerifiedRow
-          icon={<Mail className="h-5 w-5" />}
-          label={t('auth.verify.emailSection')}
-          verified={status.email}
-          channel="email"
-        />
-      </div>
+    <div className="px-4 mt-3 space-y-2">
+      <VerifiedRow
+        icon={<Mail className="h-5 w-5" />}
+        label={t('auth.verify.emailSection')}
+        verified={status.email}
+        channel="email"
+      />
     </div>
   )
 }
