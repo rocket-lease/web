@@ -16,7 +16,7 @@ import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
-import { formatApprovalCountdown } from './ReservasConductorPage'
+import { formatApprovalCountdown } from '../utils/approval-countdown'
 
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })

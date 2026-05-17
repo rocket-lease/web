@@ -7,21 +7,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { useMyReservations } from '../hooks/useMyReservations'
-
-/**
- * Devuelve una etiqueta en español con la cantidad de horas que quedan
- * hasta `holdExpiresAt`. Granularidad de horas (redondeo hacia abajo);
- * cuando queda menos de 1h muestra un copy específico, y cuando ya pasó
- * el deadline marca "Solicitud vencida".
- */
-export function formatApprovalCountdown(holdExpiresAt: string | null, now = Date.now()): string {
-  if (!holdExpiresAt) return ''
-  const remainingMs = new Date(holdExpiresAt).getTime() - now
-  if (remainingMs <= 0) return t('conductor.reservas.venceVencido')
-  const hours = Math.floor(remainingMs / 3_600_000)
-  if (hours < 1) return t('conductor.reservas.venceEnMenosDe1Hora')
-  return t('conductor.reservas.venceEnHoras').replace('{count}', String(hours))
-}
+import { formatApprovalCountdown } from '../utils/approval-countdown'
 
 export function ReservasConductorPage() {
   const { data, isLoading } = useMyReservations()
