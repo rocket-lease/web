@@ -7,10 +7,10 @@ import { t } from '@/i18n/es'
  */
 export function formatApprovalCountdown(
   holdExpiresAt: string | null,
-  now = Date.now(),
+  nowMs = Date.now(),
 ): string {
   if (!holdExpiresAt) return ''
-  const remainingMs = new Date(holdExpiresAt).getTime() - now
+  const remainingMs = new Date(holdExpiresAt).getTime() - nowMs
   if (remainingMs <= 0) return t('conductor.reservas.venceVencido')
   const hours = Math.floor(remainingMs / 3_600_000)
   if (hours < 1) return t('conductor.reservas.venceEnMenosDe1Hora')
