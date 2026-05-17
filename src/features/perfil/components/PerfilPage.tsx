@@ -13,7 +13,6 @@ import {
   Trash2,
   UserCheck,
   UserCircle,
-  Zap,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar } from '@/ui/avatar'
@@ -25,7 +24,6 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
-import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
@@ -57,8 +55,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     isOwnProfile,
     uploadAvatar,
     isUploadingAvatar,
-    updateProfile,
-    isUpdating,
   } = useMyProfile(profileId)
   const { status: verificationStatus, loading: verificationLoading } = useVerificationStatus()
   const isFullyVerified = !!verificationStatus?.email
@@ -91,22 +87,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     try {
       await uploadAvatar(selectedAvatarFile)
       setSelectedAvatarFile(null)
-      toast.success(t('perfil.saveSuccess'))
-    } catch {
-      toast.error(t('error.default'))
-    }
-  }
-
-  const handleToggleAutoAccept = async (next: boolean) => {
-    if (!profile) return
-    try {
-      await updateProfile({
-        name: profile.name,
-        phone: profile.phone,
-        avatarUrl: profile.avatarUrl,
-        preferences: profile.preferences,
-        autoAccept: next,
-      })
       toast.success(t('perfil.saveSuccess'))
     } catch {
       toast.error(t('error.default'))
@@ -205,40 +185,12 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
       {canEdit && <Separator />}
 
-      {canEdit && <VerificationStatusSection />}
-
       {/* Vehículos publicados + reseñas del rentador (perfil ajeno) */}
       {!canEdit && profile && (
         <>
           <OwnerVehiclesSection ownerId={profile.id} />
           <OwnerReviewsSection />
         </>
-      )}
-
-      {canEdit && (
-        <div className="px-4 mt-5">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-            {t('perfil.autoAccept.section')}
-          </p>
-          <div className="rounded-2xl bg-surface-1 border border-white/6 px-4 py-4 flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-400">
-              <Zap className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-text-primary">
-                {t('perfil.autoAccept.label')}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                {t('perfil.autoAccept.descripcion')}
-              </p>
-            </div>
-            <AutoAcceptToggle
-              checked={profile.autoAccept}
-              disabled={isUpdating}
-              onChange={handleToggleAutoAccept}
-            />
-          </div>
-        </div>
       )}
 
       {/* Mis vehiculos shortcut */}
@@ -274,19 +226,24 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
 
-          {[
-            { icon: Bell, label: t('perfil.notifications') },
-            { icon: Settings, label: 'Configuración' },
-          ].map(item => (
-            <button
-              key={item.label}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <span className="flex-1 text-left text-sm font-medium text-text-primary">{item.label}</span>
-              <ChevronRight className="h-4 w-4 text-text-muted" />
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/configuracion' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+          >
+            <Settings className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+          >
+            <Bell className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.notifications')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
         </div>
       )}
 
@@ -320,38 +277,5 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         onClose={() => setShowDeleteDialog(false)}
       />
     </div>
-  )
-}
-
-interface AutoAcceptToggleProps {
-  checked: boolean
-  disabled?: boolean
-  onChange: (next: boolean) => void
-}
-
-/**
- * Toggle visual estilo iOS para el flag `autoAccept` del perfil. Usa
- * `aria-pressed` para que screen readers anuncien el estado y queda
- * disabled mientras la mutación está en vuelo.
- */
-function AutoAcceptToggle({ checked, disabled, onChange }: AutoAcceptToggleProps) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={t('perfil.autoAccept.label')}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-        checked ? 'bg-brand-500' : 'bg-surface-3'
-      }`}
-    >
-      <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-          checked ? 'translate-x-5' : 'translate-x-0.5'
-        }`}
-      />
-    </button>
   )
 }

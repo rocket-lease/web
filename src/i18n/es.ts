@@ -287,9 +287,13 @@ export const es = {  // --- App ---
   'perfil.form.accessibility': 'Accesibilidad (separado por coma)',
   'perfil.saveSuccess': 'Perfil actualizado',
   'perfil.saving': 'Guardando...',
-  'perfil.autoAccept.section': 'Configuración rentador',
   'perfil.autoAccept.label': 'Auto-aceptar reservas en todos mis vehículos',
   'perfil.autoAccept.descripcion': 'Las nuevas reservas se confirman automáticamente sin tu revisión. Podés sobrescribir esta config por vehículo.',
+
+  // --- Configuración ---
+  'configuracion.title': 'Configuración',
+  'configuracion.section.cuenta': 'Cuenta y seguridad',
+  'configuracion.section.rentador': 'Rentador',
 
   // --- Dashboard rentador ---
   'dashboard.title': 'Dashboard',
