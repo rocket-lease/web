@@ -7,17 +7,13 @@ export function VerificationStatusSection() {
   const { status, loading } = useVerificationStatus()
 
   if (loading) {
-    return (
-      <div className="px-4 mt-3 space-y-2">
-        <div className="h-[58px] rounded-xl bg-surface-1 border border-white/6 animate-pulse" />
-      </div>
-    )
+    return <div className="h-[58px] rounded-xl bg-surface-1 border border-white/6 animate-pulse" />
   }
 
   if (!status) return null
 
   return (
-    <div className="px-4 mt-3 space-y-2">
+    <div className="space-y-2">
       <VerifiedRow
         icon={<Mail className="h-5 w-5" />}
         label={t('auth.verify.emailSection')}

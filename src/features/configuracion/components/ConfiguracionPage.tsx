@@ -48,15 +48,17 @@ export function ConfiguracionPage() {
     <div className="flex flex-col">
       <PageHeader title={t('configuracion.title')} showBack />
 
-      <p className="px-4 mt-5 text-xs font-medium text-text-muted uppercase tracking-wider">
-        {t('configuracion.section.cuenta')}
-      </p>
-      <VerificationStatusSection />
+      <div className="px-4 mt-6">
+        <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
+          {t('configuracion.section.cuenta')}
+        </p>
+        <VerificationStatusSection />
+      </div>
 
-      <p className="px-4 mt-6 text-xs font-medium text-text-muted uppercase tracking-wider">
-        {t('configuracion.section.rentador')}
-      </p>
-      <div className="px-4 mt-3">
+      <div className="px-4 mt-6">
+        <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
+          {t('configuracion.section.rentador')}
+        </p>
         <div className="rounded-2xl bg-surface-1 border border-white/6 px-4 py-4 flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-400">
             <Zap className="h-4 w-4" />
