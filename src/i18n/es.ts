@@ -292,8 +292,12 @@ export const es = {  // --- App ---
 
   // --- Configuración ---
   'configuracion.title': 'Configuración',
-  'configuracion.section.cuenta': 'Cuenta y seguridad',
+  'configuracion.section.seguridad': 'Seguridad',
   'configuracion.section.rentador': 'Rentador',
+  'configuracion.section.cuenta': 'Cuenta',
+  'configuracion.verify.pending': 'Sin verificar',
+  'configuracion.autoAccept.toast.on': 'Auto-aceptación activada',
+  'configuracion.autoAccept.toast.off': 'Auto-aceptación desactivada',
 
   // --- Dashboard rentador ---
   'dashboard.title': 'Dashboard',

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
-  LogOut,
   Bell,
   ChevronRight,
   Star,
@@ -10,7 +9,6 @@ import {
   Rocket,
   Save,
   Pencil,
-  Trash2,
   UserCheck,
   UserCircle,
 } from 'lucide-react'
@@ -23,7 +21,6 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
-import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
@@ -48,7 +45,7 @@ interface PerfilPageProps {
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const {
     data: profile,
     isLoading,
@@ -60,7 +57,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   const isFullyVerified = !!verificationStatus?.email
 
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const reviewCount = useMemo(() => {
@@ -247,35 +243,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
       )}
 
-      {/* Logout + Delete */}
-      {canEdit && (
-        <div className="px-4 mt-6 mb-4 space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full text-text-secondary hover:bg-surface-2"
-            onClick={async () => {
-              await signOut()
-              navigate({ to: '/login' })
-            }}
-          >
-            <LogOut className="h-4 w-4" />
-            {t('perfil.logout')}
-          </Button>
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash2 className="h-4 w-4" />
-            {t('perfil.deleteAccount')}
-          </Button>
-        </div>
-      )}
-
-      <DeleteAccountDialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-      />
     </div>
   )
 }
