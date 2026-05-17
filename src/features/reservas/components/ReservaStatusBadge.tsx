@@ -3,6 +3,7 @@ import { t } from '@/i18n/es'
 import type { ReservaEstado } from '../types'
 
 const statusMap: Record<ReservaEstado, { className: string; label: string }> = {
+  pending_approval: { className: 'bg-brand-500 text-white border-brand-500', label: 'reservas.estado.pending_approval' },
   pending_payment: { className: 'bg-warning text-black border-warning', label: 'reservas.estado.pending_payment' },
   confirmed: { className: 'bg-info text-white border-info', label: 'reservas.estado.confirmed' },
   in_progress: { className: 'bg-success text-white border-success', label: 'reservas.estado.in_progress' },

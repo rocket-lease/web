@@ -23,6 +23,7 @@ import { Route as AppMisVehiculosRouteImport } from './routes/_app/mis-vehiculos
 import { Route as AppMisReservasRouteImport } from './routes/_app/mis-reservas'
 import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppConfiguracionRouteImport } from './routes/_app/configuracion'
 import { Route as AppBuscarRouteImport } from './routes/_app/buscar'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
 import { Route as AppReservasIdRouteImport } from './routes/_app/reservas_.$id'
@@ -103,6 +104,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppConfiguracionRoute = AppConfiguracionRouteImport.update({
+  id: '/configuracion',
+  path: '/configuracion',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBuscarRoute = AppBuscarRouteImport.update({
   id: '/buscar',
   path: '/buscar',
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
+  '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
   '/buscar': typeof AppBuscarRoute
+  '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
   '/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
   '/_app/buscar': typeof AppBuscarRoute
+  '/_app/configuracion': typeof AppConfiguracionRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/favoritos': typeof AppFavoritosRoute
   '/_app/mis-reservas': typeof AppMisReservasRouteWithChildren
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/verificar'
     | '/buscar'
+    | '/configuracion'
     | '/dashboard'
     | '/favoritos'
     | '/mis-reservas'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/verificar'
     | '/buscar'
+    | '/configuracion'
     | '/dashboard'
     | '/favoritos'
     | '/mis-reservas'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/registro'
     | '/verificar'
     | '/_app/buscar'
+    | '/_app/configuracion'
     | '/_app/dashboard'
     | '/_app/favoritos'
     | '/_app/mis-reservas'
@@ -419,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/configuracion': {
+      id: '/_app/configuracion'
+      path: '/configuracion'
+      fullPath: '/configuracion'
+      preLoaderRoute: typeof AppConfiguracionRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/buscar': {
       id: '/_app/buscar'
       path: '/buscar'
@@ -520,6 +539,7 @@ const AppMisVehiculosRouteWithChildren = AppMisVehiculosRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppBuscarRoute: typeof AppBuscarRoute
+  AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFavoritosRoute: typeof AppFavoritosRoute
   AppMisReservasRoute: typeof AppMisReservasRouteWithChildren
@@ -538,6 +558,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppBuscarRoute: AppBuscarRoute,
+  AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFavoritosRoute: AppFavoritosRoute,
   AppMisReservasRoute: AppMisReservasRouteWithChildren,

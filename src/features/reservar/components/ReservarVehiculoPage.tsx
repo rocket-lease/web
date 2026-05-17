@@ -449,12 +449,20 @@ export function ReservarVehiculoPage() {
       return
     }
     try {
-      await createReservation.mutateAsync({
+      const created = await createReservation.mutateAsync({
         vehicleId: vehicle!.id,
         startAt: toIsoUtc(startAtLocal),
         endAt: toIsoUtc(endAtLocal),
         contractAccepted: true,
       })
+      // Si el vehículo no tiene auto-aceptación, la reserva nace en
+      // `pending_approval` y no se puede pagar hasta que el rentador apruebe.
+      // Mandamos al detalle de la reserva, donde vive el countdown de 24h y la
+      // acción de retirar solicitud.
+      if (created.status === 'pending_approval') {
+        navigate({ to: '/reservas/$id', params: { id: created.id } })
+        return
+      }
       setStep('pago')
     } catch {
       // surfaced through createReservation.error

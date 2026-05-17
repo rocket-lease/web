@@ -47,6 +47,7 @@ export function DatosPerfilPage() {
           .filter(Boolean),
         maxPriceDaily: maxPriceDaily.trim().length > 0 ? Number(maxPriceDaily) : null,
       },
+      autoAccept: profile.autoAccept,
     }
 
     try {

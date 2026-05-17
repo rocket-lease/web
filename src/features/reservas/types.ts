@@ -1,4 +1,5 @@
 export type ReservaEstado =
+  | 'pending_approval'
   | 'pending_payment'
   | 'confirmed'
   | 'in_progress'

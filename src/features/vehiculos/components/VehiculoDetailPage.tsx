@@ -292,7 +292,7 @@ export function VehiculoDetailPage() {
           </>
         )}
 
-        {/* Reseñas del vehículo (empty state — datos llegan en Sprint 5 con US-38) */}
+        {/* Reseñas del vehículo (empty state hasta que exista el módulo de reviews) */}
         <Separator />
         <div>
           <div className="flex items-center justify-between mb-3">

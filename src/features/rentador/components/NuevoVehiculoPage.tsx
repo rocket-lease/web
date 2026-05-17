@@ -49,6 +49,7 @@ type VehicleFormData = {
   dailyPrice: string
   photos: Array<VehiclePhoto>
   characteristics: Characteristic[]
+  autoAccept: boolean | null
 }
 
 const initialFormData: VehicleFormData = {
@@ -69,6 +70,27 @@ const initialFormData: VehicleFormData = {
   dailyPrice: '',
   photos: [],
   characteristics: [],
+  autoAccept: null,
+}
+
+type AutoAcceptOption = 'inherit' | 'on' | 'off'
+
+const AUTO_ACCEPT_OPTIONS: ReadonlyArray<{ key: AutoAcceptOption; labelKey: string }> = [
+  { key: 'inherit', labelKey: 'vehiculo.autoAccept.opcion.heredar' },
+  { key: 'on', labelKey: 'vehiculo.autoAccept.opcion.si' },
+  { key: 'off', labelKey: 'vehiculo.autoAccept.opcion.no' },
+]
+
+function toAutoAcceptOption(value: boolean | null): AutoAcceptOption {
+  if (value === true) return 'on'
+  if (value === false) return 'off'
+  return 'inherit'
+}
+
+function fromAutoAcceptOption(option: AutoAcceptOption): boolean | null {
+  if (option === 'on') return true
+  if (option === 'off') return false
+  return null
 }
 
 export function NuevoVehiculoPage() {
@@ -243,6 +265,7 @@ export function NuevoVehiculoPage() {
         province: provinces.find(p => p.isoCode === formData.province)?.name ?? formData.province,
         city: formData.city,
         characteristics: formData.characteristics,
+        autoAccept: formData.autoAccept,
       } as CreateVehicleRequest
 
       await vehiclesApi.publishVehicle(payload)
@@ -519,6 +542,36 @@ export function NuevoVehiculoPage() {
               <p className="mt-2 text-xs text-text-muted">
                 Definí el valor diario del alquiler.
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/8 bg-surface-2 p-4">
+              <label className="mb-1 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+                {t('vehiculo.autoAccept.label')}
+              </label>
+              <p className="mb-3 text-xs text-text-muted">
+                {t('vehiculo.autoAccept.descripcion')}
+              </p>
+              <div className="flex flex-col gap-2">
+                {AUTO_ACCEPT_OPTIONS.map((option) => {
+                  const selected = toAutoAcceptOption(formData.autoAccept) === option.key
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() =>
+                        handleFieldChange('autoAccept', fromAutoAcceptOption(option.key))
+                      }
+                      className={`rounded-xl border px-4 py-3 text-sm font-medium text-left transition-colors ${
+                        selected
+                          ? 'border-brand-500 bg-brand-500/15 text-brand-400'
+                          : 'border-white/8 bg-surface-1 text-text-secondary hover:border-brand-600/50 hover:text-brand-400'
+                      }`}
+                    >
+                      {t(option.labelKey as Parameters<typeof t>[0])}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         )}
