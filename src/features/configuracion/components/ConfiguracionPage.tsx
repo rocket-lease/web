@@ -45,7 +45,7 @@ export function ConfiguracionPage() {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pb-6">
       <PageHeader title={t('configuracion.title')} showBack />
 
       <div className="px-4 mt-6">
