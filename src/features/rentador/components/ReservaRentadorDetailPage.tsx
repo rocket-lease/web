@@ -13,12 +13,14 @@ import { fmt } from '@/lib/formatters'
 import { useOwnerReservations } from '../hooks/useOwnerReservations'
 import { useApproveReservation } from '../hooks/useApproveReservation'
 import { useRejectReservation } from '../hooks/useRejectReservation'
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 
 const LARGE_PAGE = 100
 
 /**
  * Pantalla de detalle de una reserva desde la perspectiva del rentador.
- * Read-only — sin acciones de cambio de estado (eso llega con US-40).
+ * Sobre solicitudes `pending_approval` permite aprobar (con modal de
+ * confirmación) y rechazar (con razón opcional).
  *
  * Reusa el listado en cache de `useOwnerReservations` (tanstack-query lo
  * comparte por queryKey). Si el usuario entra por deep-link sin pasar por
@@ -411,20 +413,6 @@ function RejectReasonModal({ submitting, onSubmit, onCancel }: RejectReasonModal
       </div>
     </div>
   )
-}
-
-/**
- * Bloquea el scroll del body mientras el modal está montado, restaura el
- * valor previo al desmontar.
- */
-function useLockBodyScroll() {
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
 }
 
 function HoldNotice({ expiresAt }: { expiresAt: string }) {

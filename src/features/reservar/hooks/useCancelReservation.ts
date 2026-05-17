@@ -5,11 +5,12 @@ import { reservarApi } from '../api/reservar.api'
  * Mutación para que el conductor cancele/retire su propia reserva.
  *
  * Mismo endpoint (`POST /reservations/:id/cancel`) sirve para retirar una
- * solicitud `pending_approval` o cancelar una `pending_payment`. En US-40
- * el caller que se usa para retirar pasa por el modal anti-misclick estilo
- * "withdraw" de Airbnb.
+ * solicitud `pending_approval` o cancelar una `pending_payment`.
  *
  * En `onSuccess` invalida el listado del conductor y el detalle.
+ *
+ * @returns Mutación de TanStack Query que recibe el `reservationId` como
+ *   variable y resuelve cuando la reserva queda en `cancelled`.
  */
 export function useCancelReservation() {
   const queryClient = useQueryClient()

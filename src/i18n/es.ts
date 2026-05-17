@@ -170,6 +170,7 @@ export const es = {  // --- App ---
   'reservas.detail.pickup': 'Retiro',
   'reservas.detail.return': 'Devolucion',
   'reservas.detail.total': 'Total',
+  'reservas.detail.rentador': 'Rentador',
   'conductor.reservas.solicitudesEnRevision': 'Solicitudes en revisión',
   'conductor.reservas.solicitudesEnRevisionHint': 'El rentador tiene 24 horas para responder.',
   'conductor.reservas.venceEnHoras': 'Vence en {count}h',
@@ -186,7 +187,7 @@ export const es = {  // --- App ---
   'conductor.reservas.rechazoGenerico': 'El rentador no aceptó la solicitud',
   'conductor.reservas.tituloEnRevision': 'Esperando respuesta del rentador',
 
-  // --- Rentador / Panel de reservas (US-46) ---
+  // --- Rentador / Panel de reservas ---
   'rentador.reservas.title': 'Mis reservas',
   'rentador.reservas.tabs.todas': 'Todas',
   'rentador.reservas.tabs.solicitudes': 'Solicitudes',

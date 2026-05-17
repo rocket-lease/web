@@ -17,6 +17,7 @@ import { useCancelReservation } from '@/features/reservar/hooks/useCancelReserva
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { formatApprovalCountdown } from '../utils/approval-countdown'
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
@@ -131,7 +132,6 @@ export function ReservaDetailPage() {
 
         <Separator />
 
-        {/* Rentador */}
         <div className="flex items-center gap-3">
           <Avatar
             src={rentador.avatarUrl ?? undefined}
@@ -139,7 +139,7 @@ export function ReservaDetailPage() {
             size="md"
           />
           <div>
-            <p className="text-xs text-text-muted">Rentador</p>
+            <p className="text-xs text-text-muted">{t('reservas.detail.rentador')}</p>
             <p className="font-semibold text-text-primary">{rentador.name}</p>
           </div>
         </div>
@@ -262,13 +262,7 @@ interface WithdrawConfirmModalProps {
 }
 
 function WithdrawConfirmModal({ submitting, onConfirm, onCancel }: WithdrawConfirmModalProps) {
-  useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [])
+  useLockBodyScroll()
 
   return (
     <div
