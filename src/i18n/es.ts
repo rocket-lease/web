@@ -157,6 +157,7 @@ export const es = {  // --- App ---
   'reservas.role.owner': 'Como rentador',
   'reservas.tabs.todas': 'Todas',
   'reservas.tabs.solicitudes': 'Solicitudes',
+  'reservas.tabs.enRevision': 'En revisión',
   'reservas.tabs.pendientes': 'Pendientes',
   'reservas.tabs.confirmadas': 'Confirmadas',
   'reservas.tabs.enCurso': 'En curso',
