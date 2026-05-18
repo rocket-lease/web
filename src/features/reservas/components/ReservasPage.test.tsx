@@ -46,48 +46,31 @@ beforeEach(() => {
   vi.clearAllMocks()
   searchMock.current = {}
   fetchMock.mockResolvedValue(emptyListResponse())
+  vehiclesMock.mockResolvedValue([])
 })
 
 describe('ReservasPage — toggle de rol', () => {
-  it('NO muestra el toggle "Como rentador" si el usuario no publicó vehículos', async () => {
-    vehiclesMock.mockResolvedValue([])
-
+  it('muestra el toggle siempre (sin esperar a getMyVehicles)', async () => {
     render(<ReservasPage />, { wrapper: createWrapper() })
 
-    await waitFor(() => expect(vehiclesMock).toHaveBeenCalled())
-    // Esperar a que la lista termine de cargar
-    await screen.findByText(/Todas/i)
-    expect(screen.queryByRole('tab', { name: /Como rentador/i })).toBeNull()
+    expect(
+      await screen.findByRole('tab', { name: /Como conductor/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', { name: /Como rentador/i }),
+    ).toBeInTheDocument()
   })
 
-  it('muestra el toggle si el usuario tiene vehículos publicados', async () => {
-    vehiclesMock.mockResolvedValue([
-      {
-        id: 'v1',
-        brand: 'Toyota',
-        model: 'Etios',
-        year: 2020,
-        basePriceCents: 100000,
-        currency: 'ARS' as const,
-        photo: null,
-      },
-    ] as unknown as Awaited<ReturnType<typeof vehiclesApi.getMyVehicles>>)
-
+  it('no dispara getMyVehicles en el render inicial — solo cuando se necesita el empty state owner', async () => {
     render(<ReservasPage />, { wrapper: createWrapper() })
 
-    expect(
-      await screen.findByRole('tab', { name: /Como rentador/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('tab', { name: /Como conductor/i }),
-    ).toBeInTheDocument()
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    expect(vehiclesMock).not.toHaveBeenCalled()
   })
 })
 
 describe('ReservasPage — fetch con role', () => {
   it('llama al endpoint con role=conductor por defecto', async () => {
-    vehiclesMock.mockResolvedValue([])
-
     render(<ReservasPage />, { wrapper: createWrapper() })
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
@@ -96,19 +79,8 @@ describe('ReservasPage — fetch con role', () => {
     )
   })
 
-  it('llama al endpoint con role=owner cuando ?role=owner y el user tiene vehículos', async () => {
+  it('llama al endpoint con role=owner cuando ?role=owner', async () => {
     searchMock.current = { role: 'owner' }
-    vehiclesMock.mockResolvedValue([
-      {
-        id: 'v1',
-        brand: 'Toyota',
-        model: 'Etios',
-        year: 2020,
-        basePriceCents: 100000,
-        currency: 'ARS' as const,
-        photo: null,
-      },
-    ] as unknown as Awaited<ReturnType<typeof vehiclesApi.getMyVehicles>>)
 
     render(<ReservasPage />, { wrapper: createWrapper() })
 
@@ -118,16 +90,19 @@ describe('ReservasPage — fetch con role', () => {
       ),
     )
   })
+})
 
-  it('fuerza role=conductor cuando ?role=owner pero el user no tiene vehículos', async () => {
+describe('ReservasPage — empty state', () => {
+  it('dispara getMyVehicles cuando el lado owner está vacío para diferenciar la copy', async () => {
     searchMock.current = { role: 'owner' }
     vehiclesMock.mockResolvedValue([])
+    fetchMock.mockResolvedValue(emptyListResponse())
 
     render(<ReservasPage />, { wrapper: createWrapper() })
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.objectContaining({ role: 'conductor' }),
-    )
+    await waitFor(() => expect(vehiclesMock).toHaveBeenCalled())
+    expect(
+      await screen.findByText(/Publicá un vehículo/i),
+    ).toBeInTheDocument()
   })
 })

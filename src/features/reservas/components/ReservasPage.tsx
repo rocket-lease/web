@@ -17,7 +17,7 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
-import { RoleSegmentedControl, RoleSegmentedControlSkeleton } from './RoleSegmentedControl'
+import { RoleSegmentedControl } from './RoleSegmentedControl'
 
 type TabKey =
   | 'all'
@@ -56,12 +56,16 @@ interface ReservasPageSearch {
 }
 
 /**
- * Panel unificado de reservas. Si el usuario tiene vehículos publicados,
- * muestra un segmented control "Como conductor | Como rentador" para alternar
- * perspectiva; la selección se persiste en URL (`?role=owner|conductor`).
+ * Panel unificado de reservas con un segmented control "Como conductor |
+ * Como rentador" siempre visible. El toggle no representa una identidad —
+ * es solo qué perspectiva del listado mostrar (las reservas que vos hiciste
+ * vs las que te hicieron sobre tus vehículos). Por eso se muestra incluso
+ * para usuarios que nunca publicaron: si entran a "Como rentador" sin tener
+ * flota, el empty state los invita a publicar.
  *
- * El toggle es local a esta pantalla — no modifica `activeRole` global. La
- * UI global del switcher de rol es trabajo aparte (web#38).
+ * Selección persistida en URL (`?role=owner|conductor`). El toggle es local
+ * a la pantalla — no modifica `activeRole` global. La UI global del switcher
+ * de rol es trabajo aparte (web#38).
  *
  * Optimización smart-cache: la primera request al endpoint trae todas las
  * reservas (sin filtro de estado). Si `total <= PAGE_SIZE` (caso común),
@@ -73,21 +77,7 @@ export function ReservasPage() {
   const { role: roleSearch } = useSearch({
     from: '/_app/reservas',
   }) as ReservasPageSearch
-
-  /**
-   * Usamos la misma queryKey que `MisVehiculosPage` y `EditarVehiculoPage`
-   * (`['vehicles', 'mine']`) para compartir cache: si el rentador pasó por
-   * cualquiera de esas pantallas antes, el toggle aparece instantáneo.
-   * El staleTime de 5 min lo hereda del global del QueryClient.
-   */
-  const myVehiclesQuery = useQuery({
-    queryKey: ['vehicles', 'mine'],
-    queryFn: () => vehiclesApi.getMyVehicles(),
-  })
-  const isRentador =
-    !!myVehiclesQuery.data && myVehiclesQuery.data.length > 0
-  const role: ReservationRole =
-    isRentador && roleSearch === 'owner' ? 'owner' : 'conductor'
+  const role: ReservationRole = roleSearch === 'owner' ? 'owner' : 'conductor'
 
   const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
@@ -97,24 +87,13 @@ export function ReservasPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined
   const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
 
-  /**
-   * Esperamos a que `myVehiclesQuery` resuelva antes de disparar las queries
-   * de reservas: si no, el primer render usa `role='conductor'` (default),
-   * fetchea, y cuando `myVehicles` llega y el user es rentador con `?role=owner`
-   * se dispara una segunda query — round-trip tirado.
-   */
-  const readyToFetch = myVehiclesQuery.isFetched
-
-  const probeQuery = useReservations(
-    {
-      role,
-      from: fromIso,
-      to: toIso,
-      page: 1,
-      pageSize: PAGE_SIZE,
-    },
-    { enabled: readyToFetch },
-  )
+  const probeQuery = useReservations({
+    role,
+    from: fromIso,
+    to: toIso,
+    page: 1,
+    pageSize: PAGE_SIZE,
+  })
 
   /**
    * Conteo de solicitudes en estado `pending_approval` para el badge del header.
@@ -133,7 +112,6 @@ export function ReservasPage() {
       }),
     select: (response) => response.total,
     staleTime: 30_000,
-    enabled: readyToFetch,
   })
   const solicitudesCount = solicitudesCountQuery.data ?? 0
 
@@ -152,7 +130,7 @@ export function ReservasPage() {
       page,
       pageSize: PAGE_SIZE,
     },
-    { enabled: readyToFetch && needsTabQuery },
+    { enabled: needsTabQuery },
   )
 
   const data = (() => {
@@ -195,11 +173,6 @@ export function ReservasPage() {
     setPage(1)
   }
 
-  const sinVehiculos =
-    role === 'owner' &&
-    myVehiclesQuery.isFetched &&
-    (myVehiclesQuery.data?.length ?? 0) === 0
-
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   const badgeLabel =
@@ -228,11 +201,7 @@ export function ReservasPage() {
         }
       />
 
-      {!myVehiclesQuery.isFetched ? (
-        <RoleSegmentedControlSkeleton />
-      ) : isRentador ? (
-        <RoleSegmentedControl value={role} onChange={onRoleChange} />
-      ) : null}
+      <RoleSegmentedControl value={role} onChange={onRoleChange} />
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">
@@ -273,9 +242,7 @@ export function ReservasPage() {
             {t('reservas.error')}
           </p>
         )}
-        {data && data.items.length === 0 && (
-          <EmptyTab role={role} sinVehiculos={sinVehiculos} />
-        )}
+        {data && data.items.length === 0 && <EmptyTab role={role} />}
         {data && (
           <div
             className={
@@ -399,40 +366,55 @@ function ReservasListSkeleton() {
   )
 }
 
-interface EmptyTabProps {
-  role: ReservationRole
-  sinVehiculos: boolean
-}
-
-function EmptyTab({ role, sinVehiculos }: EmptyTabProps) {
-  if (role === 'owner') {
+/**
+ * Empty state del listado. Para el lado conductor invita a buscar vehículos;
+ * para el lado rentador refina la copy según si el usuario tiene flota:
+ * si tiene 0 vehículos publicados, propone publicar el primero (onboarding).
+ * Si tiene flota pero esta categoría está vacía, muestra el copy neutro.
+ *
+ * Hace su propia query de `getMyVehicles` (compartida con MisVehiculosPage
+ * vía queryKey) solo cuando se renderiza — no bloquea ni el toggle ni el
+ * listado principal.
+ */
+function EmptyTab({ role }: { role: ReservationRole }) {
+  if (role === 'conductor') {
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
         <ClipboardList className="h-12 w-12 text-text-muted" />
         <p className="text-text-secondary">
-          {t(
-            sinVehiculos
-              ? 'reservas.empty.owner.sinVehiculos'
-              : 'reservas.empty.owner.sinReservas',
-          )}
+          {t('reservas.empty.conductor.sinReservas')}
         </p>
-        {sinVehiculos && (
-          <Link to="/mis-vehiculos/nuevo">
-            <Button variant="default">{t('reservas.empty.owner.publicarCta')}</Button>
-          </Link>
-        )}
+        <Link to="/buscar">
+          <Button variant="secondary">{t('reservas.empty.conductor.cta')}</Button>
+        </Link>
       </div>
     )
   }
+  return <OwnerEmptyTab />
+}
+
+function OwnerEmptyTab() {
+  const myVehiclesQuery = useQuery({
+    queryKey: ['vehicles', 'mine'],
+    queryFn: () => vehiclesApi.getMyVehicles(),
+  })
+  const sinVehiculos =
+    myVehiclesQuery.isFetched && (myVehiclesQuery.data?.length ?? 0) === 0
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
       <ClipboardList className="h-12 w-12 text-text-muted" />
       <p className="text-text-secondary">
-        {t('reservas.empty.conductor.sinReservas')}
+        {t(
+          sinVehiculos
+            ? 'reservas.empty.owner.sinVehiculos'
+            : 'reservas.empty.owner.sinReservas',
+        )}
       </p>
-      <Link to="/buscar">
-        <Button variant="secondary">{t('reservas.empty.conductor.cta')}</Button>
-      </Link>
+      {sinVehiculos && (
+        <Link to="/mis-vehiculos/nuevo">
+          <Button variant="default">{t('reservas.empty.owner.publicarCta')}</Button>
+        </Link>
+      )}
     </div>
   )
 }
