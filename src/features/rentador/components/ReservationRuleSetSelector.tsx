@@ -7,7 +7,12 @@ import {
 } from '@/ui/select'
 import { t } from '@/i18n/es'
 import { useReservationRuleSets } from '@/features/rentador/hooks/useReservationRules'
-import { generateRuleSetCompactSummary } from '@/features/vehiculos/utils/rules-formatter'
+import {
+  getCancellationPolicyLabel,
+  getDepositLabel,
+  formatMaxKilometrage,
+  formatRentalTimeConstraints,
+} from '@/features/vehiculos/utils/rules-formatter'
 
 interface ReservationRuleSetSelectorProps {
   selectedId?: string
@@ -22,6 +27,7 @@ export function ReservationRuleSetSelector({
 }: ReservationRuleSetSelectorProps) {
   const ruleSetsQuery = useReservationRuleSets()
   const ruleSets = ruleSetsQuery.data ?? []
+  const selectedRuleSet = ruleSets.find((set) => set.id === selectedId)
 
   return (
     <div className="space-y-2">
@@ -29,16 +35,16 @@ export function ReservationRuleSetSelector({
         {t('reservationRules.title')}
       </label>
       <Select
-        value={selectedId || 'none'}
+        value={selectedId ?? 'Sin reglas asignadas'}
         onValueChange={(value) => onSelect(value === 'none' ? undefined : value)}
         disabled={disabled || ruleSetsQuery.isLoading}
       >
         <SelectTrigger>
-          <SelectValue />
+          <SelectValue placeholder="Sin reglas asignadas">{selectedRuleSet?.name}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">
-            {t('general.cancel')} - {t('reservationRules.notAssigned')}
+            {t('general.cancel')}
           </SelectItem>
           {ruleSets.map((set) => (
             <SelectItem key={set.id} value={set.id}>
@@ -50,16 +56,22 @@ export function ReservationRuleSetSelector({
           ))}
         </SelectContent>
       </Select>
-      {selectedId && ruleSets.find((s) => s.id === selectedId) && (
+      {selectedRuleSet && (
         <div className="rounded-lg bg-surface-2 p-3 text-xs text-text-secondary">
           <p className="font-medium text-text-primary">
-            {ruleSets.find((s) => s.id === selectedId)?.name}
+            {selectedRuleSet.name}
           </p>
           <p className="mt-1">
-            Cancelación: <span className="font-medium">{ruleSets.find((s) => s.id === selectedId)?.cancellationPolicy}</span>
+            Cancelación: <span className="font-medium">{getCancellationPolicyLabel(selectedRuleSet.cancellationPolicy)}</span>
           </p>
           <p>
-            Seña: <span className="font-medium">{ruleSets.find((s) => s.id === selectedId)?.deposit}</span>
+            Seña: <span className="font-medium">{getDepositLabel(selectedRuleSet.deposit)}</span>
+          </p>
+          <p>
+            Kilometraje: <span className="font-medium">{formatMaxKilometrage(selectedRuleSet.maxKilometrage)}</span>
+          </p>
+          <p>
+            Tiempo de alquiler: <span className="font-medium">{formatRentalTimeConstraints(selectedRuleSet.rentalTimeConstraints)}</span>
           </p>
         </div>
       )}

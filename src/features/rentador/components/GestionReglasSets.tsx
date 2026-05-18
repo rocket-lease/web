@@ -8,12 +8,10 @@ import { t } from '@/i18n/es'
 import {
   useReservationRuleSets,
   useDeleteReservationRuleSet,
-  useCreateReservationRuleSet,
 } from '@/features/rentador/hooks/useReservationRules'
 import {
   getCancellationPolicyLabel,
   getDepositLabel,
-  generateRuleSetCompactSummary,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { CreateRuleSetDialog } from './CreateRuleSetDialog'
 import { EditRuleSetDialog } from './EditRuleSetDialog'
@@ -27,7 +25,7 @@ export function GestionReglasSets() {
   const ruleSetsQuery = useReservationRuleSets()
   const deleteRuleSetMutation = useDeleteReservationRuleSet()
 
-  const ruleSets = ruleSetsQuery.data ?? []
+  const ruleSets: ReservationRuleSet[] = ruleSetsQuery.data ?? []
 
   const handleEdit = (ruleSet: ReservationRuleSet) => {
     setEditingSet(ruleSet)
@@ -38,15 +36,6 @@ export function GestionReglasSets() {
     if (confirm(t('reservationRules.confirmDelete'))) {
       deleteRuleSetMutation.mutate(id)
     }
-  }
-
-  const handleCreateClose = () => {
-    setShowCreateDialog(false)
-  }
-
-  const handleEditClose = () => {
-    setShowEditDialog(false)
-    setEditingSet(null)
   }
 
   return (
@@ -98,8 +87,7 @@ export function GestionReglasSets() {
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        // Cargar datos completos del set antes de editar
-                        handleEdit(ruleSet as unknown as ReservationRuleSet)
+                        handleEdit(ruleSet)
                       }}
                     >
                       <Pencil className="h-4 w-4" />
@@ -164,7 +152,12 @@ export function GestionReglasSets() {
         <EditRuleSetDialog
           ruleSet={editingSet}
           open={showEditDialog}
-          onOpenChange={setShowEditDialog}
+          onOpenChange={(open) => {
+            setShowEditDialog(open)
+            if (!open) {
+              setEditingSet(null)
+            }
+          }}
         />
       )}
     </div>

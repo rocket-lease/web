@@ -14,14 +14,6 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
-import { useReservationRuleSets } from '@/features/rentador/hooks/useReservationRules'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/ui/select'
 import { ReservationRuleSetSelector } from './ReservationRuleSetSelector'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
@@ -259,6 +251,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         isAccessible: draft.isAccessible,
         photos: finalPhotoUrls,
         characteristics: draft.characteristics,
+        reservationRuleSetId: draft.reservationRuleSetId ?? null,
       }
 
       await vehiclesApi.updateVehicle(vehicleId, payload)

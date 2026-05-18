@@ -15,7 +15,6 @@ import {
   getCancellationPolicyLabel,
   getDepositLabel,
   formatMaxKilometrage,
-  formatRentalTimeConstraints,
 } from '../utils/rules-formatter'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 
