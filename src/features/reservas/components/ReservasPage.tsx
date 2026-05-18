@@ -17,7 +17,7 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
-import { RoleSegmentedControl } from './RoleSegmentedControl'
+import { RoleSegmentedControl, RoleSegmentedControlSkeleton } from './RoleSegmentedControl'
 
 type TabKey =
   | 'all'
@@ -223,9 +223,11 @@ export function ReservasPage() {
         }
       />
 
-      {isRentador && (
+      {!myVehiclesQuery.isFetched ? (
+        <RoleSegmentedControlSkeleton />
+      ) : isRentador ? (
         <RoleSegmentedControl value={role} onChange={onRoleChange} />
-      )}
+      ) : null}
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">

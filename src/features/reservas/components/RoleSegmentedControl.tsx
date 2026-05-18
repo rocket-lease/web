@@ -1,5 +1,6 @@
 import type { ReservationRole } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
+import { Skeleton } from '@/ui/skeleton'
 
 interface RoleSegmentedControlProps {
   value: ReservationRole
@@ -42,6 +43,24 @@ export function RoleSegmentedControl({ value, onChange }: RoleSegmentedControlPr
           </button>
         )
       })}
+    </div>
+  )
+}
+
+/**
+ * Placeholder con las mismas dimensiones que `RoleSegmentedControl` para
+ * mostrar mientras se resuelve `myVehiclesQuery` (sabemos si el toggle
+ * corresponde recién cuando llega la respuesta). Evita layout shift y la
+ * sensación de que la página "se sigue cargando" después de mostrar la lista.
+ */
+export function RoleSegmentedControlSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className="mx-4 mt-2 mb-3 inline-flex w-fit items-center rounded-full bg-surface-2 p-1"
+    >
+      <Skeleton className="h-7 w-28 rounded-full" />
+      <Skeleton className="ml-1 h-7 w-28 rounded-full" />
     </div>
   )
 }
