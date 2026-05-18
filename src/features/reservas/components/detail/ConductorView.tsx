@@ -240,22 +240,38 @@ function ContractSection({ acceptedAt }: ContractSectionProps) {
 
 /**
  * Bloque de acciones para reservas activas post-pago (`confirmed` /
- * `in_progress`). Hoy solo "Reportar problema" (linkea a soporte) — la
- * cancelación post-pago no está soportada en la api (state machine
- * rechaza `confirmed → cancelled`), por eso el flujo lo deriva al equipo
- * de soporte.
+ * `in_progress`). Muestra "Cancelar reserva" y "Reportar problema".
+ *
+ * El botón "Cancelar reserva" hoy solo informa con un toast que la acción
+ * no está disponible — la api rechaza la transición `confirmed → cancelled`
+ * (state machine). Cuando se implemente cancel-con-penalidad (ver web#38)
+ * se reemplaza el handler por la mutación real.
  */
 function PostPaymentActions() {
+  const onCancelAttempt = () => {
+    toast.info(t('reservas.detail.cancel.postPayUnavailable'))
+  }
+
   return (
     <>
       <Separator />
-      <Link
-        to="/soporte"
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
-      >
-        <LifeBuoy className="h-4 w-4" />
-        {t('reservas.detail.actions.reportar')}
-      </Link>
+      <div className="space-y-2">
+        <Button
+          variant="outline"
+          className="w-full border-danger/40 text-danger-400 hover:bg-danger/10"
+          onClick={onCancelAttempt}
+        >
+          <XCircle className="h-4 w-4" />
+          {t('reservas.detail.cancel.cta')}
+        </Button>
+        <Link
+          to="/soporte"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+        >
+          <LifeBuoy className="h-4 w-4" />
+          {t('reservas.detail.actions.reportar')}
+        </Link>
+      </div>
     </>
   )
 }

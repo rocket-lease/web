@@ -183,6 +183,8 @@ export const es = {  // --- App ---
   'reservas.detail.cancel.canceling': 'Cancelando...',
   'reservas.detail.cancel.back': 'Volver',
   'reservas.detail.cancel.success': 'Reserva cancelada',
+  'reservas.detail.cancel.postPayUnavailable':
+    'Las reservas confirmadas todavía no se pueden cancelar desde la app. Contactá a soporte si necesitás hacerlo.',
   'reservas.empty.conductor.sinReservas': 'No tenés reservas en esta categoría todavía.',
   'reservas.empty.conductor.cta': 'Buscar vehículos',
   'reservas.empty.owner.sinReservas': 'No tenés reservas en esta categoría todavía.',
