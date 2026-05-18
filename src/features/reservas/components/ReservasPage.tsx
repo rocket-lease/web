@@ -74,10 +74,15 @@ export function ReservasPage() {
     from: '/_app/reservas',
   }) as ReservasPageSearch
 
+  /**
+   * Usamos la misma queryKey que `MisVehiculosPage` y `EditarVehiculoPage`
+   * (`['vehicles', 'mine']`) para compartir cache: si el rentador pasó por
+   * cualquiera de esas pantallas antes, el toggle aparece instantáneo.
+   * El staleTime de 5 min lo hereda del global del QueryClient.
+   */
   const myVehiclesQuery = useQuery({
-    queryKey: ['myVehicles'],
+    queryKey: ['vehicles', 'mine'],
     queryFn: () => vehiclesApi.getMyVehicles(),
-    staleTime: 60_000,
   })
   const isRentador =
     !!myVehiclesQuery.data && myVehiclesQuery.data.length > 0
