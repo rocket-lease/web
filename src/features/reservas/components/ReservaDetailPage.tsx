@@ -33,6 +33,8 @@ export function ReservaDetailPage() {
     queryKey: ['reservation', id],
     queryFn: () => reservarApi.getById(id),
     enabled: !!id,
+    gcTime: Infinity,
+    staleTime: 5 * 60 * 1000,
   })
 
   if (isLoading) {
