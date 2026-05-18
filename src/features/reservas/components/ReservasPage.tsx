@@ -39,15 +39,28 @@ const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
   cancelled: ['cancelled', 'rejected', 'expired'],
 }
 
-const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
-  { key: 'all', labelKey: 'reservas.tabs.todas' },
-  { key: 'solicitudes', labelKey: 'reservas.tabs.solicitudes' },
-  { key: 'pending', labelKey: 'reservas.tabs.pendientes' },
-  { key: 'confirmed', labelKey: 'reservas.tabs.confirmadas' },
-  { key: 'inProgress', labelKey: 'reservas.tabs.enCurso' },
-  { key: 'completed', labelKey: 'reservas.tabs.completadas' },
-  { key: 'cancelled', labelKey: 'reservas.tabs.canceladas' },
-]
+/**
+ * El label de cada tab puede variar según el rol (ej. `pending_approval`:
+ * para el rentador son "Solicitudes" que llegan a aprobar; para el
+ * conductor son sus propias solicitudes "En revisión" esperando rta).
+ */
+function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: string }> {
+  return [
+    { key: 'all', label: t('reservas.tabs.todas') },
+    {
+      key: 'solicitudes',
+      label:
+        role === 'owner'
+          ? t('reservas.tabs.solicitudes')
+          : t('reservas.tabs.enRevision'),
+    },
+    { key: 'pending', label: t('reservas.tabs.pendientes') },
+    { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
+    { key: 'inProgress', label: t('reservas.tabs.enCurso') },
+    { key: 'completed', label: t('reservas.tabs.completadas') },
+    { key: 'cancelled', label: t('reservas.tabs.canceladas') },
+  ]
+}
 
 const PAGE_SIZE = 20
 
@@ -205,7 +218,7 @@ export function ReservasPage() {
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">
-          {TABS.map((definition) => (
+          {getTabs(role).map((definition) => (
             <button
               key={definition.key}
               type="button"
@@ -216,7 +229,7 @@ export function ReservasPage() {
                   : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
               }`}
             >
-              {t(definition.labelKey as Parameters<typeof t>[0])}
+              {definition.label}
             </button>
           ))}
         </div>
