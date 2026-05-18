@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { AlertOctagon, CalendarDays, CheckCircle2, Clock, Inbox, QrCode } from 'lucide-react'
+import {
+  AlertOctagon,
+  CalendarDays,
+  ChevronDown,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Inbox,
+  LifeBuoy,
+  QrCode,
+  XCircle,
+} from 'lucide-react'
 import type { GetReservationResponse, PaymentMethod } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -37,12 +49,21 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     totalCents,
     paymentMethod,
     holdExpiresAt,
+    contractAcceptedAt,
     rejectionReason,
   } = reservation
   const showVoucher = status === 'confirmed' || status === 'in_progress'
   const canPay = status === 'pending_payment'
   const isPendingApproval = status === 'pending_approval'
   const isRejected = status === 'rejected'
+  /**
+   * Estados donde la reserva sigue "viva" para el conductor: puede ser
+   * confirmada y por iniciar (`confirmed`), o ya en uso (`in_progress`).
+   * En estos casos el conductor puede ver el contrato y reportar problemas,
+   * pero NO cancelar (la api rechaza `cancel` después de `pending_payment`
+   * — para cancelar después del pago debe contactar soporte).
+   */
+  const isPostPayment = status === 'confirmed' || status === 'in_progress'
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -160,7 +181,82 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       )}
 
       {isRejected && <RejectedSection reason={rejectionReason} />}
+
+      {contractAcceptedAt && <ContractSection acceptedAt={contractAcceptedAt} />}
+
+      {isPostPayment && <PostPaymentActions />}
     </div>
+  )
+}
+
+interface ContractSectionProps {
+  acceptedAt: string
+}
+
+/**
+ * Acordeón con el contrato firmado y la fecha de aceptación. Visible cuando
+ * la reserva ya tuvo aceptación (`contractAcceptedAt`). El texto del template
+ * es el mismo que se muestra al conductor durante el flow de creación.
+ */
+function ContractSection({ acceptedAt }: ContractSectionProps) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <>
+      <Separator />
+      <div className="rounded-xl border border-white/8 bg-surface-2">
+        <button
+          type="button"
+          onClick={() => setExpanded((x) => !x)}
+          aria-expanded={expanded}
+          className="flex w-full items-center gap-3 px-3 py-3 text-left"
+        >
+          <FileText className="h-4 w-4 text-brand-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary">
+              {t('reservas.detail.contract.title')}
+            </p>
+            <p className="text-xs text-text-muted truncate">
+              {t('reservas.detail.contract.acceptedAt').replace(
+                '{date}',
+                fmt.dateTime(acceptedAt),
+              )}
+            </p>
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-text-muted shrink-0 transition-transform ${
+              expanded ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+        {expanded && (
+          <div className="px-3 pb-3 -mt-1 text-sm text-text-secondary leading-relaxed">
+            {t('reservar.contract.body')}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+/**
+ * Bloque de acciones para reservas activas post-pago (`confirmed` /
+ * `in_progress`). Hoy solo "Reportar problema" (linkea a soporte) — la
+ * cancelación post-pago no está soportada en la api (state machine
+ * rechaza `confirmed → cancelled`), por eso el flujo lo deriva al equipo
+ * de soporte.
+ */
+function PostPaymentActions() {
+  return (
+    <>
+      <Separator />
+      <Link
+        to="/soporte"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+      >
+        <LifeBuoy className="h-4 w-4" />
+        {t('reservas.detail.actions.reportar')}
+      </Link>
+    </>
   )
 }
 
@@ -308,7 +404,9 @@ interface PendingPaymentSectionProps {
 function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentSectionProps) {
   const [method, setMethod] = useState<PaymentMethod | null>(null)
   const [holdExpired, setHoldExpired] = useState(false)
+  const [showCancelModal, setShowCancelModal] = useState(false)
   const confirmPayment = useConfirmPayment(reservationId)
+  const cancelMutation = useCancelReservation()
 
   /**
    * Dispara la mutación de pago y traga la excepción. El error queda
@@ -320,6 +418,16 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
       await confirmPayment.mutateAsync({ paymentMethod: method })
     } catch {
       /* error rendered via confirmPayment.error */
+    }
+  }
+
+  const onCancel = async () => {
+    try {
+      await cancelMutation.mutateAsync(reservationId)
+      toast.success(t('reservas.detail.cancel.success'))
+      setShowCancelModal(false)
+    } catch {
+      toast.error(t('error.default'))
     }
   }
 
@@ -359,7 +467,79 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
             </span>
           )}
         </Button>
+        <Button
+          variant="ghost"
+          className="w-full text-danger-400 hover:bg-danger/10"
+          onClick={() => setShowCancelModal(true)}
+          disabled={cancelMutation.isPending}
+        >
+          <XCircle className="h-4 w-4" />
+          {t('reservas.detail.cancel.cta')}
+        </Button>
+        <Link
+          to="/soporte"
+          className="flex w-full items-center justify-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary py-2"
+        >
+          <LifeBuoy className="h-4 w-4" />
+          {t('reservas.detail.actions.reportar')}
+        </Link>
       </div>
+
+      {showCancelModal && (
+        <CancelConfirmModal
+          submitting={cancelMutation.isPending}
+          onConfirm={onCancel}
+          onCancel={() => setShowCancelModal(false)}
+        />
+      )}
     </>
+  )
+}
+
+interface CancelConfirmModalProps {
+  submitting: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+/**
+ * Modal anti-misclick para cancelar una reserva. El botón principal es
+ * "Volver" (no cancelar) para evitar cancelaciones accidentales por tap rápido.
+ */
+function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmModalProps) {
+  useLockBodyScroll()
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      style={{ minHeight: '100dvh' }}
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-text-primary">
+          {t('reservas.detail.cancel.modalTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          {t('reservas.detail.cancel.modalBody')}
+        </p>
+        <div className="mt-5 flex gap-2 justify-end">
+          <Button
+            variant="ghost"
+            className="text-danger-400"
+            onClick={onConfirm}
+            disabled={submitting}
+          >
+            {submitting
+              ? t('reservas.detail.cancel.canceling')
+              : t('reservas.detail.cancel.confirm')}
+          </Button>
+          <Button onClick={onCancel} disabled={submitting}>
+            {t('reservas.detail.cancel.back')}
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }
