@@ -1,143 +1,117 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
-import { PageHeader } from '@/features/layout/components/PageHeader'
-import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
-import { Separator } from '@/ui/separator'
-import { Skeleton } from '@/ui/skeleton'
+import type { GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
-import { t } from '@/i18n/es'
+import { Separator } from '@/ui/separator'
+import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
-import { useOwnerReservations } from '../hooks/useOwnerReservations'
-import { useApproveReservation } from '../hooks/useApproveReservation'
-import { useRejectReservation } from '../hooks/useRejectReservation'
+import { t } from '@/i18n/es'
+import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { useApproveReservation } from '../../hooks/useApproveReservation'
+import { useRejectReservation } from '../../hooks/useRejectReservation'
 
-const LARGE_PAGE = 100
+interface RentadorViewProps {
+  reservation: GetReservationResponse
+}
 
 /**
- * Pantalla de detalle de una reserva desde la perspectiva del rentador.
- * Sobre solicitudes `pending_approval` permite aprobar (con modal de
- * confirmación) y rechazar (con razón opcional).
+ * Vista del detalle de una reserva desde la perspectiva del rentador.
  *
- * Reusa el listado en cache de `useOwnerReservations` (tanstack-query lo
- * comparte por queryKey). Si el usuario entra por deep-link sin pasar por
- * el panel, refetch del listado y se busca la reserva por id.
- *
- * Lee `id` de los params de la ruta `/rentador/reservas/$id`.
+ * Renderiza el vehículo, fechas, conductor (fetcheado aparte porque
+ * `GetReservationResponse` solo trae `conductorId`) y total. Sobre
+ * solicitudes `pending_approval` habilita aprobar (con modal de confirmación)
+ * y rechazar (con razón opcional).
  */
-export function ReservaRentadorDetailPage() {
-  const { id = '' } = useParams({ strict: false })
-  const { data, isLoading, error } = useOwnerReservations({
-    page: 1,
-    pageSize: LARGE_PAGE,
+export function RentadorView({ reservation }: RentadorViewProps) {
+  const conductorQuery = useQuery({
+    queryKey: ['profile', reservation.conductorId],
+    queryFn: () => profileApi.getProfileById(reservation.conductorId),
+    staleTime: 60_000,
   })
+  const conductor = conductorQuery.data
 
-  const reserva = data?.items.find((r) => r.id === id)
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col">
-        <PageHeader title={t('rentador.reservas.detalle.title')} showBack />
-        <div className="px-4 py-5 space-y-4">
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-48 w-full rounded-xl" />
-          <Skeleton className="h-20 w-full rounded-xl" />
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !reserva) {
-    return (
-      <div className="flex flex-col">
-        <PageHeader title={t('rentador.reservas.detalle.title')} showBack />
-        <p className="px-6 py-12 text-center text-text-secondary">
-          {t('rentador.reservas.detalle.noEncontrada')}
-        </p>
-      </div>
-    )
-  }
-
-  const photo = reserva.vehicle.photo
+  const photo = reservation.vehicle.photo
 
   return (
-    <div className="flex flex-col">
-      <PageHeader title={t('rentador.reservas.detalle.title')} showBack />
+    <div className="px-4 py-5 space-y-5">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-text-muted">
+          {t('reservas.detail.idPrefix')}
+          {reservation.id.slice(0, 8)}
+        </p>
+        <ReservaStatusBadge estado={reservation.status} />
+      </div>
 
-      <div className="px-4 py-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-text-muted">
-            Reserva #{reserva.id.slice(0, 8)}
+      <div className="card overflow-hidden">
+        {photo && (
+          <div className="aspect-video bg-surface-2">
+            <img
+              src={photo}
+              alt={reservation.vehicle.brand}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+        <div className="p-4">
+          <p className="font-bold text-text-primary">
+            {reservation.vehicle.brand} {reservation.vehicle.model}{' '}
+            {reservation.vehicle.year}
           </p>
-          <ReservaStatusBadge estado={reserva.status} />
         </div>
+      </div>
 
-        <div className="card overflow-hidden">
-          {photo && (
-            <div className="aspect-video bg-surface-2">
-              <img
-                src={photo}
-                alt={reserva.vehicle.brand}
-                className="h-full w-full object-cover"
-              />
+      <Separator />
+
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+          {t('rentador.reservas.detalle.fechas')}
+        </p>
+        <div className="flex gap-3">
+          <div className="flex-1 rounded-xl bg-surface-2 p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <CalendarDays className="h-4 w-4 text-brand-400" />
+              <span className="text-xs text-text-muted">
+                {t('rentador.reservas.detalle.desde')}
+              </span>
             </div>
-          )}
-          <div className="p-4">
-            <p className="font-bold text-text-primary">
-              {reserva.vehicle.brand} {reserva.vehicle.model}{' '}
-              {reserva.vehicle.year}
+            <p className="font-semibold text-text-primary">
+              {fmt.dateTime(reservation.startAt)}
+            </p>
+          </div>
+          <div className="flex-1 rounded-xl bg-surface-2 p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <CalendarDays className="h-4 w-4 text-brand-400" />
+              <span className="text-xs text-text-muted">
+                {t('rentador.reservas.detalle.hasta')}
+              </span>
+            </div>
+            <p className="font-semibold text-text-primary">
+              {fmt.dateTime(reservation.endAt)}
             </p>
           </div>
         </div>
+      </div>
 
-        <Separator />
+      <Separator />
 
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
-            {t('rentador.reservas.detalle.fechas')}
-          </p>
-          <div className="flex gap-3">
-            <div className="flex-1 rounded-xl bg-surface-2 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <CalendarDays className="h-4 w-4 text-brand-400" />
-                <span className="text-xs text-text-muted">
-                  {t('rentador.reservas.detalle.desde')}
-                </span>
-              </div>
-              <p className="font-semibold text-text-primary">
-                {fmt.dateTime(reserva.startAt)}
-              </p>
-            </div>
-            <div className="flex-1 rounded-xl bg-surface-2 p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <CalendarDays className="h-4 w-4 text-brand-400" />
-                <span className="text-xs text-text-muted">
-                  {t('rentador.reservas.detalle.hasta')}
-                </span>
-              </div>
-              <p className="font-semibold text-text-primary">
-                {fmt.dateTime(reserva.endAt)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
+      {conductor ? (
         <Link
           to="/perfil/$id"
-          params={{ id: reserva.conductor.id }}
-          aria-label={`Ver perfil de ${reserva.conductor.name}`}
+          params={{ id: conductor.id }}
+          aria-label={`Ver perfil de ${conductor.name}`}
           className="flex items-center gap-3 -mx-2 px-2 py-2 rounded-xl hover:bg-surface-2 transition-colors active:scale-[0.99]"
         >
-          {reserva.conductor.avatarUrl ? (
+          {conductor.avatarUrl ? (
             <Avatar
-              src={reserva.conductor.avatarUrl}
-              alt={reserva.conductor.name}
-              className="h-10 w-10"
+              src={conductor.avatarUrl}
+              fallback={conductor.name.slice(0, 2).toUpperCase()}
+              size="md"
             />
           ) : (
             <div className="h-10 w-10 rounded-full bg-surface-2 flex items-center justify-center">
@@ -149,53 +123,59 @@ export function ReservaRentadorDetailPage() {
               {t('rentador.reservas.detalle.conductor')}
             </p>
             <p className="font-semibold text-text-primary truncate">
-              {reserva.conductor.name}
+              {conductor.name}
             </p>
           </div>
           <ChevronRight className="h-5 w-5 text-text-muted shrink-0" />
         </Link>
+      ) : (
+        <div className="flex items-center gap-3 -mx-2 px-2 py-2">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      )}
 
-        <Separator />
+      <Separator />
 
-        <div className="flex items-center justify-between">
-          <p className="font-semibold text-text-primary">
-            {t('rentador.reservas.detalle.total')}
+      <div className="flex items-center justify-between">
+        <p className="font-semibold text-text-primary">
+          {t('rentador.reservas.detalle.total')}
+        </p>
+        <p className="text-xl font-bold text-brand-400">
+          {fmt.currency(reservation.totalCents)}
+        </p>
+      </div>
+
+      {reservation.paidAt && reservation.paymentMethod && (
+        <div className="flex items-center justify-between text-sm">
+          <p className="text-text-muted">
+            {t('rentador.reservas.detalle.pago')}
           </p>
-          <p className="text-xl font-bold text-brand-400">
-            {fmt.currency(reserva.totalCents)}
+          <p className="text-text-secondary">
+            {t(
+              `rentador.reservas.detalle.metodo.${reservation.paymentMethod}` as Parameters<
+                typeof t
+              >[0],
+            )}{' '}
+            · {fmt.dateShort(reservation.paidAt)}
           </p>
         </div>
+      )}
 
-        {/* Estado de pago para confirmed/in_progress/completed */}
-        {reserva.paidAt && reserva.paymentMethod && (
-          <div className="flex items-center justify-between text-sm">
-            <p className="text-text-muted">
-              {t('rentador.reservas.detalle.pago')}
-            </p>
-            <p className="text-text-secondary">
-              {t(
-                `rentador.reservas.detalle.metodo.${reserva.paymentMethod}` as Parameters<
-                  typeof t
-                >[0],
-              )}{' '}
-              · {fmt.dateShort(reserva.paidAt)}
-            </p>
-          </div>
-        )}
+      {reservation.status === 'pending_payment' && reservation.holdExpiresAt && (
+        <HoldNotice expiresAt={reservation.holdExpiresAt} />
+      )}
 
-        {/* Hold countdown solo para pending_payment */}
-        {reserva.status === 'pending_payment' && reserva.holdExpiresAt && (
-          <HoldNotice expiresAt={reserva.holdExpiresAt} />
-        )}
+      {reservation.status === 'rejected' && reservation.rejectionReason && (
+        <RejectionReasonCard reason={reservation.rejectionReason} />
+      )}
 
-        {reserva.status === 'rejected' && reserva.rejectionReason && (
-          <RejectionReasonCard reason={reserva.rejectionReason} />
-        )}
-
-        {reserva.status === 'pending_approval' && (
-          <ApprovalActions reservationId={reserva.id} />
-        )}
-      </div>
+      {reservation.status === 'pending_approval' && (
+        <ApprovalActions reservationId={reservation.id} />
+      )}
     </div>
   )
 }

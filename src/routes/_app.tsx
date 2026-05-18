@@ -31,10 +31,10 @@ function AppLayout() {
   ]
 
   const rentadorTabs = [
-    { to: '/dashboard',    icon: ChartBar,        label: t('nav.dashboard') },
-    { to: '/mis-vehiculos',icon: Car,             label: t('nav.misVehiculos') },
-    { to: '/mis-reservas', icon: ClipboardText,   label: t('nav.misReservas') },
-    { to: '/perfil',       icon: UserCircle,      label: t('nav.perfil') },
+    { to: '/dashboard',     icon: ChartBar,      label: t('nav.dashboard') },
+    { to: '/mis-vehiculos', icon: Car,           label: t('nav.misVehiculos') },
+    { to: '/reservas',      icon: ClipboardText, label: t('nav.misReservas'), search: { role: 'owner' as const } },
+    { to: '/perfil',        icon: UserCircle,    label: t('nav.perfil') },
   ]
 
   const tabs = activeRole === 'rentador' ? rentadorTabs : conductorTabs

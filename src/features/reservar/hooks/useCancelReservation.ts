@@ -17,9 +17,9 @@ export function useCancelReservation() {
   return useMutation({
     mutationFn: (reservationId: string) => reservarApi.cancel(reservationId),
     onSuccess: (_data, reservationId) => {
-      queryClient.invalidateQueries({ queryKey: ['reservations', 'mine'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservationsCount'] })
       queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] })
-      queryClient.invalidateQueries({ queryKey: ['ownerReservations'] })
     },
   })
 }
