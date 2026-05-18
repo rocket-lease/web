@@ -12,7 +12,8 @@ export function useConfirmPayment(reservationId: string | null) {
       return reservarApi.confirmPayment(reservationId, data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reservations', 'mine'] })
+      queryClient.invalidateQueries({ queryKey: ['reservations'] })
+      queryClient.invalidateQueries({ queryKey: ['reservationsCount'] })
       if (reservationId) {
         queryClient.invalidateQueries({
           queryKey: ['reservation', reservationId],

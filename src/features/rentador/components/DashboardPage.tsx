@@ -61,7 +61,11 @@ export function DashboardPage() {
             <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
               {t('dashboard.ultimasReservas')}
             </p>
-            <Link to="/mis-reservas" className="text-xs font-medium text-owner">
+            <Link
+              to="/reservas"
+              search={{ role: 'owner' }}
+              className="text-xs font-medium text-owner"
+            >
               {t('general.seeAll')}
             </Link>
           </div>

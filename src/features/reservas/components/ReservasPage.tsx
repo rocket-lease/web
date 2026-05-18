@@ -1,21 +1,23 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
 import type {
   ReservationListItem,
+  ReservationRole,
   ReservationStatus,
 } from '@rocket-lease/contracts'
 import { PageHeader } from '@/features/layout/components/PageHeader'
-import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
 import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
-import { fetchOwnerReservations } from '../api/owner-reservations.api'
-import { useOwnerReservations } from '../hooks/useOwnerReservations'
+import { fetchReservations } from '../api/reservations.api'
+import { useReservations } from '../hooks/useReservations'
+import { ReservaStatusBadge } from './ReservaStatusBadge'
+import { RoleSegmentedControl } from './RoleSegmentedControl'
 
 type TabKey =
   | 'all'
@@ -26,7 +28,7 @@ type TabKey =
   | 'completed'
   | 'cancelled'
 
-// `undefined` = sin filtro de estado (el endpoint devuelve todas).
+/** `undefined` = sin filtro de estado (el endpoint devuelve todas). */
 const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
   all: undefined,
   solicitudes: ['pending_approval'],
@@ -37,34 +39,59 @@ const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
   cancelled: ['cancelled', 'rejected', 'expired'],
 }
 
-const TABS: ReadonlyArray<{ key: TabKey; labelKey: string }> = [
-  { key: 'all', labelKey: 'rentador.reservas.tabs.todas' },
-  { key: 'solicitudes', labelKey: 'rentador.reservas.tabs.solicitudes' },
-  { key: 'pending', labelKey: 'rentador.reservas.tabs.pendientes' },
-  { key: 'confirmed', labelKey: 'rentador.reservas.tabs.confirmadas' },
-  { key: 'inProgress', labelKey: 'rentador.reservas.tabs.enCurso' },
-  { key: 'completed', labelKey: 'rentador.reservas.tabs.completadas' },
-  { key: 'cancelled', labelKey: 'rentador.reservas.tabs.canceladas' },
-]
+/**
+ * El label de cada tab puede variar según el rol (ej. `pending_approval`:
+ * para el rentador son "Solicitudes" que llegan a aprobar; para el
+ * conductor son sus propias solicitudes "En revisión" esperando rta).
+ */
+function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: string }> {
+  return [
+    { key: 'all', label: t('reservas.tabs.todas') },
+    {
+      key: 'solicitudes',
+      label:
+        role === 'owner'
+          ? t('reservas.tabs.solicitudes')
+          : t('reservas.tabs.enRevision'),
+    },
+    { key: 'pending', label: t('reservas.tabs.pendientes') },
+    { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
+    { key: 'inProgress', label: t('reservas.tabs.enCurso') },
+    { key: 'completed', label: t('reservas.tabs.completadas') },
+    { key: 'cancelled', label: t('reservas.tabs.canceladas') },
+  ]
+}
 
 const PAGE_SIZE = 20
 
+interface ReservasPageSearch {
+  role?: ReservationRole
+}
+
 /**
- * Panel del rentador con todas sus reservas, organizadas en tabs por estado
- * (Todas, Pendientes, Confirmadas, En curso, Completadas, Canceladas) y con
- * filtro de rango de fechas via bottom sheet.
+ * Panel unificado de reservas con un segmented control "Como conductor |
+ * Como rentador" siempre visible. El toggle no representa una identidad —
+ * es solo qué perspectiva del listado mostrar (las reservas que vos hiciste
+ * vs las que te hicieron sobre tus vehículos). Por eso se muestra incluso
+ * para usuarios que nunca publicaron: si entran a "Como rentador" sin tener
+ * flota, el empty state los invita a publicar.
+ *
+ * Selección persistida en URL (`?role=owner|conductor`). El toggle es local
+ * a la pantalla — no modifica `activeRole` global. La UI global del switcher
+ * de rol es trabajo aparte (web#38).
  *
  * Optimización smart-cache: la primera request al endpoint trae todas las
- * reservas (sin filtro de estado). Si el rentador tiene `total <= PAGE_SIZE`
- * (caso común), las demás tabs filtran client-side desde ese cache sin
- * round-trips adicionales. Si tiene más, cada tab dispara su propia request
- * server-side.
- *
- * Empty state diferenciado: si no hay reservas Y el rentador tampoco tiene
- * vehículos publicados, sugiere publicar uno con CTA. Si tiene vehículos
- * pero 0 reservas en la tab activa, mostrar copy genérico.
+ * reservas (sin filtro de estado). Si `total <= PAGE_SIZE` (caso común),
+ * las demás tabs filtran client-side desde ese cache. Si tiene más, cada
+ * tab dispara su propia request server-side.
  */
-export function PanelReservasRentadorPage() {
+export function ReservasPage() {
+  const navigate = useNavigate({ from: '/reservas' })
+  const { role: roleSearch } = useSearch({
+    from: '/_app/reservas',
+  }) as ReservasPageSearch
+  const role: ReservationRole = roleSearch === 'owner' ? 'owner' : 'conductor'
+
   const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
   const [to, setTo] = useState<string>('')
@@ -73,8 +100,8 @@ export function PanelReservasRentadorPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined
   const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
 
-  const probeQuery = useOwnerReservations({
-    status: undefined,
+  const probeQuery = useReservations({
+    role,
     from: fromIso,
     to: toIso,
     page: 1,
@@ -82,14 +109,16 @@ export function PanelReservasRentadorPage() {
   })
 
   /**
-   * Conteo de solicitudes en estado `pending_approval` para el badge del
-   * header. Query dedicada con `pageSize=1` (solo nos interesa `total`),
-   * cacheada por 30s para no machacar el backend al navegar.
+   * Conteo de solicitudes en estado `pending_approval` para el badge del header.
+   * Para `role=owner` son solicitudes a aprobar; para `role=conductor` son las
+   * que el usuario envió y esperan respuesta. Query dedicada con `pageSize=1`
+   * (solo nos interesa `total`), cacheada por 30s.
    */
   const solicitudesCountQuery = useQuery({
-    queryKey: ['ownerReservations', 'pendingApprovalCount'],
+    queryKey: ['reservationsCount', role, 'pending_approval'],
     queryFn: () =>
-      fetchOwnerReservations({
+      fetchReservations({
+        role,
         status: ['pending_approval'],
         page: 1,
         pageSize: 1,
@@ -99,13 +128,15 @@ export function PanelReservasRentadorPage() {
   })
   const solicitudesCount = solicitudesCountQuery.data ?? 0
 
-  const allFitsInCache = !!(probeQuery.data && probeQuery.data.total <= PAGE_SIZE)
+  const allFitsInCache =
+    !!(probeQuery.data && probeQuery.data.total <= PAGE_SIZE)
   const isProbeMatch = tab === 'all' && page === 1
   const canFilterFromCache = tab !== 'all' && allFitsInCache && page === 1
   const needsTabQuery = !isProbeMatch && !canFilterFromCache
 
-  const tabQuery = useOwnerReservations(
+  const tabQuery = useReservations(
     {
+      role,
       status: TAB_TO_STATUSES[tab],
       from: fromIso,
       to: toIso,
@@ -119,8 +150,8 @@ export function PanelReservasRentadorPage() {
     if (isProbeMatch) return probeQuery.data
     if (canFilterFromCache) {
       const statuses = TAB_TO_STATUSES[tab]
-      const items = (probeQuery.data?.items ?? []).filter((r) =>
-        !statuses || statuses.includes(r.status),
+      const items = (probeQuery.data?.items ?? []).filter(
+        (r) => !statuses || statuses.includes(r.status),
       )
       return {
         items,
@@ -132,16 +163,8 @@ export function PanelReservasRentadorPage() {
     return tabQuery.data
   })()
 
-  const reservasVacias = !!data && data.items.length === 0
-  const myVehiclesQuery = useQuery({
-    queryKey: ['myVehicles'],
-    queryFn: () => vehiclesApi.getMyVehicles(),
-    enabled: reservasVacias,
-    staleTime: 60_000,
-  })
-  const sinVehiculos = !!myVehiclesQuery.data && myVehiclesQuery.data.length === 0
-
-  const isLoading = probeQuery.isLoading || (needsTabQuery && tabQuery.isLoading)
+  const isLoading =
+    probeQuery.isLoading || (needsTabQuery && tabQuery.isLoading)
   const isRefetching =
     !isLoading &&
     (probeQuery.isFetching || (needsTabQuery && tabQuery.isFetching))
@@ -152,32 +175,50 @@ export function PanelReservasRentadorPage() {
     setPage(1)
   }
 
+  const onRoleChange = (next: ReservationRole) => {
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        role: next === 'owner' ? 'owner' : undefined,
+      }),
+    })
+    setTab('all')
+    setPage(1)
+  }
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
+
+  const badgeLabel =
+    role === 'owner'
+      ? t('reservas.badge.solicitudes')
+      : t('reservas.badge.enRevision')
 
   return (
     <div className="flex flex-col">
       <PageHeader
-        title={t('rentador.reservas.title')}
+        title={t('reservas.title')}
         actions={
           solicitudesCount > 0 ? (
             <button
               type="button"
               onClick={() => onTabChange('solicitudes')}
               className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
-              aria-label={`${t('rentador.reservas.badge.solicitudes')} (${solicitudesCount})`}
+              aria-label={`${badgeLabel} (${solicitudesCount})`}
             >
               <Inbox className="h-3.5 w-3.5" />
               <span>
-                {t('rentador.reservas.badge.solicitudes')} ({solicitudesCount})
+                {badgeLabel} ({solicitudesCount})
               </span>
             </button>
           ) : undefined
         }
       />
 
+      <RoleSegmentedControl value={role} onChange={onRoleChange} />
+
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">
-          {TABS.map((definition) => (
+          {getTabs(role).map((definition) => (
             <button
               key={definition.key}
               type="button"
@@ -188,7 +229,7 @@ export function PanelReservasRentadorPage() {
                   : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
               }`}
             >
-              {t(definition.labelKey as Parameters<typeof t>[0])}
+              {definition.label}
             </button>
           ))}
         </div>
@@ -202,8 +243,8 @@ export function PanelReservasRentadorPage() {
             setTo(range.to ?? '')
             setPage(1)
           }}
-          placeholder={t('rentador.reservas.filtros.placeholder')}
-          title={t('rentador.reservas.filtros.title')}
+          placeholder={t('reservas.filtros.placeholder')}
+          title={t('reservas.filtros.title')}
         />
       </div>
 
@@ -211,10 +252,10 @@ export function PanelReservasRentadorPage() {
         {isLoading && <ReservasListSkeleton />}
         {error && (
           <p className="text-sm text-danger-400 py-6 text-center">
-            {t('rentador.reservas.error')}
+            {t('reservas.error')}
           </p>
         )}
-        {data && data.items.length === 0 && <EmptyTab sinVehiculos={sinVehiculos} />}
+        {data && data.items.length === 0 && <EmptyTab role={role} />}
         {data && (
           <div
             className={
@@ -224,7 +265,7 @@ export function PanelReservasRentadorPage() {
             }
           >
             {data.items.map((reserva) => (
-              <ReservaCard key={reserva.id} reserva={reserva} />
+              <ReservaCard key={reserva.id} reserva={reserva} role={role} />
             ))}
           </div>
         )}
@@ -232,7 +273,7 @@ export function PanelReservasRentadorPage() {
           <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
             <Loader2
               className="h-12 w-12 text-brand-400 animate-spin drop-shadow-lg"
-              aria-label={t('rentador.reservas.cargando')}
+              aria-label={t('reservas.cargando')}
             />
           </div>
         )}
@@ -245,7 +286,7 @@ export function PanelReservasRentadorPage() {
             disabled={page === 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
-            {t('rentador.reservas.paginacion.anterior')}
+            {t('reservas.paginacion.anterior')}
           </Button>
           <span className="text-sm text-text-muted">
             {page} / {totalPages}
@@ -255,7 +296,7 @@ export function PanelReservasRentadorPage() {
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
           >
-            {t('rentador.reservas.paginacion.siguiente')}
+            {t('reservas.paginacion.siguiente')}
           </Button>
         </div>
       )}
@@ -263,12 +304,23 @@ export function PanelReservasRentadorPage() {
   )
 }
 
-function ReservaCard({ reserva }: { reserva: ReservationListItem }) {
+interface ReservaCardProps {
+  reserva: ReservationListItem
+  role: ReservationRole
+}
+
+/**
+ * Card de listado. La contraparte mostrada depende del rol: para conductor,
+ * el rentador; para rentador, el conductor.
+ */
+function ReservaCard({ reserva, role }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
+  const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
   return (
     <Link
-      to="/rentador/reservas/$id"
+      to="/reservas/$id"
       params={{ id: reserva.id }}
+      search={role === 'owner' ? { role: 'owner' } : {}}
       className="card p-2 flex gap-3 active:opacity-80"
     >
       <div className="h-20 w-20 shrink-0 rounded overflow-hidden bg-surface-2 flex items-center justify-center">
@@ -306,7 +358,7 @@ function ReservaCard({ reserva }: { reserva: ReservationListItem }) {
         <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
           <div className="flex items-center gap-2 min-w-0">
             <User className="h-3.5 w-3.5 text-text-muted shrink-0" />
-            <span className="truncate">{reserva.conductor.name}</span>
+            <span className="truncate">{counterpart.name}</span>
           </div>
           <span className="font-bold text-brand-400 shrink-0 text-sm">
             {fmt.currency(reserva.totalCents)}
@@ -327,20 +379,53 @@ function ReservasListSkeleton() {
   )
 }
 
-function EmptyTab({ sinVehiculos }: { sinVehiculos: boolean }) {
+/**
+ * Empty state del listado. Para el lado conductor invita a buscar vehículos;
+ * para el lado rentador refina la copy según si el usuario tiene flota:
+ * si tiene 0 vehículos publicados, propone publicar el primero (onboarding).
+ * Si tiene flota pero esta categoría está vacía, muestra el copy neutro.
+ *
+ * Hace su propia query de `getMyVehicles` (compartida con MisVehiculosPage
+ * vía queryKey) solo cuando se renderiza — no bloquea ni el toggle ni el
+ * listado principal.
+ */
+function EmptyTab({ role }: { role: ReservationRole }) {
+  if (role === 'conductor') {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+        <ClipboardList className="h-12 w-12 text-text-muted" />
+        <p className="text-text-secondary">
+          {t('reservas.empty.conductor.sinReservas')}
+        </p>
+        <Link to="/buscar">
+          <Button variant="secondary">{t('reservas.empty.conductor.cta')}</Button>
+        </Link>
+      </div>
+    )
+  }
+  return <OwnerEmptyTab />
+}
+
+function OwnerEmptyTab() {
+  const myVehiclesQuery = useQuery({
+    queryKey: ['vehicles', 'mine'],
+    queryFn: () => vehiclesApi.getMyVehicles(),
+  })
+  const sinVehiculos =
+    myVehiclesQuery.isFetched && (myVehiclesQuery.data?.length ?? 0) === 0
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
       <ClipboardList className="h-12 w-12 text-text-muted" />
       <p className="text-text-secondary">
         {t(
           sinVehiculos
-            ? 'rentador.reservas.empty.sinVehiculos'
-            : 'rentador.reservas.empty.sinReservas',
+            ? 'reservas.empty.owner.sinVehiculos'
+            : 'reservas.empty.owner.sinReservas',
         )}
       </p>
       {sinVehiculos && (
         <Link to="/mis-vehiculos/nuevo">
-          <Button variant="default">{t('rentador.reservas.empty.publicarCta')}</Button>
+          <Button variant="default">{t('reservas.empty.owner.publicarCta')}</Button>
         </Link>
       )}
     </div>

@@ -4,7 +4,6 @@ import {
   CreateReservationResponseSchema,
   ConfirmReservationPaymentResponseSchema,
   GetReservationResponseSchema,
-  ReservationsListResponseSchema,
   VehicleBusyRangesResponseSchema,
   type CancelReservationResponse,
   type CreateReservationRequest,
@@ -12,7 +11,6 @@ import {
   type ConfirmReservationPaymentRequest,
   type ConfirmReservationPaymentResponse,
   type GetReservationResponse,
-  type ReservationsListResponse,
   type VehicleBusyRangesResponse,
 } from '@rocket-lease/contracts'
 
@@ -36,13 +34,6 @@ export const reservarApi = {
   async getById(reservationId: string): Promise<GetReservationResponse> {
     const res = await apiClient.get<unknown>(`/reservations/${reservationId}`)
     return GetReservationResponseSchema.parse(res)
-  },
-
-  async listMine(): Promise<ReservationsListResponse> {
-    const res = await apiClient.get<unknown>(
-      '/reservations?role=conductor&pageSize=100',
-    )
-    return ReservationsListResponseSchema.parse(res)
   },
 
   async getBusyRanges(vehicleId: string): Promise<VehicleBusyRangesResponse> {

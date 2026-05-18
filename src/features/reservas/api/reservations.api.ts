@@ -2,35 +2,33 @@ import { apiClient } from '@/lib/api-client'
 import {
   ApproveReservationResponseSchema,
   RejectReservationResponseSchema,
+  ReservationsListResponseSchema,
   type ApproveReservationResponse,
   type RejectReservationRequest,
   type RejectReservationResponse,
   type ReservationsListRequest,
   type ReservationsListResponse,
-  ReservationsListResponseSchema,
 } from '@rocket-lease/contracts'
 
 /**
- * Lista las reservas en las que el usuario autenticado actúa como **owner**
- * (rentador) — es decir, reservas sobre vehículos que él publicó.
+ * Lista las reservas del usuario autenticado desde la perspectiva indicada.
  *
- * Wrapper sobre el endpoint REST unificado `GET /reservations?role=owner&...`.
- * El parámetro `role` queda fijo en `owner` por el caller (panel del rentador);
- * por eso el tipo del param excluye esa key.
+ * Wrapper sobre el endpoint REST unificado `GET /reservations?role=...&...`.
+ * El parámetro `role` viene en `params` (no fijado en el wrapper) para soportar
+ * tanto la vista conductor como rentador desde la página unificada `/reservas`.
  *
- * @param params - Filtros opcionales (`status[]`, `from`, `to`) y paginación
- *   (`page`, `pageSize`). Si no se pasa nada, el backend aplica defaults
- *   (`page=1`, `pageSize=20`).
+ * @param params - Filtros y paginación. `role` es obligatorio (`conductor` u `owner`).
+ *   `status` se serializa como query param repetido (`status=a&status=b`).
  * @returns Respuesta paginada validada contra el schema (`items`, `page`,
  *   `pageSize`, `total`).
  * @throws ProblemDetails si la API devuelve un error HTTP no-OK.
  * @throws ZodError si la respuesta no matchea `ReservationsListResponseSchema`.
  */
-export async function fetchOwnerReservations(
-  params: Omit<Partial<ReservationsListRequest>, 'role'>,
+export async function fetchReservations(
+  params: ReservationsListRequest,
 ): Promise<ReservationsListResponse> {
   const search = new URLSearchParams()
-  search.set('role', 'owner')
+  search.set('role', params.role)
   params.status?.forEach((s) => search.append('status', s))
   if (params.from) search.set('from', params.from)
   if (params.to) search.set('to', params.to)
