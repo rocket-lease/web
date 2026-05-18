@@ -136,6 +136,11 @@ export const es = {  // --- App ---
   'vehiculo.description': 'Descripcion',
   'vehiculo.features': 'Caracteristicas',
   'vehiculo.rules': 'Condiciones',
+  'vehiculo.rulesActive': 'Set de reglas activo',
+  'vehiculo.rulesEmptyTitle': 'Sin restricciones configuradas',
+  'vehiculo.rulesEmptyDesc': 'Este vehículo todavía no tiene un set de reglas asignado.',
+  'vehiculo.rulesUnavailableTitle': 'Restricciones no disponibles',
+  'vehiculo.rulesUnavailableDesc': 'El vehículo tiene un set asignado, pero no pudimos cargar sus condiciones.',
   'vehiculo.location': 'Ubicacion',
 
   // --- Caracteristicas ---
