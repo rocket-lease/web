@@ -216,9 +216,8 @@ export function NuevoVehiculoPage() {
     color: formData.color,
     mileage: Number(formData.mileage || 0),
     description: formData.description.trim() ? formData.description.trim() : null,
-    characteristics: [],
     basePriceCents: Math.round(Number(formData.dailyPrice || 0) * 100),
-    // photos: [],
+    characteristics: formData.characteristics,
   }
 
   const handleFieldChange = <K extends keyof VehicleFormData>(field: K, value: VehicleFormData[K]) => {
