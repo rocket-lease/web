@@ -15,6 +15,8 @@ interface QrScannerProps {
 export function QrScanner({ onScan }: QrScannerProps) {
   const containerId = 'qr-scanner-container'
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const onScanRef = useRef(onScan)
+  onScanRef.current = onScan
   const [fallback, setFallback] = useState(false)
   const [manualCode, setManualCode] = useState('')
   const [cameraError, setCameraError] = useState(false)
@@ -24,13 +26,12 @@ export function QrScanner({ onScan }: QrScannerProps) {
     const scanner = new Html5Qrcode(containerId)
     scannerRef.current = scanner
 
-    scanner
+    void scanner
       .start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 220, height: 220 } },
         (decodedText) => {
-          const token = extractToken(decodedText)
-          onScan(token)
+          onScanRef.current(extractToken(decodedText))
         },
         undefined,
       )
@@ -40,7 +41,7 @@ export function QrScanner({ onScan }: QrScannerProps) {
       })
 
     return () => {
-      scanner.isScanning && scanner.stop().catch(() => {})
+      if (scanner.isScanning) void scanner.stop().catch(() => {})
     }
   }, [fallback])
 
