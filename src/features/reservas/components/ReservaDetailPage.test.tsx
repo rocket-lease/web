@@ -9,6 +9,7 @@ vi.mock('@/features/reservar/api/reservar.api', () => ({
     getById: vi.fn(),
     cancel: vi.fn(),
     confirmPayment: vi.fn(),
+    initiateTransfer: vi.fn(),
   },
 }))
 
@@ -94,9 +95,13 @@ function makeReservation(opts: MakeOpts = {}) {
     totalCents: 100000,
     currency: 'ARS' as const,
     paymentMethod: null,
+    walletProvider: null,
     contractAcceptedAt: '2026-05-16T10:00:00.000Z',
     paidAt: null,
     rejectionReason: opts.rejectionReason ?? null,
+    transferCode: null,
+    transferAlias: null,
+    transferExpiresAt: null,
     createdAt: '2026-05-16T10:00:00.000Z',
     updatedAt: '2026-05-16T10:00:00.000Z',
     vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null },

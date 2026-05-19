@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
   AlertOctagon,
@@ -20,6 +20,7 @@ import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
+import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
@@ -422,7 +423,9 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
   const [holdExpired, setHoldExpired] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
   const confirmPayment = useConfirmPayment(reservationId)
+  const initiateTransfer = useInitiateTransfer(reservationId)
   const cancelMutation = useCancelReservation()
+  const navigate = useNavigate()
 
   /**
    * Dispara la mutación de pago y traga la excepción. El error queda
@@ -431,9 +434,17 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
   const onPay = async () => {
     if (!method) return
     try {
-      await confirmPayment.mutateAsync({ paymentMethod: method })
+      if (method === 'bank_transfer') {
+        await initiateTransfer.mutateAsync()
+        navigate({
+          to: '/reservas-transferencia/$id',
+          params: { id: reservationId },
+        })
+      } else {
+        await confirmPayment.mutateAsync({ paymentMethod: method })
+      }
     } catch {
-      /* error rendered via confirmPayment.error */
+      /* error rendered via confirmPayment.error or initiateTransfer.error */
     }
   }
 
@@ -447,6 +458,8 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
     }
   }
 
+  const isPending = confirmPayment.isPending || initiateTransfer.isPending
+
   return (
     <>
       <Separator />
@@ -457,7 +470,7 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
         <PaymentMethodPicker
           value={method}
           onChange={setMethod}
-          disabled={confirmPayment.isPending || holdExpired}
+          disabled={isPending || holdExpired}
         />
         {holdExpiresAt && !holdExpired && (
           <HoldCountdown
@@ -465,16 +478,16 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
             onExpire={() => setHoldExpired(true)}
           />
         )}
-        {confirmPayment.error && (
+        {(confirmPayment.error || initiateTransfer.error) && (
           <p className="text-sm text-danger">{t('reservar.errors.generic')}</p>
         )}
         <Button
           size="lg"
           className="w-full"
-          disabled={!method || confirmPayment.isPending || holdExpired}
+          disabled={!method || isPending || holdExpired}
           onClick={onPay}
         >
-          {confirmPayment.isPending ? (
+          {isPending ? (
             t('general.loading')
           ) : (
             <span className="inline-flex items-center gap-2">

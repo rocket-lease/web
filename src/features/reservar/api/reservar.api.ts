@@ -3,14 +3,18 @@ import {
   CancelReservationResponseSchema,
   CreateReservationResponseSchema,
   ConfirmReservationPaymentResponseSchema,
+  ConfirmTransferResponseSchema,
   GetReservationResponseSchema,
+  InitiateTransferResponseSchema,
   VehicleBusyRangesResponseSchema,
   type CancelReservationResponse,
   type CreateReservationRequest,
   type CreateReservationResponse,
   type ConfirmReservationPaymentRequest,
   type ConfirmReservationPaymentResponse,
+  type ConfirmTransferResponse,
   type GetReservationResponse,
+  type InitiateTransferResponse,
   type VehicleBusyRangesResponse,
 } from '@rocket-lease/contracts'
 
@@ -29,6 +33,26 @@ export const reservarApi = {
       data,
     )
     return ConfirmReservationPaymentResponseSchema.parse(res)
+  },
+
+  async initiateTransfer(
+    reservationId: string,
+  ): Promise<InitiateTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/transfer`,
+      {},
+    )
+    return InitiateTransferResponseSchema.parse(res)
+  },
+
+  async confirmTransfer(
+    reservationId: string,
+  ): Promise<ConfirmTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/transfer/confirm`,
+      {},
+    )
+    return ConfirmTransferResponseSchema.parse(res)
   },
 
   async getById(reservationId: string): Promise<GetReservationResponse> {

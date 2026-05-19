@@ -216,6 +216,7 @@ export function NuevoVehiculoPage() {
     color: formData.color,
     mileage: Number(formData.mileage || 0),
     description: formData.description.trim() ? formData.description.trim() : null,
+    characteristics: [],
     basePriceCents: Math.round(Number(formData.dailyPrice || 0) * 100),
     // photos: [],
   }
