@@ -1,11 +1,42 @@
 import { Link } from '@tanstack/react-router'
 import { Gear, Users, MapPin } from '@phosphor-icons/react'
 import { Badge } from '@/ui/badge'
+import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { cn } from '@/lib/utils'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
+
+export function VehiculoCardSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card', className)}>
+      {/* Foto */}
+      <Skeleton className="aspect-video w-full rounded-none" />
+      {/* Info */}
+      <div className="p-5 space-y-4">
+        {/* Nombre + badge */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+          <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+        </div>
+        {/* Ubicación */}
+        <Skeleton className="h-3 w-2/5" />
+        {/* Precio */}
+        <Skeleton className="h-7 w-1/3" />
+        {/* Características */}
+        <div className="flex items-center gap-3 pt-1 border-t border-white/5">
+          <Skeleton className="h-3 w-12" />
+          <Skeleton className="h-3 w-8" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface VehiculoCardProps {
   vehiculo: GetVehicleResponse

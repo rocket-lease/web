@@ -91,6 +91,8 @@ export function LoginPage() {
               <Input
                 type="email"
                 autoComplete="email"
+                autoFocus
+                enterKeyHint="next"
                 leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
@@ -105,6 +107,7 @@ export function LoginPage() {
               <Input
                 type="password"
                 autoComplete="current-password"
+                enterKeyHint="done"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}

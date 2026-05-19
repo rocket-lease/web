@@ -82,6 +82,11 @@
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, textarea, select {
+    -webkit-appearance: none;
   }
 
   body {

@@ -19,10 +19,14 @@ fi
 
 REPO_URL="https://${CONTRACTS_TOKEN}@github.com/rocket-lease/contracts.git"
 
-# Try the same branch; fall back to main if it does not exist there.
+# Try the same branch; fall back to dev (for PRs) or main (for production) if it does not exist there.
+FALLBACK="dev"
+if [ "$REF" = "main" ]; then
+  FALLBACK="main"
+fi
 if ! git clone --depth=1 --branch "$REF" "$REPO_URL" "$TARGET" 2>/dev/null; then
-  echo "Branch '$REF' not in contracts → falling back to main."
-  git clone --depth=1 "$REPO_URL" "$TARGET"
+  echo "Branch '$REF' not in contracts → falling back to $FALLBACK."
+  git clone --depth=1 --branch "$FALLBACK" "$REPO_URL" "$TARGET"
 fi
 
 npm install -g pnpm@11.0.8

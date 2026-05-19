@@ -49,7 +49,7 @@ const Select = ({ children, value = '', onValueChange, disabled = false }: Selec
   )
 }
 
-interface SelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {}
+type SelectTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement>
 
 const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
   ({ className, children, ...props }, ref) => {
@@ -84,7 +84,7 @@ const SelectValue = ({ placeholder = 'Select...', children }: SelectValueProps) 
   return <span>{children || value || placeholder}</span>
 }
 
-interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+type SelectContentProps = React.HTMLAttributes<HTMLDivElement>
 
 const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
   ({ className, children, ...props }, ref) => {
