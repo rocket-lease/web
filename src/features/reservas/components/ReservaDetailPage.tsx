@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from '@tanstack/react-router'
+import { useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AlertOctagon, CalendarDays, CheckCircle2, Clock, Inbox, QrCode } from 'lucide-react'
+import { AlertOctagon, CalendarDays, CheckCircle2, Clock, Copy, Inbox, QrCode } from 'lucide-react'
 import type { PaymentMethod } from '@rocket-lease/contracts'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
@@ -13,6 +13,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
+import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
@@ -52,7 +53,7 @@ export function ReservaDetailPage() {
     )
   }
 
-  const { vehicle, rentador, status, startAt, endAt, totalCents, paymentMethod, holdExpiresAt, rejectionReason } = reservation
+  const { vehicle, rentador, status, startAt, endAt, totalCents, paymentMethod, holdExpiresAt, rejectionReason, transferCode, transferAlias, transferExpiresAt } = reservation
   const showVoucher = status === 'confirmed' || status === 'in_progress'
   const canPay = status === 'pending_payment'
   const isPendingApproval = status === 'pending_approval'
@@ -163,6 +164,15 @@ export function ReservaDetailPage() {
           <p className="font-semibold text-text-primary">{t('reservas.detail.total')}</p>
           <p className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</p>
         </div>
+
+        {paymentMethod === 'bank_transfer' && transferCode && status !== 'confirmed' && (
+          <TransferInfoSection
+            transferCode={transferCode}
+            transferAlias={transferAlias}
+            transferExpiresAt={transferExpiresAt}
+            totalCents={totalCents}
+          />
+        )}
 
         {canPay && (
           <PendingPaymentSection
@@ -300,6 +310,84 @@ function WithdrawConfirmModal({ submitting, onConfirm, onCancel }: WithdrawConfi
   )
 }
 
+interface TransferInfoSectionProps {
+  transferCode: string
+  transferAlias: string | null
+  transferExpiresAt: string | null
+  totalCents: number
+}
+
+function TransferInfoSection({
+  transferCode,
+  transferAlias,
+  transferExpiresAt,
+  totalCents,
+}: TransferInfoSectionProps) {
+  const handleCopy = (text: string) => navigator.clipboard.writeText(text)
+
+  const expiresIn = () => {
+    if (!transferExpiresAt) return ''
+    const diff = new Date(transferExpiresAt).getTime() - Date.now()
+    if (diff <= 0) return 'Expirado'
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    return `${hours}h ${minutes}m`
+  }
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+          {t('reservas.transfer.details')}
+        </p>
+        <div className="rounded-xl bg-amber-400/10 border border-amber-400/20 p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-amber-400" />
+            <p className="text-xs text-text-muted">
+              {t('reservas.transfer.expiresIn')} {expiresIn()}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-text-muted">CBU / CVU</p>
+              <button
+                onClick={() => handleCopy(transferCode)}
+                className="rounded p-1 hover:bg-surface-2 transition-colors"
+              >
+                <Copy className="h-3.5 w-3.5 text-text-muted" />
+              </button>
+            </div>
+            <p className="font-mono text-sm font-semibold text-text-primary break-all">
+              {transferCode}
+            </p>
+          </div>
+          {transferAlias && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-text-muted">Alias</p>
+                <button
+                  onClick={() => handleCopy(transferAlias)}
+                  className="rounded p-1 hover:bg-surface-2 transition-colors"
+                >
+                  <Copy className="h-3.5 w-3.5 text-text-muted" />
+                </button>
+              </div>
+              <p className="font-mono text-sm font-semibold text-text-primary">
+                {transferAlias}
+              </p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-text-muted">{t('reservas.detail.total')}</p>
+            <p className="text-lg font-bold text-brand-400">{fmt.currency(totalCents)}</p>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function RejectedSection({ reason }: { reason: string | null }) {
   const display = reason && reason.trim().length > 0
     ? reason
@@ -329,15 +417,27 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
   const [method, setMethod] = useState<PaymentMethod | null>(null)
   const [holdExpired, setHoldExpired] = useState(false)
   const confirmPayment = useConfirmPayment(reservationId)
+  const initiateTransfer = useInitiateTransfer(reservationId)
+  const navigate = useNavigate()
 
   const onPay = async () => {
     if (!method) return
     try {
-      await confirmPayment.mutateAsync({ paymentMethod: method })
+      if (method === 'bank_transfer') {
+        await initiateTransfer.mutateAsync()
+        navigate({
+          to: '/reservas-transferencia/$id',
+          params: { id: reservationId },
+        })
+      } else {
+        await confirmPayment.mutateAsync({ paymentMethod: method })
+      }
     } catch {
-      // surfaced via confirmPayment.error
+      // surfaced via error
     }
   }
+
+  const isPending = confirmPayment.isPending || initiateTransfer.isPending
 
   return (
     <>
@@ -349,7 +449,7 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
         <PaymentMethodPicker
           value={method}
           onChange={setMethod}
-          disabled={confirmPayment.isPending || holdExpired}
+          disabled={isPending || holdExpired}
         />
         {holdExpiresAt && !holdExpired && (
           <HoldCountdown
@@ -357,16 +457,16 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
             onExpire={() => setHoldExpired(true)}
           />
         )}
-        {confirmPayment.error && (
+        {(confirmPayment.error || initiateTransfer.error) && (
           <p className="text-sm text-danger">{t('reservar.errors.generic')}</p>
         )}
         <Button
           size="lg"
           className="w-full"
-          disabled={!method || confirmPayment.isPending || holdExpired}
+          disabled={!method || isPending || holdExpired}
           onClick={onPay}
         >
-          {confirmPayment.isPending ? (
+          {isPending ? (
             t('general.loading')
           ) : (
             <span className="inline-flex items-center gap-2">

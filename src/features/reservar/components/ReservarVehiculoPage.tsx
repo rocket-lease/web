@@ -15,6 +15,7 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
+import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { estimateReservationTotalCents } from '../utils/pricing'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
@@ -399,6 +400,7 @@ export function ReservarVehiculoPage() {
   const createReservation = useCreateReservation()
   const reservationId = createReservation.data?.id ?? null
   const confirmPayment = useConfirmPayment(reservationId)
+  const initiateTransfer = useInitiateTransfer(reservationId)
 
   const estimatedTotal = useMemo(() => {
     if (!vehicle || !startAtLocal || !endAtLocal) return 0
@@ -455,10 +457,6 @@ export function ReservarVehiculoPage() {
         endAt: toIsoUtc(endAtLocal),
         contractAccepted: true,
       })
-      // Si el vehículo no tiene auto-aceptación, la reserva nace en
-      // `pending_approval` y no se puede pagar hasta que el rentador apruebe.
-      // Mandamos al detalle de la reserva, donde vive el countdown de 24h y la
-      // acción de retirar solicitud.
       if (created.status === 'pending_approval') {
         navigate({ to: '/reservas/$id', params: { id: created.id } })
         return
@@ -472,18 +470,26 @@ export function ReservarVehiculoPage() {
   async function onPay() {
     if (!paymentMethod || !reservationId) return
     try {
-      await confirmPayment.mutateAsync({ paymentMethod })
-      navigate({
-        to: '/reservas/$id',
-        params: { id: reservationId },
-      })
+      if (paymentMethod === 'bank_transfer') {
+        await initiateTransfer.mutateAsync()
+        navigate({
+          to: '/reservas-transferencia/$id',
+          params: { id: reservationId },
+        })
+      } else {
+        await confirmPayment.mutateAsync({ paymentMethod })
+        navigate({
+          to: '/reservas/$id',
+          params: { id: reservationId },
+        })
+      }
     } catch {
-      // surfaced through confirmPayment.error
+      // surfaced through error
     }
   }
 
   const submissionError =
-    confirmPayment.error ?? createReservation.error ?? null
+    confirmPayment.error ?? initiateTransfer.error ?? createReservation.error ?? null
 
   return (
     <div className="flex flex-col min-h-full">
@@ -671,12 +677,13 @@ export function ReservarVehiculoPage() {
               disabled={
                 !paymentMethod ||
                 confirmPayment.isPending ||
+                initiateTransfer.isPending ||
                 createReservation.isPending ||
                 holdExpired
               }
               onClick={onPay}
             >
-              {confirmPayment.isPending ? (
+              {confirmPayment.isPending || initiateTransfer.isPending ? (
                 t('general.loading')
               ) : (
                 <span className="inline-flex items-center gap-2">
