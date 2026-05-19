@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Copy, Clock } from 'lucide-react'
@@ -102,11 +103,17 @@ function TransferInfoSection({
   transferExpiresAt,
   totalCents,
 }: TransferInfoSectionProps) {
+  const [now, setNow] = useState(() => Date.now())
   const handleCopy = (text: string) => navigator.clipboard.writeText(text)
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
 
   const expiresIn = () => {
     if (!transferExpiresAt) return ''
-    const diff = new Date(transferExpiresAt).getTime() - Date.now()
+    const diff = new Date(transferExpiresAt).getTime() - now
     if (diff <= 0) return 'Expirado'
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))

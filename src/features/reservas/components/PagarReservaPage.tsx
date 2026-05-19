@@ -5,7 +5,7 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
-import { t } from '@/i18n/es'
+import { t, type I18nKey } from '@/i18n/es'
 import { useState } from 'react'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 
@@ -102,7 +102,7 @@ export function PagarReservaPage() {
                 >
                   <Icon className={`h-6 w-6 ${isSelected ? 'text-brand-400' : 'text-text-muted'}`} />
                   <span className={`text-xs font-medium ${isSelected ? 'text-brand-400' : 'text-text-secondary'}`}>
-                    {t(method.label as any)}
+                    {t(method.label as I18nKey)}
                   </span>
                 </button>
               )
@@ -125,7 +125,7 @@ export function PagarReservaPage() {
                       : 'border-white/10 bg-surface-2 text-text-secondary'
                   }`}
                 >
-                  {t(w.label as any)}
+                  {t(w.label as I18nKey)}
                 </button>
               ))}
             </div>

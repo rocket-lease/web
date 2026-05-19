@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Copy, Clock, Bank } from '@phosphor-icons/react'
+import { Copy, Clock, Bank, CheckCircle } from '@phosphor-icons/react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -12,6 +12,8 @@ import { reservarApi } from '@/features/reservar/api/reservar.api'
 export function TransferenciaPage() {
   const { id = '' } = useParams({ strict: false })
   const navigate = useNavigate()
+  const [confirmed, setConfirmed] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
 
   const { data: reservation } = useQuery({
     queryKey: ['reservation', id],
@@ -30,21 +32,27 @@ export function TransferenciaPage() {
     ? new Date(transferExpiresAt)
     : new Date()
 
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
   }
 
   const expiresIn = () => {
-    const diff = expiresAt.getTime() - Date.now()
+    const diff = expiresAt.getTime() - now
     if (diff <= 0) return 'Expirado'
     const hours = Math.floor(diff / (1000 * 60 * 60))
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     return `${hours}h ${minutes}m`
   }
 
+  // Polling: cuando el backend confirma, muestra pantalla de éxito
   useEffect(() => {
     if (status === 'confirmed') {
-      navigate({ to: '/reservas/$id', params: { id } })
+      setConfirmed(true)
       return
     }
     if (!status) return
@@ -55,6 +63,30 @@ export function TransferenciaPage() {
 
     return () => clearTimeout(fallback)
   }, [id, status, navigate])
+
+  // Pantalla de éxito: espera 3s y redirige
+  useEffect(() => {
+    if (!confirmed) return
+    const timer = setTimeout(() => {
+      navigate({ to: '/reservas/$id', params: { id } })
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [confirmed, navigate, id])
+
+  if (confirmed) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <PageHeader title={t('reservas.transfer.title')} showBack />
+        <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 text-center">
+          <div className="rounded-full bg-green-500/15 p-4">
+            <CheckCircle className="h-10 w-10 text-green-400" weight="fill" />
+          </div>
+          <p className="text-xl font-bold text-text-primary">Pago confirmado</p>
+          <p className="text-sm text-text-muted">Redirigiendo en 3 segundos...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
