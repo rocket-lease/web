@@ -15,6 +15,7 @@ vi.mock('@/features/reservar/api/reservar.api', () => ({
 
 vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ id: '44444444-4444-4444-4444-444444444444' }),
+  useSearch: () => ({}),
   useRouter: () => ({ history: { back: vi.fn() } }),
   Link: ({
     children,
@@ -26,6 +27,33 @@ vi.mock('@tanstack/react-router', () => ({
     [key: string]: unknown
   }) => <a {...rest}>{children}</a>,
   useNavigate: () => () => undefined,
+}))
+
+const mockUser = { current: null as null | { id: string } }
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: mockUser.current,
+    session: null,
+    activeRole: 'conductor',
+    isLoading: false,
+  }),
+}))
+
+vi.mock('@/features/perfil/api/profile.api', () => ({
+  profileApi: {
+    getProfileById: vi.fn().mockResolvedValue({
+      id: '33333333-3333-3333-3333-333333333333',
+      name: 'Julián',
+      email: 'j@example.com',
+      phone: '111',
+      avatarUrl: null,
+      verificationStatus: 'verified' as const,
+      level: 'bronze' as const,
+      reputationScore: 4.5,
+      preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
+      autoAccept: false,
+    }),
+  },
 }))
 
 vi.mock('sonner', () => ({
@@ -83,6 +111,7 @@ function makeReservation(opts: MakeOpts = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockUser.current = null
 })
 
 describe('ReservaDetailPage (conductor) — pending_approval', () => {
@@ -130,6 +159,20 @@ describe('ReservaDetailPage (conductor) — pending_approval', () => {
     fireEvent.click(await screen.findByRole('button', { name: /^Retirar$/ }))
 
     await waitFor(() => expect(cancel).toHaveBeenCalledWith(RES))
+  })
+})
+
+describe('ReservaDetailPage (dispatcher) — rentador perspective', () => {
+  it('renderiza vista rentador (botones Aprobar/Rechazar) cuando user.id === rentadorId', async () => {
+    mockUser.current = { id: RENT }
+    getById.mockResolvedValue(makeReservation({ status: 'pending_approval' }))
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByRole('button', { name: /Aprobar/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Rechazar/i })).toBeInTheDocument()
   })
 })
 
