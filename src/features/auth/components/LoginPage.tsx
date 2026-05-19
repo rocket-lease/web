@@ -8,7 +8,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
-import type { ProblemDetails } from '../types'
+import type { ProblemDetails } from '@rocket-lease/contracts'
 
 // Mirrors LoginUserRequestSchema from @rocket-lease/contracts
 const schema = z.object({

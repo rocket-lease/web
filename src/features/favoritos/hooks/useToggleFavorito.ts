@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { favoritosApi } from '../api/favoritos.api'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { t } from '@/i18n/es'
-import type { FavoritoItem } from '../types'
+import type { FavoriteItem } from '@rocket-lease/contracts'
 
 export function useToggleFavorito() {
   const queryClient = useQueryClient()
@@ -15,9 +15,9 @@ export function useToggleFavorito() {
     mutationFn: (vehicleId: string) => favoritosApi.add(vehicleId),
     onMutate: (vehicleId) => {
       queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
-      const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
+      const prev = queryClient.getQueryData<FavoriteItem[]>(['favoritos', 'list'])
 
-      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) => {
+      queryClient.setQueryData<FavoriteItem[]>(['favoritos', 'list'], (old = []) => {
         if (old.some((f) => f.vehicleId === vehicleId)) return old
         return [
           ...old,
@@ -42,9 +42,9 @@ export function useToggleFavorito() {
     mutationFn: (vehicleId: string) => favoritosApi.remove(vehicleId),
     onMutate: (vehicleId) => {
       queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
-      const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
+      const prev = queryClient.getQueryData<FavoriteItem[]>(['favoritos', 'list'])
 
-      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) =>
+      queryClient.setQueryData<FavoriteItem[]>(['favoritos', 'list'], (old = []) =>
         old.filter((f) => f.vehicleId !== vehicleId),
       )
 
