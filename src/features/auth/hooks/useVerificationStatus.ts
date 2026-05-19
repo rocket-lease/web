@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { authApi } from '../api/auth.api'
-import type { VerificationStatusResponse } from '../types'
+import type { VerificationStatusResponse } from '@rocket-lease/contracts'
 
 const QUERY_KEY = ['verificationStatus'] as const
 

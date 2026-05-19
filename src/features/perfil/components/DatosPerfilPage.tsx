@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Save, Pencil, X } from 'lucide-react'
 import { toast } from 'sonner'
-import type { UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract'
+import type { UpdateMyProfileRequest } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
