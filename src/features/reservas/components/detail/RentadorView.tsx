@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
-import type { GetReservationResponse } from '@rocket-lease/contracts'
+import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -165,15 +165,15 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         </div>
       )}
 
-      {reservation.status === 'pending_payment' && reservation.holdExpiresAt && (
+      {reservation.status === RESERVATION_STATUS.pending_payment && reservation.holdExpiresAt && (
         <HoldNotice expiresAt={reservation.holdExpiresAt} />
       )}
 
-      {reservation.status === 'rejected' && reservation.rejectionReason && (
+      {reservation.status === RESERVATION_STATUS.rejected && reservation.rejectionReason && (
         <RejectionReasonCard reason={reservation.rejectionReason} />
       )}
 
-      {reservation.status === 'pending_approval' && (
+      {reservation.status === RESERVATION_STATUS.pending_approval && (
         <ApprovalActions reservationId={reservation.id} />
       )}
     </div>

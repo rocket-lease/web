@@ -14,7 +14,7 @@ import {
   QrCode,
   XCircle,
 } from 'lucide-react'
-import type { GetReservationResponse, PaymentMethod } from '@rocket-lease/contracts'
+import { RESERVATION_STATUS, type GetReservationResponse, type PaymentMethod } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -55,7 +55,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     rejectionReason,
     voucherToken,
   } = reservation
-  const showVoucher = status === 'confirmed' || status === 'in_progress'
+  const showVoucher = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -66,9 +66,9 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         .catch(console.error)
     }
   }, [showVoucher, voucherToken])
-  const canPay = status === 'pending_payment'
-  const isPendingApproval = status === 'pending_approval'
-  const isRejected = status === 'rejected'
+  const canPay = status === RESERVATION_STATUS.pending_payment
+  const isPendingApproval = status === RESERVATION_STATUS.pending_approval
+  const isRejected = status === RESERVATION_STATUS.rejected
   /**
    * Estados donde la reserva sigue "viva" para el conductor: puede ser
    * confirmada y por iniciar (`confirmed`), o ya en uso (`in_progress`).
@@ -76,7 +76,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
    * pero NO cancelar (la api rechaza `cancel` después de `pending_payment`
    * — para cancelar después del pago debe contactar soporte).
    */
-  const isPostPayment = status === 'confirmed' || status === 'in_progress'
+  const isPostPayment = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
 
   return (
     <div className="px-4 py-5 space-y-5">
