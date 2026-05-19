@@ -7,7 +7,7 @@ import {
   UpdateMyProfileResponseSchema,
   type UpdateMyProfileRequest,
   type UpdateMyProfileResponse,
-} from '@/features/perfil/types/profile.contract';
+} from '@rocket-lease/contracts';
 import { apiClient } from '@/lib/api-client';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000';
