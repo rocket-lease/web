@@ -12,11 +12,19 @@ import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import {
+  getCancellationPolicyDescription,
+  getCancellationPolicyLabel,
+  getDepositLabel,
+  formatMaxKilometrage,
+  formatRentalTimeConstraints,
+} from '@/features/vehiculos/utils/rules-formatter'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { estimateReservationTotalCents } from '../utils/pricing'
+import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
 
@@ -379,7 +387,7 @@ export function ReservarVehiculoPage() {
   const { id: vehicleId } = useParams({ from: '/_app/vehiculos/$id_/reservar' })
   const navigate = useNavigate()
 
-  const { data: vehicle, isLoading } = useQuery({
+  const { data: vehicle, isLoading, isError, refetch: refetchVehicle } = useQuery({
     queryKey: ['vehicle', vehicleId],
     queryFn: () => vehiclesApi.getById(vehicleId),
   })
@@ -396,6 +404,8 @@ export function ReservarVehiculoPage() {
   const [contractAccepted, setContractAccepted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [holdExpired, setHoldExpired] = useState(false)
+  const [rulesCollapsed, setRulesCollapsed] = useState(false)
+  const [rulesAcknowledged, setRulesAcknowledged] = useState(false)
 
   const createReservation = useCreateReservation()
   const reservationId = createReservation.data?.id ?? null
@@ -411,6 +421,14 @@ export function ReservarVehiculoPage() {
     }
     return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt)
   }, [vehicle, startAtLocal, endAtLocal])
+
+  const rentalDurationViolation = useMemo(() => {
+    return getRentalDurationViolation(
+      vehicle?.reservationRuleSet?.rentalTimeConstraints,
+      startAtLocal,
+      endAtLocal,
+    )
+  }, [vehicle?.reservationRuleSet?.rentalTimeConstraints, startAtLocal, endAtLocal])
 
   const validRange =
     !!startAtLocal &&
@@ -428,7 +446,16 @@ export function ReservarVehiculoPage() {
     })
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
 
-  if (isLoading || !vehicle) {
+  const canContinueToContract =
+    validRange && !overlapsBusy && !rentalDurationViolation && rulesAcknowledged
+
+  const durationViolationMessage = rentalDurationViolation
+    ? rentalDurationViolation.kind === 'min'
+      ? t('reservar.durationError.min').replace('{days}', formatRentalDays(rentalDurationViolation.limit))
+      : t('reservar.durationError.max').replace('{days}', formatRentalDays(rentalDurationViolation.limit))
+    : null
+
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-full">
         <PageHeader title={t('reservar.title')} showBack />
@@ -439,8 +466,22 @@ export function ReservarVehiculoPage() {
     )
   }
 
+  if (isError || !vehicle) {
+    return (
+      <div className="flex min-h-full flex-col">
+        <PageHeader title={t('reservar.title')} showBack />
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">
+          <p className="text-text-secondary">{t('error.default')}</p>
+          <Button variant="secondary" onClick={() => refetchVehicle()}>
+            {t('general.retry')}
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   function goToContrato() {
-    if (!validRange) return
+    if (!canContinueToContract) return
     setStep('contrato')
   }
 
@@ -554,9 +595,118 @@ export function ReservarVehiculoPage() {
               busyRanges={busyRanges}
               minDate={splitLocal(startAtLocal).date || undefined}
             />
+            {durationViolationMessage && (
+              <p className="text-xs font-medium text-danger">
+                {durationViolationMessage}
+              </p>
+            )}
             {startAtLocal && endAtLocal && !validRange && (
               <p className="text-xs text-danger">{t('reservar.invalidRange')}</p>
             )}
+            {validRange && overlapsBusy && (
+              <p className="text-xs text-danger">{t('reservar.overlapsBusy')}</p>
+            )}
+
+            {vehicle.reservationRuleSet ? (
+              <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">
+                      {t('reservar.rules.title')}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      {formatRentalTimeConstraints(vehicle.reservationRuleSet.rentalTimeConstraints)}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={rulesCollapsed ? 'default' : 'secondary'}
+                    disabled={rulesCollapsed}
+                    onClick={() => {
+                      if (!rulesCollapsed) setRulesAcknowledged(true)
+                      setRulesCollapsed((current) => !current)
+                    }}
+                    className="shrink-0"
+                  >
+                    {rulesCollapsed
+                      ? t('reservar.rules.read')
+                      : t('reservar.rules.markAsRead')}
+                  </Button>
+                </div>
+
+                {!rulesCollapsed && (
+                  <>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl bg-surface-2 p-3">
+                        <p className="text-xs uppercase tracking-wider text-text-muted">
+                          {t('reservar.rules.deposit')}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-text-primary">
+                          {getDepositLabel(vehicle.reservationRuleSet.deposit)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-surface-2 p-3">
+                        <p className="text-xs uppercase tracking-wider text-text-muted">
+                          {t('reservar.rules.maxKilometrage')}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-text-primary">
+                          {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-surface-2 p-3">
+                        <p className="text-xs uppercase tracking-wider text-text-muted">
+                          {t('reservar.rules.minDuration')}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-text-primary">
+                          {vehicle.reservationRuleSet.rentalTimeConstraints.minDays
+                            ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.minDays)
+                            : t('reservar.rules.noMinimum')}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-surface-2 p-3">
+                        <p className="text-xs uppercase tracking-wider text-text-muted">
+                          {t('reservar.rules.maxDuration')}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-text-primary">
+                          {vehicle.reservationRuleSet.rentalTimeConstraints.maxDays
+                            ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.maxDays)
+                            : t('reservar.rules.noMaximum')}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-surface-2 p-3 sm:col-span-2">
+                        <p className="text-xs uppercase tracking-wider text-text-muted">
+                          {t('reservar.rules.cancellationPolicy')}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-text-primary">
+                          {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
+                        </p>
+                        <p className="mt-1 text-xs text-text-secondary">
+                          {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
+                        </p>
+                      </div>
+                    </div>
+
+                  </>
+                )}
+
+                {rulesCollapsed && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full text-xs text-text-muted"
+                    onClick={() => setRulesCollapsed(false)}
+                  >
+                    {t('reservar.rules.expand')}
+                  </Button>
+                )}
+              </div>
+            ) : null}
+
             <Separator />
             <div className="flex items-center justify-between">
               <span className="text-sm text-text-muted">
@@ -569,7 +719,7 @@ export function ReservarVehiculoPage() {
             <Button
               size="lg"
               className="w-full"
-              disabled={!validRange || overlapsBusy}
+              disabled={!canContinueToContract}
               onClick={goToContrato}
             >
               {t('reservar.continueToContract')}
