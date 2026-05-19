@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
@@ -52,8 +53,19 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     holdExpiresAt,
     contractAcceptedAt,
     rejectionReason,
+    voucherToken,
   } = reservation
   const showVoucher = status === 'confirmed' || status === 'in_progress'
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (showVoucher && voucherToken) {
+      const verifyUrl = `${window.location.origin}/voucher/verify/${voucherToken}`
+      QRCode.toDataURL(verifyUrl, { width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
+        .then(setQrDataUrl)
+        .catch(console.error)
+    }
+  }, [showVoucher, voucherToken])
   const canPay = status === 'pending_payment'
   const isPendingApproval = status === 'pending_approval'
   const isRejected = status === 'rejected'
@@ -95,14 +107,18 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         </div>
       </div>
 
-      {showVoucher && (
+      {showVoucher && voucherToken && (
         <div className="card p-5 flex flex-col items-center gap-3">
           <div className="flex items-center gap-2 text-text-secondary text-sm font-medium">
             <QrCode className="h-4 w-4" />
             {t('reservas.detail.voucher')}
           </div>
-          <div className="h-48 w-48 rounded-2xl bg-surface-2 flex items-center justify-center border border-white/6">
-            <QrCode className="h-20 w-20 text-text-muted" />
+          <div className="h-48 w-48 rounded-2xl bg-white flex items-center justify-center overflow-hidden border border-white/6 p-2">
+            <img
+              src={qrDataUrl || ''}
+              alt="Voucher QR"
+              className="w-full h-full object-contain mix-blend-multiply"
+            />
           </div>
           <p className="text-xs text-text-muted text-center max-w-xs">
             {t('reservas.detail.voucherHelp')}

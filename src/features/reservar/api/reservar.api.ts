@@ -16,6 +16,10 @@ import {
   type GetReservationResponse,
   type InitiateTransferResponse,
   type VehicleBusyRangesResponse,
+  type Voucher,
+  type VerifyVoucherResponse,
+  VoucherSchema,
+  VerifyVoucherResponseSchema,
 } from '@rocket-lease/contracts'
 
 export const reservarApi = {
@@ -73,5 +77,15 @@ export const reservarApi = {
       {},
     )
     return CancelReservationResponseSchema.parse(res)
+  },
+
+  async getVoucher(reservationId: string): Promise<Voucher> {
+    const res = await apiClient.get<unknown>(`/reservations/${reservationId}/voucher`)
+    return VoucherSchema.parse(res)
+  },
+
+  async verifyVoucher(token: string): Promise<VerifyVoucherResponse> {
+    const res = await apiClient.get<unknown>(`/reservations/voucher/verify/${token}`)
+    return VerifyVoucherResponseSchema.parse(res)
   },
 }
