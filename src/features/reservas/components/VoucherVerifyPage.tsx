@@ -108,7 +108,7 @@ export function VoucherVerifyPage() {
             <div className="flex-1">
               <p className="text-xs text-text-muted">{t('reservas.detalle.pago')}</p>
               <p className="font-medium text-text-primary">
-                {t(`reservar.paymentMethod.${voucher.paymentMethod}` as any)}
+                {t(`reservar.paymentMethod.${voucher.paymentMethod}` as import('@/i18n/es').I18nKey)}
               </p>
             </div>
             <div className="text-right">
