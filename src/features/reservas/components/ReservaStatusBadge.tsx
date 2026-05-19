@@ -1,25 +1,23 @@
 import { Badge } from '@/ui/badge'
 import { t } from '@/i18n/es'
-import type { ReservaEstado } from '../types'
-import type { BadgeProps } from '@/ui/badge'
+import type { ReservationStatus } from '@rocket-lease/contracts'
 
-type Variant = BadgeProps['variant']
-
-const statusMap: Record<ReservaEstado, { variant: Variant; label: string }> = {
-  pending_payment: { variant: 'warning', label: 'reservas.estado.pending_payment' },
-  confirmed: { variant: 'info', label: 'reservas.estado.confirmed' },
-  in_progress: { variant: 'success', label: 'reservas.estado.in_progress' },
-  completed: { variant: 'secondary', label: 'reservas.estado.completed' },
-  cancelled: { variant: 'danger', label: 'reservas.estado.cancelled' },
-  rejected: { variant: 'danger', label: 'reservas.estado.rejected' },
-  expired: { variant: 'secondary', label: 'reservas.estado.expired' },
+const statusMap: Record<ReservationStatus, { className: string; label: string }> = {
+  pending_approval: { className: 'bg-brand-500 text-white border-brand-500', label: 'reservas.estado.pending_approval' },
+  pending_payment: { className: 'bg-warning text-black border-warning', label: 'reservas.estado.pending_payment' },
+  confirmed: { className: 'bg-info text-white border-info', label: 'reservas.estado.confirmed' },
+  in_progress: { className: 'bg-success text-white border-success', label: 'reservas.estado.in_progress' },
+  completed: { className: 'bg-surface-3 text-text-primary border-white/10', label: 'reservas.estado.completed' },
+  cancelled: { className: 'bg-danger text-white border-danger', label: 'reservas.estado.cancelled' },
+  rejected: { className: 'bg-danger text-white border-danger', label: 'reservas.estado.rejected' },
+  expired: { className: 'bg-surface-3 text-text-primary border-white/10', label: 'reservas.estado.expired' },
 }
 
 interface ReservaStatusBadgeProps {
-  estado: ReservaEstado
+  estado: ReservationStatus
 }
 
 export function ReservaStatusBadge({ estado }: ReservaStatusBadgeProps) {
-  const { variant, label } = statusMap[estado]
-  return <Badge variant={variant}>{t(label as Parameters<typeof t>[0])}</Badge>
+  const { className, label } = statusMap[estado]
+  return <Badge className={className}>{t(label as Parameters<typeof t>[0])}</Badge>
 }

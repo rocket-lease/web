@@ -4,6 +4,8 @@ import { useId } from 'react'
 
 export interface NavTab {
   to: string
+  /** Search params opcionales para la nav (ej: `{role: 'owner'}` para `/reservas?role=owner`). */
+  search?: Record<string, string>
   icon: Icon
   label: string
   badge?: number
@@ -63,8 +65,9 @@ export function BottomNav({ tabs, activeRole }: BottomNavProps) {
         <div className="flex w-full">
           {tabs.map(tab => (
             <Link
-              key={tab.to}
+              key={tab.to + JSON.stringify(tab.search ?? {})}
               to={tab.to}
+              search={tab.search}
               className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors duration-150"
             >
               {({ isActive }) => (

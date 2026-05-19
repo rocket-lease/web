@@ -6,7 +6,7 @@ import type {
   RegisterUserRequest,
   RegisterUserResponse,
   VerificationStatusResponse,
-} from '../types'
+} from '@rocket-lease/contracts'
 
 const TOKEN_KEY = 'rocket_lease:access_token'
 const REFRESH_KEY = 'rocket_lease:refresh_token'

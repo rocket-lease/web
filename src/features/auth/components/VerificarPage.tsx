@@ -8,7 +8,7 @@ import { authApi } from '../api/auth.api'
 import type {
   VerificationChannel,
   VerificationStatusResponse,
-} from '../types'
+} from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 
 const RESEND_COOLDOWN_SECONDS = 30

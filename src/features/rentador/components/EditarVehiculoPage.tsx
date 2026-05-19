@@ -43,11 +43,12 @@ type VehicleDraft = {
   photos: EditablePhoto[]
   characteristics: Characteristic[]
   reservationRuleSetId?: string
+  autoAccept: boolean | null
 }
 
 function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
   return {
-    basePrice: String(vehicle.basePrice ?? ''),
+    basePrice: String((vehicle.basePriceCents ?? 0) / 100),
     color: vehicle.color ?? '',
     mileage: String(vehicle.mileage ?? ''),
     availableFrom: vehicle.availableFrom ?? '',
@@ -63,7 +64,36 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
     })),
     characteristics: vehicle.characteristics ?? [],
     reservationRuleSetId: (vehicle as any).reservationRuleSetId,
+    autoAccept: vehicle.autoAccept ?? null,
   }
+}
+
+type AutoAcceptOption = 'inherit' | 'on' | 'off'
+
+const AUTO_ACCEPT_OPTIONS: ReadonlyArray<{ key: AutoAcceptOption; labelKey: string }> = [
+  { key: 'inherit', labelKey: 'vehiculo.autoAccept.opcion.heredar' },
+  { key: 'on', labelKey: 'vehiculo.autoAccept.opcion.si' },
+  { key: 'off', labelKey: 'vehiculo.autoAccept.opcion.no' },
+]
+
+/**
+ * Convierte el valor crudo del campo `autoAccept` (boolean | null) al
+ * identificador de opción que renderiza el selector tri-state.
+ */
+function toAutoAcceptOption(value: boolean | null | undefined): AutoAcceptOption {
+  if (value === true) return 'on'
+  if (value === false) return 'off'
+  return 'inherit'
+}
+
+/**
+ * Convierte la opción elegida en el selector tri-state al valor que se
+ * persiste en la entidad: `null` = hereda del perfil del rentador.
+ */
+function fromAutoAcceptOption(option: AutoAcceptOption): boolean | null {
+  if (option === 'on') return true
+  if (option === 'off') return false
+  return null
 }
 
 function isNewPhoto(photo: EditablePhoto): photo is EditablePhoto & { kind: 'new'; file: File; previewUrl: string } {
@@ -240,7 +270,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       })
 
       const payload: UpdateVehicleRequest = {
-        basePrice,
+        basePriceCents: Math.round(basePrice * 100),
         color: draft.color.trim(),
         mileage,
         availableFrom: draft.availableFrom,
@@ -252,6 +282,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         photos: finalPhotoUrls,
         characteristics: draft.characteristics,
         reservationRuleSetId: draft.reservationRuleSetId ?? null,
+        autoAccept: draft.autoAccept,
       }
 
       await vehiclesApi.updateVehicle(vehicleId, payload)
@@ -520,7 +551,9 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
                   value={draft.basePrice}
                   onChange={e => handleFieldChange('basePrice', e.target.value)}
                   placeholder={t('editVehiculo.field.basePrice')}
-                  inputMode="numeric"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
                   disabled={isSaving || isDeleting}
                 />
               </div>
@@ -559,6 +592,37 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
                   <span>{draft.isAccessible ? t('general.yes') : t('general.no')}</span>
                   <span>{t('general.edit')}</span>
                 </Button>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-text-secondary">
+                {t('vehiculo.autoAccept.label')}
+              </label>
+              <p className="mb-3 text-xs text-text-muted">
+                {t('vehiculo.autoAccept.descripcion')}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                {AUTO_ACCEPT_OPTIONS.map((option) => {
+                  const selected = toAutoAcceptOption(draft.autoAccept) === option.key
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() =>
+                        handleFieldChange('autoAccept', fromAutoAcceptOption(option.key))
+                      }
+                      disabled={isSaving || isDeleting}
+                      className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
+                        selected
+                          ? 'border-brand-500 bg-brand-500/15 text-brand-400'
+                          : 'border-white/8 bg-surface-2 text-text-secondary hover:border-brand-600/50 hover:text-brand-400'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {t(option.labelKey as Parameters<typeof t>[0])}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

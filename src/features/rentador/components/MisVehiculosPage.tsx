@@ -29,7 +29,6 @@ export function MisVehiculosPage() {
   })
 
   const vehicles = vehiclesQuery.data ?? []
-
   return (
     <div className="flex flex-col">
       <PageHeader
@@ -79,51 +78,54 @@ export function MisVehiculosPage() {
             </div>
           ) : (
             <div className="px-4 py-4 space-y-3">
-              {vehicles.map(v => (
-                <Link key={v.id} to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
-                  <article className="card flex gap-4 p-4 transition-transform duration-150 active:scale-[0.99]">
-                    <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                      <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-bold text-text-primary">
-                          {v.brand} {v.model} {v.year}
-                        </p>
-                        <Badge variant={v.enabled ? 'success' : 'secondary'}>
-                          {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
-                        </Badge>
+              {vehicles.map(v => {
+                const priceCents = v.basePriceCents ?? (typeof v.basePriceCents === 'number' ? Math.round(v.basePriceCents * 100) : 0)
+                return (
+                  <Link key={v.id} to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
+                    <article className="card flex gap-4 p-4 transition-transform duration-150 active:scale-[0.99]">
+                      <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+                        <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
                       </div>
-                      <p className="mt-1 text-sm text-text-secondary">
-                        {fmt.currency(v.basePrice * 100)} {t('vehiculo.perDay')}
-                      </p>
-                      {v.characteristics?.length ? (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {v.characteristics.map((item) => (
-                            <Badge key={item} variant="secondary" className="text-[10px] px-2 py-0.5">
-                              {getCharacteristicLabel(item)}
-                            </Badge>
-                          ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-text-primary">
+                            {v.brand} {v.model} {v.year}
+                          </p>
+                          <Badge variant={v.enabled ? 'success' : 'secondary'}>
+                            {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
+                          </Badge>
                         </div>
-                      ) : null}
-                      {v.city || v.province ? (
-                        <p className="mt-2 text-xs text-text-muted">
-                          {v.city}
-                          {v.city && v.province ? ' · ' : ''}
-                          {v.province}
+                        <p className="mt-1 text-sm text-text-secondary">
+                          {fmt.currency(priceCents)} {t('vehiculo.perDay')}
                         </p>
-                      ) : null}
+                        {v.characteristics?.length ? (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {v.characteristics.map((item) => (
+                              <Badge key={item} variant="secondary" className="text-[10px] px-2 py-0.5">
+                                {getCharacteristicLabel(item)}
+                              </Badge>
+                            ))}
+                          </div>
+                        ) : null}
+                        {v.city || v.province ? (
+                          <p className="mt-2 text-xs text-text-muted">
+                            {v.city}
+                            {v.city && v.province ? ' · ' : ''}
+                            {v.province}
+                          </p>
+                        ) : null}
 
-                      <div className="mt-3">
-                        <Button size="sm" variant="ghost">
-                          <Pencil className="h-4 w-4" />
-                          Editar vehiculo
-                        </Button>
+                        <div className="mt-3">
+                          <Button size="sm" variant="ghost">
+                            <Pencil className="h-4 w-4" />
+                            Editar vehiculo
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
+                    </article>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </TabsContent>

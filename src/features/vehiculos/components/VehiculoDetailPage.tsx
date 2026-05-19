@@ -1,4 +1,4 @@
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import {
@@ -32,11 +32,14 @@ import {
   formatRentalTimeConstraints,
 } from '../utils/rules-formatter'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
 const SWIPE_THRESHOLD_PX = 40
 
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
+  const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
   const [photoIndex, setPhotoIndex] = useState(0)
   const touchStartX = useRef<number | null>(null)
 
@@ -71,6 +74,14 @@ export function VehiculoDetailPage() {
 
   const photos = vehicle.photos.length > 0 ? vehicle.photos : ['/placeholder-car.jpg']
   const currentPhoto = photos[Math.min(photoIndex, photos.length - 1)]
+  const isOwnVehicle = !!user && vehicle.ownerId === user.id
+
+  const handleReservarClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isAuthenticated) {
+      e.preventDefault()
+      navigate({ to: '/login', search: { returnTo: `/vehiculos/${vehicle.id}/reservar` } })
+    }
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -164,15 +175,36 @@ export function VehiculoDetailPage() {
               <p className="text-xs text-warning">{t('vehiculo.unavailableNotice')}</p>
             </div>
           )}
+          {isOwnVehicle && (
+            <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
+              {/* <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" /> */}
+              <p className="text-xs text-warning">{t('vehiculo.ownNotice')}</p>
+            </div>
+          )}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wider text-text-muted">Tarifa</p>
-              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.price(vehicle.basePrice)}</p>
+              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(vehicle.basePriceCents)}</p>
               <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
             </div>
-            <Button size="lg" disabled={!vehicle.enabled} className="shrink-0">
-              {vehicle.enabled ? t('vehiculo.reservar') : t('vehiculo.noDisponible')}
-            </Button>
+            {!vehicle.enabled ? (
+              <Button size="lg" disabled className="shrink-0">
+                {t('vehiculo.noDisponible')}
+              </Button>
+            ) : isOwnVehicle ? (
+              <Button size="lg" disabled className="shrink-0">
+                {t('vehiculo.esMio')}
+              </Button>
+            ) : (
+              <Link
+                to="/vehiculos/$id/reservar"
+                params={{ id: vehicle.id }}
+                className="shrink-0"
+                onClick={handleReservarClick}
+              >
+                <Button size="lg">{t('vehiculo.reservar')}</Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -336,7 +368,7 @@ export function VehiculoDetailPage() {
           </>
         )}
 
-        {/* Reseñas del vehículo (empty state — datos llegan en Sprint 5 con US-38) */}
+        {/* Reseñas del vehículo (empty state hasta que exista el módulo de reviews) */}
         <Separator />
         <div>
           <div className="flex items-center justify-between mb-3">

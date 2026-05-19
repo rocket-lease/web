@@ -1,0 +1,91 @@
+import { apiClient } from '@/lib/api-client'
+import {
+  CancelReservationResponseSchema,
+  CreateReservationResponseSchema,
+  ConfirmReservationPaymentResponseSchema,
+  ConfirmTransferResponseSchema,
+  GetReservationResponseSchema,
+  InitiateTransferResponseSchema,
+  VehicleBusyRangesResponseSchema,
+  type CancelReservationResponse,
+  type CreateReservationRequest,
+  type CreateReservationResponse,
+  type ConfirmReservationPaymentRequest,
+  type ConfirmReservationPaymentResponse,
+  type ConfirmTransferResponse,
+  type GetReservationResponse,
+  type InitiateTransferResponse,
+  type VehicleBusyRangesResponse,
+  type Voucher,
+  type VerifyVoucherResponse,
+  VoucherSchema,
+  VerifyVoucherResponseSchema,
+} from '@rocket-lease/contracts'
+
+export const reservarApi = {
+  async create(data: CreateReservationRequest): Promise<CreateReservationResponse> {
+    const res = await apiClient.post<unknown>('/reservations', data)
+    return CreateReservationResponseSchema.parse(res)
+  },
+
+  async confirmPayment(
+    reservationId: string,
+    data: ConfirmReservationPaymentRequest,
+  ): Promise<ConfirmReservationPaymentResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/payment`,
+      data,
+    )
+    return ConfirmReservationPaymentResponseSchema.parse(res)
+  },
+
+  async initiateTransfer(
+    reservationId: string,
+  ): Promise<InitiateTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/transfer`,
+      {},
+    )
+    return InitiateTransferResponseSchema.parse(res)
+  },
+
+  async confirmTransfer(
+    reservationId: string,
+  ): Promise<ConfirmTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/transfer/confirm`,
+      {},
+    )
+    return ConfirmTransferResponseSchema.parse(res)
+  },
+
+  async getById(reservationId: string): Promise<GetReservationResponse> {
+    const res = await apiClient.get<unknown>(`/reservations/${reservationId}`)
+    return GetReservationResponseSchema.parse(res)
+  },
+
+  async getBusyRanges(vehicleId: string): Promise<VehicleBusyRangesResponse> {
+    const res = await apiClient.get<unknown>(
+      `/reservations/vehicle/${vehicleId}/busy-ranges`,
+    )
+    return VehicleBusyRangesResponseSchema.parse(res)
+  },
+
+  async cancel(reservationId: string): Promise<CancelReservationResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/cancel`,
+      {},
+    )
+    return CancelReservationResponseSchema.parse(res)
+  },
+
+  async getVoucher(reservationId: string): Promise<Voucher> {
+    const res = await apiClient.get<unknown>(`/reservations/${reservationId}/voucher`)
+    return VoucherSchema.parse(res)
+  },
+
+  async verifyVoucher(token: string): Promise<VerifyVoucherResponse> {
+    const res = await apiClient.get<unknown>(`/reservations/voucher/verify/${token}`)
+    return VerifyVoucherResponseSchema.parse(res)
+  },
+}
