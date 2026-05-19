@@ -207,6 +207,8 @@ export const es = {  // --- App ---
   'reservas.detail.return': 'Devolucion',
   'reservas.detail.total': 'Total',
   'reservas.detail.rentador': 'Rentador',
+  'reservas.detalle.conductor': 'Conductor',
+  'reservas.detalle.pago': 'Pago',
   'reservas.voucher.verifyTitle': 'Verificación de Voucher',
   'reservas.voucher.validTitle': 'Voucher Válido',
   'reservas.voucher.validBody': 'Esta reserva está confirmada y el vehículo puede ser entregado.',
