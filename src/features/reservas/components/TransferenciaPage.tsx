@@ -7,6 +7,7 @@ import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
+import { RESERVATION_STATUS } from '@rocket-lease/contracts'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 
 export function TransferenciaPage() {
@@ -51,7 +52,7 @@ export function TransferenciaPage() {
 
   // Polling: cuando el backend confirma, muestra pantalla de éxito
   useEffect(() => {
-    if (status === 'confirmed') {
+    if (status === RESERVATION_STATUS.confirmed) {
       setConfirmed(true)
       return
     }

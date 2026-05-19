@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
-import type {
-  ReservationListItem,
-  ReservationRole,
-  ReservationStatus,
+import {
+  RESERVATION_STATUS,
+  type ReservationListItem,
+  type ReservationRole,
+  type ReservationStatus,
 } from '@rocket-lease/contracts'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
@@ -31,12 +32,12 @@ type TabKey =
 /** `undefined` = sin filtro de estado (el endpoint devuelve todas). */
 const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
   all: undefined,
-  solicitudes: ['pending_approval'],
-  pending: ['pending_payment'],
-  confirmed: ['confirmed'],
-  inProgress: ['in_progress'],
-  completed: ['completed'],
-  cancelled: ['cancelled', 'rejected', 'expired'],
+  solicitudes: [RESERVATION_STATUS.pending_approval],
+  pending: [RESERVATION_STATUS.pending_payment],
+  confirmed: [RESERVATION_STATUS.confirmed],
+  inProgress: [RESERVATION_STATUS.in_progress],
+  completed: [RESERVATION_STATUS.completed],
+  cancelled: [RESERVATION_STATUS.cancelled, RESERVATION_STATUS.rejected, RESERVATION_STATUS.expired],
 }
 
 /**
@@ -115,11 +116,11 @@ export function ReservasPage() {
    * (solo nos interesa `total`), cacheada por 30s.
    */
   const solicitudesCountQuery = useQuery({
-    queryKey: ['reservationsCount', role, 'pending_approval'],
+    queryKey: ['reservationsCount', role, RESERVATION_STATUS.pending_approval],
     queryFn: () =>
       fetchReservations({
         role,
-        status: ['pending_approval'],
+        status: [RESERVATION_STATUS.pending_approval],
         page: 1,
         pageSize: 1,
       }),
