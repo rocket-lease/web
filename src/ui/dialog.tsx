@@ -7,11 +7,6 @@ const Dialog = React.createContext<{
   setOpen: (open: boolean) => void
 }>({ open: false, setOpen: () => {} })
 
-interface DialogContextType {
-  open: boolean
-  setOpen: (open: boolean) => void
-}
-
 const DialogRoot = ({ children, open, onOpenChange }: { children: React.ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }) => {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const isControlled = open !== undefined
@@ -47,7 +42,6 @@ interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {}
 const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ className, children, ...props }, ref) => {
     const dialog = React.useContext(Dialog)
-    const contentRef = React.useRef<HTMLDivElement>(null)
 
     if (!dialog.open) return null
 
