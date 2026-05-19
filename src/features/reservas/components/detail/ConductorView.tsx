@@ -12,6 +12,7 @@ import {
   Inbox,
   LifeBuoy,
   QrCode,
+  X,
   XCircle,
 } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse, type PaymentMethod } from '@rocket-lease/contracts'
@@ -26,8 +27,10 @@ import { useCancelReservation } from '@/features/reservar/hooks/useCancelReserva
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { QrScanner } from '@/ui/QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
+import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -202,6 +205,10 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {contractAcceptedAt && <ContractSection acceptedAt={contractAcceptedAt} />}
 
       {isPostPayment && <PostPaymentActions />}
+
+      {status === RESERVATION_STATUS.in_progress && (
+        <ReturnAction reservationId={reservation.id} />
+      )}
     </div>
   )
 }
@@ -586,5 +593,57 @@ function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmMo
         </div>
       </div>
     </div>
+  )
+}
+
+function ReturnAction({ reservationId }: { reservationId: string }) {
+  const [showScanner, setShowScanner] = useState(false)
+  const confirmReturn = useConfirmReturn(reservationId)
+
+  const handleScan = async (token: string) => {
+    try {
+      await confirmReturn.mutateAsync(token)
+      toast.success(t('reservas.devolucion.exito'))
+      setShowScanner(false)
+    } catch {
+      toast.error(t('reservas.devolucion.qrInvalido'))
+    }
+  }
+
+  return (
+    <>
+      <Separator />
+      <Button className="w-full rounded-full" onClick={() => setShowScanner(true)}>
+        {t('reservas.devolucion.cta')}
+      </Button>
+
+      {showScanner && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowScanner(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-8 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-semibold text-text-primary">{t('reservas.devolucion.scannerTitle')}</p>
+              <button
+                onClick={() => setShowScanner(false)}
+                className="text-text-muted hover:text-text-primary"
+                aria-label={t('reservas.qr.cancelar')}
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {confirmReturn.isPending ? (
+              <p className="text-center text-text-muted py-8">{t('reservas.devolucion.confirmando')}</p>
+            ) : (
+              <QrScanner onScan={handleScan} />
+            )}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
