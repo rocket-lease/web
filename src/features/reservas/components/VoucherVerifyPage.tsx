@@ -92,7 +92,7 @@ export function VoucherVerifyPage() {
           <Separator />
 
           <div className="flex items-center gap-3">
-            <CalendarDays className="h-5 w-5 text-text-muted" />
+            <CalendarDots className="h-5 w-5 text-text-muted" />
             <div>
               <p className="text-xs text-text-muted">{t('reservas.detail.dates')}</p>
               <p className="font-medium text-text-primary">
