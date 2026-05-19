@@ -63,7 +63,7 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
       url,
     })),
     characteristics: vehicle.characteristics ?? [],
-    reservationRuleSetId: (vehicle as GetVehicleResponse & { reservationRuleSetId?: string | null }).reservationRuleSetId ?? null,
+    reservationRuleSetId: (vehicle as GetVehicleResponse & { reservationRuleSetId?: string }).reservationRuleSetId,
     autoAccept: vehicle.autoAccept ?? null,
   }
 }
