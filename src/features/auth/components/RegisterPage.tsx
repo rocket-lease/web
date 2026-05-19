@@ -77,6 +77,8 @@ export function RegisterPage() {
               </label>
               <Input
                 autoComplete="name"
+                autoFocus
+                enterKeyHint="next"
                 leftIcon={<User size={16} />}
                 placeholder="Ana García"
                 error={errors.name?.message}
@@ -91,6 +93,7 @@ export function RegisterPage() {
               <Input
                 type="email"
                 autoComplete="email"
+                enterKeyHint="next"
                 leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
@@ -105,6 +108,7 @@ export function RegisterPage() {
               <Input
                 inputMode="numeric"
                 autoComplete="off"
+                enterKeyHint="next"
                 leftIcon={<IdentificationCard size={16} />}
                 placeholder="12.345.678"
                 error={errors.dni?.message}
@@ -119,6 +123,7 @@ export function RegisterPage() {
               <Input
                 type="tel"
                 autoComplete="tel"
+                enterKeyHint="next"
                 leftIcon={<Phone size={16} />}
                 placeholder="+54 9 11 1234-5678"
                 error={errors.phone?.message}
@@ -133,6 +138,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
+                enterKeyHint="next"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}
@@ -147,6 +153,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
+                enterKeyHint="done"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.confirmPassword?.message}

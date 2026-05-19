@@ -1,7 +1,7 @@
 import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { VehiculoCard } from './VehiculoCard'
+import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
 import { t } from '@/i18n/es'
 import type { SortCriteria, VehiculoFilters } from '../types'
@@ -101,6 +101,8 @@ export function BuscarPage() {
               placeholder={t('buscar.placeholder')}
               value={filters.query ?? ''}
               onChange={e => setFilters(f => ({ ...f, query: e.target.value }))}
+              enterKeyHint="search"
+              autoComplete="off"
               className="w-full h-12 rounded-full bg-surface-1 border border-white/8 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/15 transition-colors"
             />
           </div>
@@ -155,7 +157,7 @@ export function BuscarPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-64 rounded-xl bg-surface-1 animate-pulse" />
+              <VehiculoCardSkeleton key={i} />
             ))}
           </div>
         ) : (

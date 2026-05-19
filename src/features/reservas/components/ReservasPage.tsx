@@ -374,7 +374,24 @@ function ReservasListSkeleton() {
   return (
     <>
       {[0, 1, 2].map((i) => (
-        <Skeleton key={i} className="h-28 w-full rounded-xl" />
+        <div key={i} className="card p-2 flex gap-3">
+          {/* Miniatura vehículo */}
+          <Skeleton className="h-20 w-20 shrink-0 rounded" />
+          <div className="flex-1 flex flex-col gap-2 min-w-0 py-0.5">
+            {/* Título + badge */}
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton className="h-4 w-2/5" />
+              <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+            </div>
+            {/* Fechas */}
+            <Skeleton className="h-3 w-4/5" />
+            {/* Contraparte + monto */}
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-4 w-16 shrink-0" />
+            </div>
+          </div>
+        </div>
       ))}
     </>
   )
