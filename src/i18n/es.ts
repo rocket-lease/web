@@ -119,9 +119,6 @@ export const es = {  // --- App ---
   'buscar.fechaDesde':                'Desde',
   'buscar.fechaHasta':                'Hasta',
   'buscar.cargando':                  'Buscando vehículos...',
-  'buscar.filter.dates':              'Fechas de alquiler',
-  'buscar.filter.trunk':              'Baúl mínimo',
-  'buscar.noResultsDatesHint':        'Probá ampliar el rango de fechas',
 
   // --- Vehiculo ---
   'vehiculo.reservar': 'Reservar',
