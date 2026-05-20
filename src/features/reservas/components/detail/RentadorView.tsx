@@ -3,7 +3,8 @@ import QRCode from 'qrcode'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
+import { X as PhosphorX } from '@phosphor-icons/react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, User } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -13,7 +14,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
-import { QrScanner } from '@/ui/QrScanner'
+import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
@@ -442,7 +443,7 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    QRCode.toDataURL(returnQrToken, { width: 200, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
+    QRCode.toDataURL(returnQrToken, { width: 200, margin: 1 })
       .then(setQrDataUrl)
       .catch(console.error)
   }, [returnQrToken])
@@ -451,7 +452,7 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
     <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 flex flex-col items-center gap-3">
       <p className="font-semibold text-text-primary">{t('reservas.devolucion.qrTitle')}</p>
       {qrDataUrl && (
-        <img src={qrDataUrl} alt="QR Devolución" className="rounded-xl w-48 h-48" />
+        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="rounded-xl w-48 h-48" />
       )}
       <p className="text-xs text-text-muted text-center">{t('reservas.devolucion.qrHelp')}</p>
     </div>
@@ -483,7 +484,7 @@ function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps)
             className="text-text-muted hover:text-text-primary"
             aria-label={t('reservas.qr.cancelar')}
           >
-            <X className="h-5 w-5" />
+            <PhosphorX className="h-5 w-5" weight="bold" />
           </button>
         </div>
         {submitting ? (

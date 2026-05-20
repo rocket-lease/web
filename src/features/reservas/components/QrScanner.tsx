@@ -1,36 +1,42 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { Button } from '@/ui/button'
 import { t } from '@/i18n/es'
 
 interface QrScannerProps {
   onScan: (token: string) => void
+  confirmLabel?: string
+  fallbackLabel?: string
 }
 
-/**
- * Escanea un QR con la cámara del dispositivo.
- * Si el usuario deniega permisos o hay un error, muestra un input de texto
- * como fallback para ingresar el código manualmente.
- */
-export function QrScanner({ onScan }: QrScannerProps) {
-  const containerId = 'qr-scanner-container'
-  const scannerRef = useRef<Html5Qrcode | null>(null)
+export function QrScanner({
+  onScan,
+  confirmLabel = t('reservas.retiro.confirmar'),
+  fallbackLabel = t('reservas.retiro.fallback'),
+}: QrScannerProps) {
+  const uid = useId().replace(/:/g, '')
+  const containerId = `qr-scanner-${uid}`
   const onScanRef = useRef(onScan)
-  useLayoutEffect(() => { onScanRef.current = onScan })
+  const scannedRef = useRef(false)
   const [fallback, setFallback] = useState(false)
   const [manualCode, setManualCode] = useState('')
   const [cameraError, setCameraError] = useState(false)
 
+  useLayoutEffect(() => { onScanRef.current = onScan })
+
   useEffect(() => {
     if (fallback) return
+    scannedRef.current = false
     const scanner = new Html5Qrcode(containerId)
-    scannerRef.current = scanner
 
     void scanner
       .start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 220, height: 220 } },
         (decodedText) => {
+          if (scannedRef.current) return
+          scannedRef.current = true
+          void scanner.stop().catch(() => {})
           onScanRef.current(extractToken(decodedText))
         },
         undefined,
@@ -43,15 +49,17 @@ export function QrScanner({ onScan }: QrScannerProps) {
     return () => {
       if (scanner.isScanning) void scanner.stop().catch(() => {})
     }
-  }, [fallback])
+  }, [fallback, containerId])
 
   if (fallback || cameraError) {
+    const inputId = `${containerId}-input`
     return (
       <div className="space-y-3">
-        <p className="text-sm text-text-secondary text-center">
-          {t('reservas.retiro.fallback')}
-        </p>
+        <label htmlFor={inputId} className="block text-sm text-text-secondary text-center">
+          {fallbackLabel}
+        </label>
         <input
+          id={inputId}
           type="text"
           value={manualCode}
           onChange={(e) => setManualCode(e.target.value)}
@@ -62,9 +70,9 @@ export function QrScanner({ onScan }: QrScannerProps) {
         <Button
           className="w-full"
           disabled={manualCode.trim().length < 8}
-          onClick={() => onScan(manualCode.trim())}
+          onClick={() => onScanRef.current(manualCode.trim())}
         >
-          {t('reservas.retiro.confirmar')}
+          {confirmLabel}
         </Button>
       </div>
     )
@@ -78,7 +86,7 @@ export function QrScanner({ onScan }: QrScannerProps) {
         className="w-full text-sm text-text-muted"
         onClick={() => setFallback(true)}
       >
-        {t('reservas.retiro.fallback')}
+        {fallbackLabel}
       </Button>
     </div>
   )
@@ -87,7 +95,7 @@ export function QrScanner({ onScan }: QrScannerProps) {
 function extractToken(text: string): string {
   try {
     const url = new URL(text)
-    const parts = url.pathname.split('/')
+    const parts = url.pathname.split('/').filter(Boolean)
     return parts[parts.length - 1] ?? text
   } catch {
     return text
