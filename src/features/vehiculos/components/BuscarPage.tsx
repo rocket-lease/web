@@ -234,7 +234,7 @@ export function BuscarPage() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {sorted.map(v => (
-                  <VehiculoCard key={v.id} vehiculo={v} />
+                  <VehiculoCard key={v.id} vehiculo={v} from={startDate} to={endDate} />
                 ))}
               </div>
             )}

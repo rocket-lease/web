@@ -34,11 +34,14 @@ export function VehiculoCardSkeleton({ className }: { className?: string }) {
 
 interface VehiculoCardProps {
   vehiculo: GetVehicleResponse
+  from?: string
+  to?: string
   className?: string
 }
 
-export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
+export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProps) {
   const coverPhoto = vehiculo.photos[0] ?? '/placeholder-car.jpg'
+  const days = from && to ? Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) : 0
 
   return (
     <article className={cn('relative overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card transition-transform duration-150 active:scale-[0.97]', className)}>
@@ -94,8 +97,17 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
 
           {/* Precio */}
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>
-            <span className="text-xs text-text-muted">{t('vehiculo.perDay')}</span>
+            {days > 0 ? (
+              <>
+                <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents * days)}</span>
+                <span className="text-xs text-text-muted">{days === 1 ? '1 día' : `${days} días`}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>
+                <span className="text-xs text-text-muted">{t('vehiculo.perDay')}</span>
+              </>
+            )}
           </div>
 
           {/* Características */}
