@@ -96,8 +96,11 @@ export function ConfiguracionPage() {
           leading={<LogOut className="h-5 w-5" />}
           label={t('perfil.logout')}
           onClick={async () => {
-            await signOut()
-            navigate({ to: '/login' })
+            try {
+              await signOut()
+            } finally {
+              navigate({ to: '/login' })
+            }
           }}
           showChevron
         />

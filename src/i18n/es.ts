@@ -90,6 +90,9 @@ export const es = {  // --- App ---
   'buscar.filter.apply': 'Aplicar filtros',
   'buscar.filter.clear': 'Limpiar filtros',
   'buscar.noResultsHint': 'Probá con otra búsqueda o ajustá los filtros',
+  'buscar.noResultsDatesHint': 'Probá ampliar el rango de fechas',
+  'buscar.filter.dates': 'Fechas de alquiler',
+  'buscar.filter.trunk': 'Baúl mínimo (litros)',
   'buscar.error': 'Error al cargar los vehículos',
   'buscar.location.city': 'Buenos Aires',
   'buscar.featuredIn': 'Destacados cerca tuyo',
@@ -116,9 +119,6 @@ export const es = {  // --- App ---
   'buscar.fechaDesde':                'Desde',
   'buscar.fechaHasta':                'Hasta',
   'buscar.cargando':                  'Buscando vehículos...',
-  'buscar.filter.dates':              'Fechas de alquiler',
-  'buscar.filter.trunk':              'Baúl mínimo',
-  'buscar.noResultsDatesHint':        'Probá ampliar el rango de fechas',
 
   // --- Vehiculo ---
   'vehiculo.reservar': 'Reservar',

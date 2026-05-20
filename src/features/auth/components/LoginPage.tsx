@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { Envelope, Lock } from '@phosphor-icons/react'
+import { Envelope, Lock, CaretLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -52,7 +52,15 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5 py-12">
+    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+      <button
+        onClick={() => window.history.back()}
+        aria-label="Volver"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary transition-colors hover:text-text-primary active:scale-[0.97]"
+      >
+        <CaretLeft size={20} />
+      </button>
+      <div className="flex flex-1 flex-col items-center justify-center">
       <div className="w-full max-w-sm">
         {/* Brand mark */}
         <div className="mb-10 flex flex-col items-center gap-4">
@@ -130,10 +138,14 @@ export function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-text-muted">
           {t('auth.login.noAccount')}{' '}
-          <Link to="/registro" className="text-brand-400 font-semibold hover:text-brand-300">
+          <button
+            onClick={() => navigate({ to: '/registro', replace: true })}
+            className="text-brand-400 font-semibold hover:text-brand-300 transition-colors"
+          >
             {t('auth.login.register')}
-          </Link>
+          </button>
         </p>
+      </div>
       </div>
     </div>
   )

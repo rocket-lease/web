@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router'
-import { ArrowLeft } from '@phosphor-icons/react'
+import { CaretLeft } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 
 interface PageHeaderProps {
@@ -27,7 +27,7 @@ export function PageHeader({ title, subtitle, showBack = false, actions, icon, c
           aria-label="Volver"
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary hover:text-text-primary transition-colors shrink-0 active:scale-[0.97]"
         >
-          <ArrowLeft size={16} weight="regular" />
+          <CaretLeft size={16} weight="regular" />
         </button>
       )}
 

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { EnvelopeSimple as Mail, ArrowLeft, CheckCircle, Lock, WarningCircle as AlertTriangle } from '@phosphor-icons/react'
+import { EnvelopeSimple as Mail, CaretLeft, CheckCircle, Lock, WarningCircle as AlertTriangle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -83,21 +83,18 @@ export function RecoverPage() {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col bg-surface-0 px-5 py-12">
-      <div className="w-full max-w-sm mx-auto">{children}</div>
+    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+      <button
+        onClick={() => window.history.back()}
+        aria-label="Volver"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary transition-colors hover:text-text-primary active:scale-[0.97]"
+      >
+        <CaretLeft size={16} weight="regular" />
+      </button>
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <div className="w-full max-w-sm mx-auto">{children}</div>
+      </div>
     </div>
-  )
-}
-
-function BackLink() {
-  return (
-    <Link
-      to="/login"
-      className="mb-8 flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
-    >
-      <ArrowLeft className="h-4 w-4" />
-      {t('auth.recover.back')}
-    </Link>
   )
 }
 
@@ -119,7 +116,6 @@ function RequestScreen({ onSent }: { onSent: () => void }) {
 
   return (
     <PageShell>
-      <BackLink />
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-text-primary">{t('auth.recover.title')}</h1>
         <p className="mt-2 text-sm text-text-secondary">{t('auth.recover.subtitle')}</p>
@@ -208,7 +204,6 @@ function NewPasswordScreen({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <PageShell>
-      <BackLink />
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-text-primary">{t('auth.recover.newTitle')}</h1>
         <p className="mt-2 text-sm text-text-secondary">{t('auth.recover.newSubtitle')}</p>
