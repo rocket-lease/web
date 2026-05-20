@@ -452,7 +452,7 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
     <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 flex flex-col items-center gap-3">
       <p className="font-semibold text-text-primary">{t('reservas.devolucion.qrTitle')}</p>
       {qrDataUrl && (
-        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="rounded-xl w-48 h-48" />
+        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="w-48 h-48" />
       )}
       <p className="text-xs text-text-muted text-center">{t('reservas.devolucion.qrHelp')}</p>
     </div>
