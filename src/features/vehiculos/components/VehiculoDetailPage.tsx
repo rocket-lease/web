@@ -1,7 +1,20 @@
-import { Link, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
-import { Settings, Users, MapPin, Shield, Calendar, Gauge, Box, Star, BadgeCheck, AlertTriangle, MessageSquare, ChevronRight } from 'lucide-react'
+import {
+  Gear,
+  Users,
+  MapPin,
+  Shield,
+  Calendar,
+  Gauge,
+  Cube,
+  Star,
+  CheckCircle,
+  WarningCircle,
+  ChatCircleText,
+  CaretRight,
+} from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -11,12 +24,22 @@ import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { getCharacteristicLabel } from '../utils/characteristics'
+import {
+  getCancellationPolicyLabel,
+  getCancellationPolicyDescription,
+  getDepositLabel,
+  formatMaxKilometrage,
+  formatRentalTimeConstraints,
+} from '../utils/rules-formatter'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
 const SWIPE_THRESHOLD_PX = 40
 
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
+  const navigate = useNavigate()
+  const { user, isAuthenticated } = useAuth()
   const [photoIndex, setPhotoIndex] = useState(0)
   const touchStartX = useRef<number | null>(null)
 
@@ -29,7 +52,7 @@ export function VehiculoDetailPage() {
     return (
       <div className="flex flex-col min-h-full">
         <PageHeader title="Detalle del vehículo" showBack />
-        <div className="aspect-[4/3] bg-surface-2 animate-pulse" />
+        <div className="aspect-4/3 bg-surface-2 animate-pulse" />
         <div className="px-4 py-5 space-y-4">
           <div className="h-7 w-2/3 rounded-lg bg-surface-2 animate-pulse" />
           <div className="h-4 w-1/3 rounded-lg bg-surface-2 animate-pulse" />
@@ -51,6 +74,14 @@ export function VehiculoDetailPage() {
 
   const photos = vehicle.photos.length > 0 ? vehicle.photos : ['/placeholder-car.jpg']
   const currentPhoto = photos[Math.min(photoIndex, photos.length - 1)]
+  const isOwnVehicle = !!user && vehicle.ownerId === user.id
+
+  const handleReservarClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!isAuthenticated) {
+      e.preventDefault()
+      navigate({ to: '/login', search: { returnTo: `/vehiculos/${vehicle.id}/reservar` } })
+    }
+  }
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -72,7 +103,7 @@ export function VehiculoDetailPage() {
 
       {/* Galería */}
       <div
-        className="aspect-[4/3] bg-surface-2 relative overflow-hidden touch-pan-y select-none"
+        className="aspect-4/3 bg-surface-2 relative overflow-hidden touch-pan-y select-none"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -131,7 +162,7 @@ export function VehiculoDetailPage() {
             {fmt.plate(vehicle.plate)} · {vehicle.color}
           </p>
           <div className="flex items-center gap-1.5 mt-1.5">
-            <MapPin className="h-3.5 w-3.5 text-text-muted" />
+              <MapPin size={14} className="text-text-muted" weight="regular" />
             <span className="text-sm text-text-muted">{vehicle.city}, {vehicle.province}</span>
           </div>
         </div>
@@ -140,34 +171,55 @@ export function VehiculoDetailPage() {
         <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 shadow-elevated">
           {!vehicle.enabled && (
             <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
-              <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+              <WarningCircle size={16} className="text-warning shrink-0 mt-0.5" weight="regular" />
               <p className="text-xs text-warning">{t('vehiculo.unavailableNotice')}</p>
+            </div>
+          )}
+          {isOwnVehicle && (
+            <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
+              {/* <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" /> */}
+              <p className="text-xs text-warning">{t('vehiculo.ownNotice')}</p>
             </div>
           )}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wider text-text-muted">Tarifa</p>
-              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.price(vehicle.basePrice)}</p>
+              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(vehicle.basePriceCents)}</p>
               <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
             </div>
-            <Button size="lg" disabled={!vehicle.enabled} className="shrink-0">
-              {vehicle.enabled ? t('vehiculo.reservar') : t('vehiculo.noDisponible')}
-            </Button>
+            {!vehicle.enabled ? (
+              <Button size="lg" disabled className="shrink-0">
+                {t('vehiculo.noDisponible')}
+              </Button>
+            ) : isOwnVehicle ? (
+              <Button size="lg" disabled className="shrink-0">
+                {t('vehiculo.esMio')}
+              </Button>
+            ) : (
+              <Link
+                to="/vehiculos/$id/reservar"
+                params={{ id: vehicle.id }}
+                className="shrink-0"
+                onClick={handleReservarClick}
+              >
+                <Button size="lg">{t('vehiculo.reservar')}</Button>
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Características principales */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col items-center gap-1 rounded-xl bg-surface-2 py-3">
-            <Settings className="h-5 w-5 text-brand-400" />
+            <Gear size={20} className="text-brand-400" weight="regular" />
             <span className="text-xs text-text-muted text-center">{vehicle.transmission}</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl bg-surface-2 py-3">
-            <Users className="h-5 w-5 text-brand-400" />
+            <Users size={20} className="text-brand-400" weight="regular" />
             <span className="text-xs text-text-muted">{vehicle.passengers} asientos</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-xl bg-surface-2 py-3">
-            <Shield className="h-5 w-5 text-brand-400" />
+            <Shield size={20} className="text-brand-400" weight="regular" />
             <span className="text-xs text-text-muted">{vehicle.isAccessible ? 'Accesible' : 'Estándar'}</span>
           </div>
         </div>
@@ -175,21 +227,21 @@ export function VehiculoDetailPage() {
         {/* Datos técnicos */}
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-3">
-            <Gauge className="h-4 w-4 text-text-muted shrink-0" />
+            <Gauge size={16} className="text-text-muted shrink-0" weight="regular" />
             <div>
               <p className="text-[10px] text-text-muted">Kilometraje</p>
               <p className="text-sm font-semibold text-text-primary">{vehicle.mileage.toLocaleString('es-AR')} km</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-3">
-            <Box className="h-4 w-4 text-text-muted shrink-0" />
+            <Cube size={16} className="text-text-muted shrink-0" weight="regular" />
             <div>
               <p className="text-[10px] text-text-muted">Maletero</p>
               <p className="text-sm font-semibold text-text-primary">{vehicle.trunkLiters} L</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-3 col-span-2">
-            <Calendar className="h-4 w-4 text-text-muted shrink-0" />
+            <Calendar size={16} className="text-text-muted shrink-0" weight="regular" />
             <div>
               <p className="text-[10px] text-text-muted">Disponible desde</p>
               <p className="text-sm font-semibold text-text-primary">{fmt.dateShort(vehicle.availableFrom)}</p>
@@ -221,6 +273,62 @@ export function VehiculoDetailPage() {
           </>
         )}
 
+        <Separator />
+        <div>
+          <p className="text-sm text-text-muted mb-2">{t('vehiculo.rules')}</p>
+          {vehicle.reservationRuleSet ? (
+            <div className="overflow-hidden rounded-2xl border border-white/8 bg-surface-1">
+              <div className="border-b border-white/8 px-4 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wider text-text-muted">Set de reglas</p>
+                  </div>
+                  <Badge variant="secondary">{t('vehiculo.rulesActive')}</Badge>
+                </div>
+              </div>
+              <div className="grid gap-3 p-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.cancellationPolicy')}</p>
+                  <p className="mt-1 text-sm font-semibold text-text-primary">
+                    {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
+                  </p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.deposit')}</p>
+                  <p className="mt-1 text-sm font-semibold text-text-primary">
+                    {getDepositLabel(vehicle.reservationRuleSet.deposit)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.maxKilometrage')}</p>
+                  <p className="mt-1 text-sm font-semibold text-text-primary">
+                    {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-surface-2 p-3">
+                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.rentalTime')}</p>
+                  <p className="mt-1 text-sm font-semibold text-text-primary">
+                    {formatRentalTimeConstraints(vehicle.reservationRuleSet.rentalTimeConstraints)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : vehicle.reservationRuleSetId ? (
+            <div className="rounded-2xl border border-warning/20 bg-warning/10 px-4 py-4">
+              <p className="text-sm font-medium text-warning">{t('vehiculo.rulesUnavailableTitle')}</p>
+              <p className="mt-1 text-sm text-warning/90">{t('vehiculo.rulesUnavailableDesc')}</p>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/8 bg-surface-2 px-4 py-4">
+              <p className="text-sm font-medium text-text-primary">{t('vehiculo.rulesEmptyTitle')}</p>
+              <p className="mt-1 text-sm text-text-secondary">{t('vehiculo.rulesEmptyDesc')}</p>
+            </div>
+          )}
+        </div>
+
         {vehicle.owner && (
           <>
             <Separator />
@@ -241,12 +349,12 @@ export function VehiculoDetailPage() {
                   <div className="flex items-center gap-1.5">
                     <p className="font-semibold text-text-primary truncate">{vehicle.owner.name}</p>
                     {vehicle.owner.verified && (
-                      <BadgeCheck className="h-4 w-4 text-success shrink-0" aria-label="Verificado" />
+                      <CheckCircle size={16} className="text-success shrink-0" weight="fill" aria-label="Verificado" />
                     )}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-text-muted">
                     <span className="flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5 fill-warning text-warning" />
+                      <Star size={14} className="text-warning" weight="fill" />
                       {fmt.rating(vehicle.owner.reputationScore)}
                     </span>
                     <Badge variant="default">
@@ -254,19 +362,19 @@ export function VehiculoDetailPage() {
                     </Badge>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-text-muted shrink-0" aria-hidden="true" />
+                <CaretRight size={16} className="text-text-muted shrink-0" weight="regular" aria-hidden="true" />
               </Link>
             </div>
           </>
         )}
 
-        {/* Reseñas del vehículo (empty state — datos llegan en Sprint 5 con US-38) */}
+        {/* Reseñas del vehículo (empty state hasta que exista el módulo de reviews) */}
         <Separator />
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-text-muted">{t('vehiculo.reviewsTitle')}</p>
             <div className="flex items-center gap-1.5 text-xs text-text-muted">
-              <Star className="h-3.5 w-3.5 text-text-muted" />
+              <Star size={14} className="text-text-muted" weight="regular" />
               <span>0.0</span>
               <span>·</span>
               <span>{t('vehiculo.reviewsCount').replace('{count}', '0')}</span>
@@ -274,7 +382,7 @@ export function VehiculoDetailPage() {
           </div>
           <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
-              <MessageSquare className="h-5 w-5 text-text-muted" />
+              <ChatCircleText size={20} className="text-text-muted" weight="regular" />
             </div>
             <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
             <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>

@@ -10,14 +10,24 @@ import type {
 
 export type { UpdateVehicleRequest }
 
-const parseVehicle = (input: unknown): GetVehicleResponse => GetVehicleResponseSchema.parse(input)
+const parseVehicle  = (input: unknown): GetVehicleResponse   => GetVehicleResponseSchema.parse(input)
 const parseVehicles = (input: unknown): GetVehicleResponse[] => GetVehicleResponseSchema.array().parse(input)
 
-const buildCharacteristicsQuery = (characteristics?: Characteristic[]) => {
-  if (!characteristics || characteristics.length === 0) return ''
+interface GetAllParams {
+  city?: string
+  characteristics?: Characteristic[]
+  from?: string
+  to?: string
+}
+
+const buildVehicleQuery = ({ city, characteristics, from, to }: GetAllParams): string => {
   const params = new URLSearchParams()
-  params.set('characteristics', characteristics.join(','))
-  return `?${params.toString()}`
+  if (city) params.set('city', city)
+  if (characteristics && characteristics.length > 0) params.set('characteristics', characteristics.join(','))
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const qs = params.toString()
+  return qs ? `?${qs}` : ''
 }
 
 export const vehiclesApi = {
@@ -25,15 +35,15 @@ export const vehiclesApi = {
     return apiClient.post<CreateVehicleResponse>('/vehicle', data)
   },
 
-  async getAll(characteristics?: Characteristic[]): Promise<GetVehicleResponse[]> {
-    const query = buildCharacteristicsQuery(characteristics)
+  async getAll(params: GetAllParams = {}): Promise<GetVehicleResponse[]> {
+    const query = buildVehicleQuery(params)
     const res = await apiClient.get<unknown>(`/vehicle${query}`)
     return parseVehicles(res)
   },
 
   async getByOwnerId(ownerId: string): Promise<GetVehicleResponse[]> {
-    const params = new URLSearchParams({ ownerId })
-    const res = await apiClient.get<unknown>(`/vehicle?${params.toString()}`)
+    const p = new URLSearchParams({ ownerId })
+    const res = await apiClient.get<unknown>(`/vehicle?${p.toString()}`)
     return parseVehicles(res)
   },
 

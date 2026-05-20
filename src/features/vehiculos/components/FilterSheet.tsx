@@ -54,9 +54,9 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-overlay-in" onClick={onClose} />
 
-      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-0 border-t border-white/8 max-h-[85svh] flex flex-col">
+      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-0 border-t border-white/8 max-h-[85svh] flex flex-col animate-slide-up">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
@@ -178,6 +178,40 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
                 />
               </div>
             </div>
+          </section>
+
+          {/* Baúl mínimo */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.trunk')}
+            </p>
+            <div>
+              <label className="text-xs text-text-muted mb-1 block">Litros mínimos</label>
+              <input
+                type="number" min={0} placeholder="0"
+                value={localFilters.minTrunk ?? ''}
+                onChange={e => set('minTrunk', e.target.value ? Number(e.target.value) : null)}
+                className="w-full h-10 rounded-xl bg-surface-1 border border-white/8 px-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+              />
+            </div>
+          </section>
+
+          {/* Accesibilidad */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('buscar.filter.accessibility')}
+            </p>
+            <button
+              onClick={() => set('isAccessible', localFilters.isAccessible ? undefined : true)}
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                localFilters.isAccessible
+                  ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
+                  : 'bg-surface-1 text-text-secondary border-white/10',
+              )}
+            >
+              Apto discapacitados
+            </button>
           </section>
 
           {/* Características */}

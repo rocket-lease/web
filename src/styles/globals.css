@@ -62,60 +62,82 @@
   --shadow-brand:    0 8px 24px rgba(124, 58, 237, 0.35);  /* solo en flotantes */
 }
 
-/* ─── Base reset ─── */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+/*
+ * Base resets de elementos. DEBEN estar envueltos en `@layer base` para que
+ * las utilities de Tailwind (que viven en `@layer utilities`) puedan
+ * overridearlos. Sin layer, este bloque queda "unlayered" y gana sobre
+ * cualquier utility — por ejemplo `<p class="mb-4">` no recibe el margen
+ * porque `p { margin: 0 }` lo pisa.
+ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
 
-html {
-  font-family: var(--font-sans);
-  background-color: var(--color-surface-0);
-  color: var(--color-text-primary);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
-  touch-action: manipulation;
-}
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-surface-0);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-body {
-  margin: 0;
-  overscroll-behavior-y: contain;
-}
+  input, textarea, select {
+    -webkit-appearance: none;
+  }
 
-#root {
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-}
+  body {
+    margin: 0;
+    overscroll-behavior-y: contain;
+  }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-surface-4); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-brand-500); }
+  #root {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* ─── Headings ─── */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-text-primary);
-  margin: 0;
-}
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-surface-4); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-500); }
 
-p { margin: 0; }
-a { color: inherit; text-decoration: none; }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
 
-/* ─── Focus ring ─── */
-:focus-visible {
-  outline: 2px solid var(--color-brand-500);
-  outline-offset: 2px;
+  p { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
 }
 
 /* ─── Safe area helpers ─── */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ─── Bottom sheet ─── */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-slide-up  { animation: slideUp  300ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.animate-overlay-in { animation: overlayIn 200ms ease-out both; }
 
 /* ─── Page transitions ─── */
 [data-status="entering"] {
@@ -154,4 +176,23 @@ a { color: inherit; text-decoration: none; }
 /* ─── Floating shadow (brand violet, solo en FAB / modales / tooltips) ─── */
 .shadow-brand {
   box-shadow: var(--shadow-brand);
+}
+
+/* ─── Checkbox ─── */
+.checkbox-brand {
+  appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.3rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-surface-2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.checkbox-brand:checked {
+  background: var(--color-brand-500);
+  border-color: var(--color-brand-500);
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+  background-size: 100%;
 }

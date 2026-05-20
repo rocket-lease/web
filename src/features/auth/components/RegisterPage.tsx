@@ -1,14 +1,21 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from '@tanstack/react-router'
-import { User, Envelope, Lock, Phone, IdentificationCard } from '@phosphor-icons/react'
+import { useNavigate } from '@tanstack/react-router'
+import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
-import type { ProblemDetails } from '../types'
+import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
+
+function formatDni(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, digits.length - 3)}.${digits.slice(-3)}`
+  return `${digits.slice(0, digits.length - 6)}.${digits.slice(-6, -3)}.${digits.slice(-3)}`
+}
 
 // Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
 const schema = z
@@ -55,13 +62,27 @@ export function RegisterPage() {
       navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
     } catch (err) {
       const problem = err as ProblemDetails
-      const msg = problem?.detail ?? t('error.default')
-      toast.error(msg)
+      if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
+        toast.info(t('auth.register.pendingVerification'))
+        navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+      } else if (problem?.code === ErrorCodes.ENTITY_ALREADY_EXISTS) {
+        toast.error(t('auth.register.emailTaken'))
+      } else {
+        toast.error(t('error.default'))
+      }
     }
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5 py-12">
+    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+      <button
+        onClick={() => window.history.back()}
+        aria-label="Volver"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary transition-colors hover:text-text-primary active:scale-[0.97]"
+      >
+        <CaretLeft size={20} />
+      </button>
+      <div className="flex flex-1 flex-col items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
           <img src="/logo-symbol.png" alt="Rocket Lease" className="h-16 w-auto" />
@@ -77,6 +98,8 @@ export function RegisterPage() {
               </label>
               <Input
                 autoComplete="name"
+                autoFocus
+                enterKeyHint="next"
                 leftIcon={<User size={16} />}
                 placeholder="Ana García"
                 error={errors.name?.message}
@@ -91,6 +114,7 @@ export function RegisterPage() {
               <Input
                 type="email"
                 autoComplete="email"
+                enterKeyHint="next"
                 leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
@@ -105,10 +129,20 @@ export function RegisterPage() {
               <Input
                 inputMode="numeric"
                 autoComplete="off"
+                enterKeyHint="next"
                 leftIcon={<IdentificationCard size={16} />}
                 placeholder="12.345.678"
                 error={errors.dni?.message}
-                {...register('dni')}
+                {...(() => {
+                  const { onChange, ...rest } = register('dni')
+                  return {
+                    ...rest,
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      e.target.value = formatDni(e.target.value)
+                      return onChange(e)
+                    },
+                  }
+                })()}
               />
             </div>
 
@@ -119,6 +153,7 @@ export function RegisterPage() {
               <Input
                 type="tel"
                 autoComplete="tel"
+                enterKeyHint="next"
                 leftIcon={<Phone size={16} />}
                 placeholder="+54 9 11 1234-5678"
                 error={errors.phone?.message}
@@ -133,6 +168,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
+                enterKeyHint="next"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}
@@ -147,6 +183,7 @@ export function RegisterPage() {
               <Input
                 type="password"
                 autoComplete="new-password"
+                enterKeyHint="done"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.confirmPassword?.message}
@@ -162,10 +199,14 @@ export function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-text-muted">
           {t('auth.register.hasAccount')}{' '}
-          <Link to="/login" className="font-semibold text-brand-400 hover:text-brand-300">
+          <button
+            onClick={() => navigate({ to: '/login', replace: true })}
+            className="font-semibold text-brand-400 hover:text-brand-300 transition-colors"
+          >
             {t('auth.register.login')}
-          </Link>
+          </button>
         </p>
+      </div>
       </div>
     </div>
   )

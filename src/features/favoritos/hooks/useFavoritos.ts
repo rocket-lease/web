@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { favoritosApi } from '../api/favoritos.api'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import type { FavoritoItem } from '../types'
+import type { FavoriteItem } from '@rocket-lease/contracts'
 
 export function useFavoritos() {
   const { isAuthenticated } = useAuth()
-  return useQuery<FavoritoItem[]>({
+  return useQuery<FavoriteItem[]>({
     queryKey: ['favoritos', 'list'],
     queryFn: favoritosApi.list,
     enabled: isAuthenticated,

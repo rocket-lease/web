@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Mail, Phone, CheckCircle, Rocket } from 'lucide-react'
+import { Mail, Phone, CheckCircle, Rocket, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -8,7 +8,7 @@ import { authApi } from '../api/auth.api'
 import type {
   VerificationChannel,
   VerificationStatusResponse,
-} from '../types'
+} from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 
 const RESEND_COOLDOWN_SECONDS = 30
@@ -97,7 +97,14 @@ export function VerificarPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-surface-0 px-5 py-12">
+    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+      <button
+        onClick={() => window.history.back()}
+        aria-label="Volver"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary transition-colors hover:text-text-primary active:scale-[0.97]"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
       <div className="w-full max-w-md mx-auto">
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-elevated">
@@ -153,6 +160,7 @@ function ChannelCard({
   const [cooldown, setCooldown] = useState(0)
   const [resending, setResending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [failCount, setFailCount] = useState(0)
   const interval = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -176,7 +184,7 @@ function ChannelCard({
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!/^\d{6}$/.test(code)) {
-      setErrorMessage(t('auth.verify.error.incorrect'))
+      setErrorMessage(t('auth.verify.error.format'))
       return
     }
     setSubmitting(true)
@@ -190,7 +198,13 @@ function ChannelCard({
       toast.success(t('auth.verify.success'))
       onVerified()
     } catch {
-      setErrorMessage(t('auth.verify.error.incorrect'))
+      const newFailCount = failCount + 1
+      setFailCount(newFailCount)
+      if (newFailCount >= 3) {
+        setErrorMessage(t('auth.verify.error.maxAttempts'))
+      } else {
+        setErrorMessage(t('auth.verify.error.incorrect'))
+      }
       setCode('')
     } finally {
       setSubmitting(false)
@@ -205,6 +219,7 @@ function ChannelCard({
       setCooldown(RESEND_COOLDOWN_SECONDS)
       setErrorMessage(null)
       setCode('')
+      setFailCount(0)
       toast.success(t('auth.verify.sent'))
     } catch {
       toast.error(t('error.default'))
@@ -259,7 +274,7 @@ function ChannelCard({
 
         <Button
           type="submit"
-          disabled={submitting || code.length !== 6}
+          disabled={submitting || code.length !== 6 || failCount >= 3}
           size="lg"
           className="w-full"
         >

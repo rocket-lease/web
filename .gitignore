@@ -27,3 +27,5 @@ dist-ssr
 .env.production
 package.json
 pnpm-workspace.yaml
+coverage
+.gemini/*   
