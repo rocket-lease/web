@@ -74,7 +74,7 @@ export const es = {  // --- App ---
 
   // --- Buscar ---
   'buscar.title': 'Buscar vehiculos',
-  'buscar.placeholder': 'Ciudad, zona o direccion...',
+  'buscar.placeholder': 'Marca o modelo...',
   'buscar.filters': 'Filtros',
   'buscar.filtersTitle': 'Filtrar vehiculos',
   'buscar.results': 'resultados',
