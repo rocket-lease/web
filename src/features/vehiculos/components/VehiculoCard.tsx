@@ -93,6 +93,11 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             <span>{vehiculo.city}, {vehiculo.province}</span>
           </div>
 
+          {/* Rentador */}
+          {vehiculo.owner?.name && (
+            <span className="text-xs text-text-muted">por {vehiculo.owner.name}</span>
+          )}
+
           {/* Precio */}
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>

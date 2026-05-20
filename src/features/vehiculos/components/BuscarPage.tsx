@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
+import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import type { SortCriteria, VehiculoFilters } from '../types'
 import { vehiclesApi } from '../api/vehiculos.api'
@@ -24,19 +25,24 @@ export function BuscarPage() {
 
   const serverCharacteristics = filters.characteristics ?? []
   const { data: vehicles = [], isLoading, isError } = useQuery({
-    queryKey: ['vehicles', serverCharacteristics],
-    queryFn: () => vehiclesApi.getAll(serverCharacteristics),
+    queryKey: ['vehicles', serverCharacteristics, filters.fechaDesde, filters.fechaHasta],
+    queryFn: () => vehiclesApi.getAll({
+      characteristics: serverCharacteristics,
+      from: filters.fechaDesde ?? undefined,
+      to: filters.fechaHasta ?? undefined,
+    }),
   })
 
   useEffect(() => {
     if (!profile || hasAppliedPreferences.current) return
 
     const pref = profile.preferences.transmission
+    const accessibilityPref = profile.preferences.accessibility
     setFilters((current) => ({
       ...current,
       transmission: pref === 'manual' ? 'Manual' : pref === 'automatic' ? 'Automatico' : undefined,
-      maxPriceDaily: profile.preferences.maxPriceDaily,
-      accessibility: profile.preferences.accessibility,
+      maxPrice: profile.preferences.maxPriceDaily ?? undefined,
+      isAccessible: accessibilityPref.length > 0 ? true : undefined,
     }))
     hasAppliedPreferences.current = true
   }, [profile])
@@ -52,6 +58,8 @@ export function BuscarPage() {
     if (filters.minSeats != null && v.passengers < filters.minSeats) return false
     if (filters.minYear  != null && v.year < filters.minYear) return false
     if (filters.maxYear  != null && v.year > filters.maxYear) return false
+    if (filters.isAccessible && !v.isAccessible) return false
+    if (filters.minTrunk != null && v.trunkLiters < filters.minTrunk) return false
     return true
   })
 
@@ -69,6 +77,9 @@ export function BuscarPage() {
     filters.minYear,
     filters.maxYear,
     filters.characteristics?.length ? filters.characteristics : null,
+    filters.fechaDesde ?? null,
+    filters.isAccessible || null,
+    filters.minTrunk ?? null,
   ].filter(v => v != null).length
 
   const handleApply = (newFilters: VehiculoFilters, sort: SortCriteria) => {
@@ -124,6 +135,16 @@ export function BuscarPage() {
           </button>
         </div>
 
+        {/* Selector de fechas */}
+        <div className="mt-3">
+          <DateRangeSheet
+            value={{ from: filters.fechaDesde, to: filters.fechaHasta }}
+            onApply={({ from, to }) => setFilters(f => ({ ...f, fechaDesde: from, fechaHasta: to }))}
+            placeholder={t('buscar.filter.dates')}
+            title={t('buscar.filter.dates')}
+          />
+        </div>
+
         {/* Chips de filtro */}
         <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
           {FILTER_CHIPS.map(chip => {
@@ -171,7 +192,11 @@ export function BuscarPage() {
                 <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
                 <div>
                   <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-                  <p className="text-xs text-text-muted mt-1">{t('buscar.noResultsHint')}</p>
+                  <p className="text-xs text-text-muted mt-1">
+                    {filters.fechaDesde ?? filters.fechaHasta
+                      ? t('buscar.noResultsDatesHint')
+                      : t('buscar.noResultsHint')}
+                  </p>
                 </div>
                 {Object.values(filters).some(Boolean) && (
                   <button

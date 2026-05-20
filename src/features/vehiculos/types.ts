@@ -5,11 +5,11 @@ export interface VehiculoFilters {
   transmission?: GetVehicleResponse['transmission'] | null
   minPrice?: number | null
   maxPrice?: number | null
-  maxPriceDaily?: number | null
   minSeats?: number | null
   minYear?: number | null
   maxYear?: number | null
-  accessibility?: string[]
+  isAccessible?: boolean
+  minTrunk?: number | null
   characteristics?: Characteristic[]
   fechaDesde?: string
   fechaHasta?: string
