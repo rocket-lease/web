@@ -66,6 +66,8 @@ export const es = {  // --- App ---
   'auth.verify.success': 'Verificado correctamente',
   'auth.verify.verified': 'Verificado',
   'auth.verify.error.incorrect': 'Codigo incorrecto',
+  'auth.verify.error.format': 'El código debe ser de 6 dígitos numéricos',
+  'auth.verify.error.maxAttempts': 'Alcanzaste el máximo de intentos. Solicitá un nuevo código.',
   'auth.verify.banner': 'Tu cuenta no esta verificada',
   'auth.verify.banner.cta': 'Verificar',
 
@@ -87,6 +89,9 @@ export const es = {  // --- App ---
   'buscar.filter.apply': 'Aplicar filtros',
   'buscar.filter.clear': 'Limpiar filtros',
   'buscar.noResultsHint': 'Probá con otra búsqueda o ajustá los filtros',
+  'buscar.noResultsDatesHint': 'Probá ampliar el rango de fechas',
+  'buscar.filter.dates': 'Fechas de alquiler',
+  'buscar.filter.trunk': 'Baúl mínimo (litros)',
   'buscar.error': 'Error al cargar los vehículos',
   'buscar.location.city': 'Buenos Aires',
   'buscar.featuredIn': 'Destacados cerca tuyo',
@@ -454,7 +459,8 @@ export const es = {  // --- App ---
   'favoritos.add': 'Agregar a favoritos',
   'favoritos.remove': 'Quitar de favoritos',
   'favoritos.toast.added': 'Agregado a favoritos',
-  'favoritos.toast.removed': 'Quitado de favoritos',
+  'favoritos.toast.removed': 'Eliminado de favoritos',
+  'favoritos.toast.undo': 'Deshacer',
   'favoritos.toast.error': 'No pudimos actualizar tus favoritos',
 
   // --- Soporte / FAQ ---
