@@ -193,18 +193,23 @@ export function BuscarPage() {
           </div>
         ) : (
           <>
-            <p className="text-xs text-text-muted mb-4">
-              <span className="font-semibold text-text-primary">{sorted.length}</span>{' '}
-              {t('buscar.results')}
+            <div className="flex items-center gap-2 mb-4">
+              <p className="text-xs text-text-muted">
+                <span className="font-semibold text-text-primary">{sorted.length}</span>{' '}
+                {t('buscar.results')}
+              </p>
               {activeFiltersCount > 0 && (
-                <button
-                  onClick={() => { setFilters({}); setSortBy('price_asc') }}
-                  className="ml-2 text-client font-semibold"
-                >
-                  · {t('buscar.filter.clearAll')}
-                </button>
+                <>
+                  <span className="text-xs text-text-muted">·</span>
+                  <button
+                    onClick={() => { setFilters({}); setSortBy('price_asc') }}
+                    className="text-xs text-client font-semibold"
+                  >
+                    {t('buscar.filter.clearAll')}
+                  </button>
+                </>
               )}
-            </p>
+            </div>
 
             {sorted.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
