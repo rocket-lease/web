@@ -12,6 +12,7 @@ import { Separator } from '@/ui/separator'
 import { Skeleton } from '@/ui/skeleton'
 import { useConfirmPickup } from '../hooks/useConfirmPickup'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useNavigate } from '@tanstack/react-router'
 
 export function VoucherVerifyPage() {
   const { token } = useParams({ strict: false })
@@ -25,11 +26,13 @@ export function VoucherVerifyPage() {
 
   const confirmPickup = useConfirmPickup(voucher?.reservationId ?? '')
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const goHome = () => navigate({ to: '/dashboard' })
 
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
-        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack />
+        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack onBack={goHome} />
         <div className="flex-1 p-4 space-y-4">
           <Skeleton className="h-24 w-full rounded-2xl" />
           <div className="card p-4 space-y-4">
@@ -56,7 +59,7 @@ export function VoucherVerifyPage() {
   if (isError || !voucher) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
-        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack />
+        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack onBack={goHome} />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
           <XCircle className="h-16 w-16 text-danger" weight="fill" />
           <h2 className="text-xl font-bold text-text-primary">{t('reservas.voucher.invalidTitle')}</h2>
