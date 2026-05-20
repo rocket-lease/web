@@ -67,12 +67,22 @@ export function useToggleFavorito() {
       return
     }
     if (isFavorito) {
-      toast.success(t('favoritos.toast.removed'))
       removeMutation.mutate(vehicleId, {
         onError: (err) => {
           const status = (err as { status?: number })?.status
           if (status !== 404) toast.error(t('favoritos.toast.error'))
         },
+      })
+      toast(t('favoritos.toast.removed'), {
+        action: {
+          label: t('favoritos.toast.undo'),
+          onClick: () => {
+            favoritosApi.add(vehicleId).then(() => {
+              queryClient.invalidateQueries({ queryKey: ['favoritos', 'list'] })
+            })
+          },
+        },
+        duration: 4000,
       })
     } else {
       toast.success(t('favoritos.toast.added'))
