@@ -75,7 +75,7 @@ export function VoucherVerifyPage() {
 
   return (
     <div className="flex flex-col min-h-dvh bg-surface-0">
-      <PageHeader title={t('reservas.voucher.verifyTitle')} showBack />
+      <PageHeader title={t('reservas.voucher.verifyTitle')} showBack onBack={goHome} />
 
       <div className="flex-1 p-4 pb-36 space-y-4">
         {(confirmPickup.isSuccess || isAlreadyInProgress) && (
