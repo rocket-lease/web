@@ -84,10 +84,10 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
   return (
     <>
       <div
-        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-overlay-in"
         onClick={() => onOpenChange(false)}
       />
-      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 max-h-[85svh] flex flex-col">
+      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 max-h-[85svh] flex flex-col animate-slide-up">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
           <p className="font-semibold text-text-primary">{t('reservationRules.createNew')}</p>
           <button
