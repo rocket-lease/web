@@ -25,6 +25,7 @@ import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/_app/configuracion'
 import { Route as AppBuscarRouteImport } from './routes/_app/buscar'
 import { Route as VoucherVerifyTokenRouteImport } from './routes/voucher.verify.$token'
+import { Route as VoucherReturnTokenRouteImport } from './routes/voucher.return.$token'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
 import { Route as AppReservasIdRouteImport } from './routes/_app/reservas_.$id'
 import { Route as AppReservasTransferenciaIdRouteImport } from './routes/_app/reservas-transferencia.$id'
@@ -114,6 +115,11 @@ const VoucherVerifyTokenRoute = VoucherVerifyTokenRouteImport.update({
   path: '/voucher/verify/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VoucherReturnTokenRoute = VoucherReturnTokenRouteImport.update({
+  id: '/voucher/return/$token',
+  path: '/voucher/return/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppVehiculosIdRoute = AppVehiculosIdRouteImport.update({
   id: '/vehiculos/$id',
   path: '/vehiculos/$id',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/_app/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/_app/reservas_/$id': typeof AppReservasIdRoute
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
+  '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/_app/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/_app/vehiculos/$id_/reservar': typeof AppVehiculosIdReservarRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
     | '/vehiculos/$id'
+    | '/voucher/return/$token'
     | '/voucher/verify/$token'
     | '/reservas/$id/pago'
     | '/vehiculos/$id/reservar'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
     | '/vehiculos/$id'
+    | '/voucher/return/$token'
     | '/voucher/verify/$token'
     | '/reservas/$id/pago'
     | '/vehiculos/$id/reservar'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/_app/reservas-transferencia/$id'
     | '/_app/reservas_/$id'
     | '/_app/vehiculos/$id'
+    | '/voucher/return/$token'
     | '/voucher/verify/$token'
     | '/_app/reservas/$id/pago'
     | '/_app/vehiculos/$id_/reservar'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   RecuperarRoute: typeof RecuperarRoute
   RegistroRoute: typeof RegistroRoute
   VerificarRoute: typeof VerificarRoute
+  VoucherReturnTokenRoute: typeof VoucherReturnTokenRoute
   VoucherVerifyTokenRoute: typeof VoucherVerifyTokenRoute
 }
 
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/voucher/verify/$token'
       fullPath: '/voucher/verify/$token'
       preLoaderRoute: typeof VoucherVerifyTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/voucher/return/$token': {
+      id: '/voucher/return/$token'
+      path: '/voucher/return/$token'
+      fullPath: '/voucher/return/$token'
+      preLoaderRoute: typeof VoucherReturnTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/vehiculos/$id': {
@@ -584,6 +604,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecuperarRoute: RecuperarRoute,
   RegistroRoute: RegistroRoute,
   VerificarRoute: VerificarRoute,
+  VoucherReturnTokenRoute: VoucherReturnTokenRoute,
   VoucherVerifyTokenRoute: VoucherVerifyTokenRoute,
 }
 export const routeTree = rootRouteImport

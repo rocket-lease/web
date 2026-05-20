@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Gear, Users, MapPin } from '@phosphor-icons/react'
+import { Gear, Users, MapPin, Lightning } from '@phosphor-icons/react'
 import { Badge } from '@/ui/badge'
 import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
@@ -61,6 +61,14 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
           {vehiculo.isAccessible && (
             <div className="absolute left-2 bottom-2">
               <Badge variant="secondary" className="text-[10px]">Accesible</Badge>
+            </div>
+          )}
+          {vehiculo.autoAccept && (
+            <div className="absolute right-2 bottom-2">
+              <span className="flex items-center gap-1 rounded-full bg-owner/90 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-black">
+                <Lightning size={10} weight="fill" />
+                {t('vehiculo.instantBook')}
+              </span>
             </div>
           )}
         </div>

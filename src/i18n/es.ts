@@ -393,6 +393,7 @@ export const es = {  // --- App ---
   'perfil.form.accessibility': 'Accesibilidad (separado por coma)',
   'perfil.saveSuccess': 'Perfil actualizado',
   'perfil.saving': 'Guardando...',
+  'vehiculo.instantBook': 'Reserva inmediata',
   'perfil.autoAccept.label': 'Auto-aceptar reservas en todos mis vehículos',
   'perfil.autoAccept.descripcion': 'Las nuevas reservas se confirman automáticamente sin tu revisión. Podés sobrescribir esta config por vehículo.',
 
