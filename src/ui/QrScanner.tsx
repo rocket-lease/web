@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { Button } from '@/ui/button'
 import { t } from '@/i18n/es'
@@ -16,7 +16,7 @@ export function QrScanner({ onScan }: QrScannerProps) {
   const containerId = 'qr-scanner-container'
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const onScanRef = useRef(onScan)
-  onScanRef.current = onScan
+  useLayoutEffect(() => { onScanRef.current = onScan })
   const [fallback, setFallback] = useState(false)
   const [manualCode, setManualCode] = useState('')
   const [cameraError, setCameraError] = useState(false)
