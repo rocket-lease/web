@@ -443,7 +443,8 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    QRCode.toDataURL(returnQrToken, { width: 200, margin: 1 })
+    const url = `${window.location.origin}/voucher/return/${returnQrToken}`
+    QRCode.toDataURL(url, { width: 200, margin: 1 })
       .then(setQrDataUrl)
       .catch(console.error)
   }, [returnQrToken])
