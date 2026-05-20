@@ -443,7 +443,8 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    QRCode.toDataURL(returnQrToken, { width: 200, margin: 1 })
+    const url = `${window.location.origin}/voucher/return/${returnQrToken}`
+    QRCode.toDataURL(url, { width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
       .then(setQrDataUrl)
       .catch(console.error)
   }, [returnQrToken])
@@ -452,7 +453,9 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
     <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 flex flex-col items-center gap-3">
       <p className="font-semibold text-text-primary">{t('reservas.devolucion.qrTitle')}</p>
       {qrDataUrl && (
-        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="rounded-xl w-48 h-48" />
+        <div className="h-48 w-48 rounded-2xl bg-white flex items-center justify-center overflow-hidden border border-white/6 p-2">
+          <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="w-full h-full object-contain mix-blend-multiply" />
+        </div>
       )}
       <p className="text-xs text-text-muted text-center">{t('reservas.devolucion.qrHelp')}</p>
     </div>
@@ -469,22 +472,23 @@ interface ScannerModalProps {
 function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps) {
   useLockBodyScroll()
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <>
       <div
-        className="w-full max-w-sm rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-8 space-y-4"
+        className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-overlay-in"
+        onClick={onClose}
+      />
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-[max(2rem,env(safe-area-inset-bottom))] space-y-4 animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <p className="font-semibold text-text-primary">{title}</p>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary"
             aria-label={t('reservas.qr.cancelar')}
           >
-            <PhosphorX className="h-5 w-5" weight="bold" />
+            <PhosphorX className="h-4 w-4" weight="bold" />
           </button>
         </div>
         {submitting ? (
@@ -493,7 +497,7 @@ function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps)
           <QrScanner onScan={onScan} />
         )}
       </div>
-    </div>
+    </>
   )
 }
 
