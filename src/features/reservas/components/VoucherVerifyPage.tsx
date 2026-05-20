@@ -140,7 +140,7 @@ function ReservationDetails({ voucher }: { voucher: VerifyVoucherResponse }) {
       <div className="flex items-center gap-3">
         <Car className="h-5 w-5 text-text-muted" />
         <div>
-          <p className="text-xs text-text-muted">{t('vehiculo.esMio')}</p>
+          <p className="text-xs text-text-muted">{t('vehiculo.label')}</p>
           <p className="font-medium text-text-primary">
             {voucher.vehicle.brand} {voucher.vehicle.model}
           </p>

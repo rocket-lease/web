@@ -146,6 +146,7 @@ export const es = {  // --- App ---
   'vehiculo.unavailableNotice': 'Este vehículo no está disponible en este momento.',
   'vehiculo.ownNotice': 'No podés reservar tu propio vehículo.',
   'vehiculo.esMio': 'Es tu vehículo',
+  'vehiculo.label': 'Vehículo',
   'vehiculo.description': 'Descripcion',
   'vehiculo.features': 'Caracteristicas',
   'vehiculo.rules': 'Condiciones',
