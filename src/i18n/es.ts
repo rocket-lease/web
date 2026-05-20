@@ -216,7 +216,7 @@ export const es = {  // --- App ---
   'reservas.estado.expired': 'Expirada',
   'reservas.detail.title': 'Detalle de reserva',
   'reservas.detail.voucher': 'Voucher QR',
-  'reservas.detail.voucherHelp': 'Presenta este codigo al retirar y devolver el vehiculo',
+  'reservas.detail.voucherHelp': 'Mostrá este código al rentador para retirar el vehículo.',
   'reservas.detail.cancel': 'Cancelar reserva',
   'reservas.detail.dispute': 'Reportar problema',
   'reservas.detail.dates': 'Fechas',

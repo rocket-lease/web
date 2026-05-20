@@ -58,7 +58,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     rejectionReason,
     voucherToken,
   } = reservation
-  const showVoucher = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
+  const showVoucher = status === RESERVATION_STATUS.confirmed
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
