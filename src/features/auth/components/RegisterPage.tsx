@@ -10,6 +10,13 @@ import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
 import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
 
+function formatDni(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, digits.length - 3)}.${digits.slice(-3)}`
+  return `${digits.slice(0, digits.length - 6)}.${digits.slice(-6, -3)}.${digits.slice(-3)}`
+}
+
 // Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
 const schema = z
   .object({
@@ -126,7 +133,16 @@ export function RegisterPage() {
                 leftIcon={<IdentificationCard size={16} />}
                 placeholder="12.345.678"
                 error={errors.dni?.message}
-                {...register('dni')}
+                {...(() => {
+                  const { onChange, ...rest } = register('dni')
+                  return {
+                    ...rest,
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      e.target.value = formatDni(e.target.value)
+                      return onChange(e)
+                    },
+                  }
+                })()}
               />
             </div>
 
