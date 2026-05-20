@@ -11,6 +11,7 @@ import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { Skeleton } from '@/ui/skeleton'
 import { useConfirmPickup } from '../hooks/useConfirmPickup'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
 export function VoucherVerifyPage() {
   const { token } = useParams({ strict: false })
@@ -23,6 +24,7 @@ export function VoucherVerifyPage() {
   })
 
   const confirmPickup = useConfirmPickup(voucher?.reservationId ?? '')
+  const { user } = useAuth()
 
   if (isLoading) {
     return (
@@ -66,6 +68,7 @@ export function VoucherVerifyPage() {
 
   const isAlreadyInProgress = voucher.status === RESERVATION_STATUS.in_progress
   const isConfirmed = voucher.status === RESERVATION_STATUS.confirmed
+  const isOwner = user?.id === voucher.rentador.id
 
   return (
     <div className="flex flex-col min-h-dvh bg-surface-0">
@@ -115,7 +118,7 @@ export function VoucherVerifyPage() {
 
       </div>
 
-      {isConfirmed && !confirmPickup.isSuccess && (
+      {isConfirmed && !confirmPickup.isSuccess && isOwner && (
         <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-surface-0/95 backdrop-blur-sm border-t border-white/8 flex flex-col gap-3">
           <Button
             onClick={() => confirmPickup.mutate(token as string)}

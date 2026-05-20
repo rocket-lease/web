@@ -28,10 +28,16 @@ vi.mock('../hooks/useConfirmPickup', () => ({
   }),
 }))
 
+const mockUserId = { current: 'rentador-id' }
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: mockUserId.current } }),
+}))
+
 const baseVoucher = {
   reservationId: 'res-1',
   status: 'confirmed',
-  conductor: { name: 'Juan Pérez' },
+  conductor: { id: 'conductor-id', name: 'Juan Pérez', avatarUrl: null },
+  rentador: { id: 'rentador-id', name: 'Carlos López', avatarUrl: null },
   vehicle: { brand: 'Toyota', model: 'Corolla' },
   startAt: '2026-06-01T10:00:00Z',
   endAt: '2026-06-05T10:00:00Z',
@@ -82,5 +88,18 @@ describe('VoucherVerifyPage', () => {
 
     expect(screen.queryByRole('button', { name: /confirmar entrega/i })).not.toBeInTheDocument()
     expect(mockConfirmPickup).not.toHaveBeenCalled()
+  })
+
+  it('no muestra botones de acción si el usuario logueado es el conductor', async () => {
+    mockUserId.current = 'conductor-id'
+
+    render(<VoucherVerifyPage />, { wrapper: createWrapper() })
+
+    await screen.findByText('Juan Pérez')
+
+    expect(screen.queryByRole('button', { name: /confirmar entrega/i })).not.toBeInTheDocument()
+    expect(mockConfirmPickup).not.toHaveBeenCalled()
+
+    mockUserId.current = 'rentador-id'
   })
 })
