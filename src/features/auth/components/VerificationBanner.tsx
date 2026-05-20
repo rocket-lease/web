@@ -29,7 +29,7 @@ export function VerificationBanner() {
   if (!needsVerify || dismissed || location.pathname === '/verificar') return null
 
   return (
-    <div className="sticky top-0 z-40 bg-warning-bg border-b border-warning/30 px-4 py-2">
+    <div className="bg-warning-bg border-b border-warning/30 px-4 py-2">
       <div className="mx-auto flex max-w-md items-center gap-3">
         <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
         <p className="flex-1 text-xs text-text-primary">

@@ -8,7 +8,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
-import type { ProblemDetails } from '../types'
+import type { ProblemDetails } from '@rocket-lease/contracts'
 
 // Mirrors LoginUserRequestSchema from @rocket-lease/contracts
 const schema = z.object({
@@ -24,7 +24,7 @@ type FormData = z.infer<typeof schema>
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { hint } = useSearch({ from: '/login' })
+  const { hint, returnTo } = useSearch({ from: '/login' })
   const {
     register,
     handleSubmit,
@@ -34,6 +34,10 @@ export function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await authApi.signIn(data)
+      if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/')) {
+        window.location.href = returnTo
+        return
+      }
       navigate({ to: '/buscar' })
     } catch (err) {
       const problem = err as ProblemDetails & { statusCode?: number; message?: string }
@@ -42,8 +46,8 @@ export function LoginPage() {
         navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
         return
       }
-      const msg = problem?.detail ?? problem?.message ?? t('auth.login.error')
-      toast.error(msg)
+      // US-02 AC2/AC3: mensaje genérico — no revelar si el email existe ni si la contraseña es incorrecta.
+      toast.error(t('auth.login.error'))
     }
   }
 
@@ -87,6 +91,8 @@ export function LoginPage() {
               <Input
                 type="email"
                 autoComplete="email"
+                autoFocus
+                enterKeyHint="next"
                 leftIcon={<Envelope size={16} />}
                 placeholder="tu@correo.com"
                 error={errors.email?.message}
@@ -101,6 +107,7 @@ export function LoginPage() {
               <Input
                 type="password"
                 autoComplete="current-password"
+                enterKeyHint="done"
                 leftIcon={<Lock size={16} />}
                 placeholder="••••••••"
                 error={errors.password?.message}

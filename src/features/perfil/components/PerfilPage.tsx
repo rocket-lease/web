@@ -1,33 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import {
-  LogOut,
   Bell,
   ChevronRight,
-  Shield,
   Star,
   Award,
   Settings,
   Rocket,
   Save,
   Pencil,
-  X,
-  Trash2,
   UserCheck,
+  UserCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract'
 import { Avatar } from '@/ui/avatar'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
-import { Input } from '@/ui/input'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
-import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
-import { VerificationStatusSection } from '@/features/auth/components/VerificationStatusSection'
+import { OwnerVehiclesSection } from './OwnerVehiclesSection'
+import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
@@ -50,92 +45,44 @@ interface PerfilPageProps {
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const {
     data: profile,
     isLoading,
     isOwnProfile,
-    updateProfile,
-    isUpdating,
     uploadAvatar,
     isUploadingAvatar,
   } = useMyProfile(profileId)
   const { status: verificationStatus, loading: verificationLoading } = useVerificationStatus()
-  const isFullyVerified = !!verificationStatus?.email && !!verificationStatus?.phone
+  const isFullyVerified = !!verificationStatus?.email
 
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [maxPriceDaily, setMaxPriceDaily] = useState('')
-  const [accessibilityCsv, setAccessibilityCsv] = useState('')
-  const [transmission, setTransmission] = useState<'automatic' | 'manual' | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
-  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-
-  useEffect(() => {
-    if (!profile) return
-    setName(profile.name)
-    setPhone(profile.phone)
-    setMaxPriceDaily(profile.preferences.maxPriceDaily?.toString() ?? '')
-    setAccessibilityCsv(profile.preferences.accessibility.join(', '))
-    setTransmission(profile.preferences.transmission)
-  }, [profile])
 
   const reviewCount = useMemo(() => {
     if (!profile) return 0
     return Math.max(0, Math.round(profile.reputationScore * 10))
   }, [profile])
 
-  const isRentador = useMemo(() => user?.user_metadata?.is_rentador === true, [user])
   const canEdit = isOwnProfile || user?.id === profile?.id
-  const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
+
+  const avatarPreviewUrl = useMemo(
+    () => (selectedAvatarFile ? URL.createObjectURL(selectedAvatarFile) : null),
+    [selectedAvatarFile],
+  )
 
   useEffect(() => {
-    if (!selectedAvatarFile) {
-      setAvatarPreviewUrl(null)
-      return
-    }
+    if (!avatarPreviewUrl) return
+    return () => URL.revokeObjectURL(avatarPreviewUrl)
+  }, [avatarPreviewUrl])
 
-    const objectUrl = URL.createObjectURL(selectedAvatarFile)
-    setAvatarPreviewUrl(objectUrl)
-
-    return () => URL.revokeObjectURL(objectUrl)
-  }, [selectedAvatarFile])
-
-  const handleSave = async () => {
-    if (!profile) return
-
-    const payload: UpdateMyProfileRequest = {
-      name: name.trim(),
-      phone: phone.trim(),
-      avatarUrl: profile.avatarUrl,
-      preferences: {
-        transmission,
-        accessibility: accessibilityCsv
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean),
-        maxPriceDaily: maxPriceDaily.trim().length > 0 ? Number(maxPriceDaily) : null,
-      },
-    }
-
-    try {
-      await updateProfile(payload)
-      toast.success(t('perfil.saveSuccess'))
-      setIsEditing(false)
-    } catch {
-      toast.error(t('error.default'))
-    }
-  }
+  const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
 
   const handleUploadAvatar = async () => {
     if (!selectedAvatarFile) return
     try {
       await uploadAvatar(selectedAvatarFile)
       setSelectedAvatarFile(null)
-      setAvatarPreviewUrl(null)
       toast.success(t('perfil.saveSuccess'))
     } catch {
       toast.error(t('error.default'))
@@ -145,7 +92,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   if (isLoading || !profile) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('perfil.title')} />
+        <PageHeader title={t('perfil.title')} showBack={!isOwnProfile} />
         <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
       </div>
     )
@@ -153,7 +100,10 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={t('perfil.title')} />
+      <PageHeader
+        title={canEdit ? t('perfil.title') : profile.name}
+        showBack={!canEdit}
+      />
 
       {/* Profile hero */}
       <div className="px-4 py-6 flex flex-col items-center text-center gap-3">
@@ -188,7 +138,9 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
         <div>
           <h2 className="text-xl font-bold text-text-primary">{profile.name}</h2>
-          <p className="text-sm text-text-muted">{profile.email}</p>
+          {canEdit && (
+            <p className="text-sm text-text-muted">{profile.email}</p>
+          )}
         </div>
         {canEdit && selectedAvatarFile && (
           <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar}>
@@ -211,93 +163,34 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
 
-        {!verificationLoading && (
-          <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+        {canEdit ? (
+          !verificationLoading && (
+            <Badge variant={isFullyVerified ? 'success' : 'warning'}>
+              <UserCheck className="h-3 w-3" />
+              {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+            </Badge>
+          )
+        ) : profile.verificationStatus === 'verified' ? (
+          <Badge variant="success">
             <UserCheck className="h-3 w-3" />
-            {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
+            {t('perfil.verified')}
           </Badge>
-        )}
+        ) : null}
 
       </div>
 
-      <Separator />
+      {canEdit && <Separator />}
 
-      {canEdit && <VerificationStatusSection />}
+      {/* Vehículos publicados + reseñas del rentador (perfil ajeno) */}
+      {!canEdit && profile && (
+        <>
+          <OwnerVehiclesSection ownerId={profile.id} />
+          <OwnerReviewsSection />
+        </>
+      )}
 
-      <div className="px-4 mt-5 space-y-4">
-        {canEdit && !isEditing && (
-          <Button onClick={() => setIsEditing(true)}>
-            <Pencil className="h-4 w-4" />
-            {t('perfil.editProfile')}
-          </Button>
-        )}
-
-        {isEditing ? (
-          <>
-            <p className="text-xs font-medium text-text-muted uppercase tracking-wider">{t('perfil.editProfile')}</p>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('perfil.form.name')} />
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('perfil.form.phone')} />
-
-            <div>
-              <p className="mb-2 text-xs font-medium text-text-muted uppercase tracking-wider">{t('perfil.form.transmissionPreference')}</p>
-              <div className="flex gap-2">
-                {([
-                  { key: null, label: t('buscar.filter.transmission.all') },
-                  { key: 'automatic', label: t('buscar.filter.transmission.automatic') },
-                  { key: 'manual', label: t('buscar.filter.transmission.manual') },
-                ] as const).map((option) => (
-                  <button
-                    key={String(option.key)}
-                    type="button"
-                    onClick={() => setTransmission(option.key)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${transmission === option.key
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-surface-2 text-text-secondary'
-                      }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Input
-              type="number"
-              value={maxPriceDaily}
-              onChange={(e) => setMaxPriceDaily(e.target.value)}
-              placeholder={t('perfil.form.maxPriceDaily')}
-              min={0}
-            />
-            <Input
-              value={accessibilityCsv}
-              onChange={(e) => setAccessibilityCsv(e.target.value)}
-              placeholder={t('perfil.form.accessibility')}
-            />
-
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={isUpdating}>
-                <Save className="h-4 w-4" />
-                {isUpdating ? t('perfil.saving') : t('general.save')}
-              </Button>
-              <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                <X className="h-4 w-4" />
-                {t('general.cancel')}
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="space-y-2 text-sm text-text-secondary">
-            <p><span className="text-text-muted">{t('perfil.form.name')}:</span> {profile.name}</p>
-            <p><span className="text-text-muted">{t('perfil.form.phone')}:</span> {profile.phone}</p>
-            <p><span className="text-text-muted">{t('perfil.form.transmissionPreference')}:</span> {transmission === 'automatic' ? t('buscar.filter.transmission.automatic') : transmission === 'manual' ? t('buscar.filter.transmission.manual') : t('buscar.filter.transmission.all')}</p>
-            <p><span className="text-text-muted">{t('perfil.form.maxPriceDaily')}:</span> {maxPriceDaily || '-'}</p>
-            <p><span className="text-text-muted">{t('perfil.form.accessibility')}:</span> {accessibilityCsv || '-'}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Become rentador banner */}
-      {!isRentador && canEdit && (
+      {/* Mis vehiculos shortcut */}
+      {canEdit && (
         <button
           type="button"
           onClick={() => navigate({ to: '/mis-vehiculos' })}
@@ -307,62 +200,49 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <Rocket className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary">Publicá tu vehículo</p>
-            <p className="text-xs text-text-muted mt-0.5">Generá ingresos alquilándolo</p>
+            <p className="text-sm font-semibold text-text-primary">Mis vehículos</p>
+            <p className="text-xs text-text-muted mt-0.5">Gestioná tu flota o publicá uno nuevo</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
         </button>
       )}
 
-      {/* Settings menu */}
-      <div className="px-4 mt-5 space-y-1">
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
+      {/* Settings menu (solo perfil propio) */}
+      {canEdit && (
+        <div className="px-4 mt-5 space-y-1">
+          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
 
-        {[
-          { icon: Bell, label: t('perfil.notifications') },
-          { icon: Shield, label: t('perfil.verification') },
-          { icon: Settings, label: 'Configuración' },
-        ].map(item => (
           <button
-            key={item.label}
+            type="button"
+            onClick={() => navigate({ to: '/perfil/datos' })}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
           >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-left text-sm font-medium text-text-primary">{item.label}</span>
+            <UserCircle className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.datos.title')}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
-        ))}
-      </div>
 
-      {/* Logout + Delete */}
-      {canEdit && (
-        <div className="px-4 mt-6 mb-4 space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full text-text-secondary hover:bg-surface-2"
-            onClick={async () => {
-              await signOut()
-              navigate({ to: '/login' })
-            }}
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/configuracion' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
           >
-            <LogOut className="h-4 w-4" />
-            {t('perfil.logout')}
-          </Button>
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={() => setShowDeleteDialog(true)}
+            <Settings className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
           >
-            <Trash2 className="h-4 w-4" />
-            {t('perfil.deleteAccount')}
-          </Button>
+            <Bell className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.notifications')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
         </div>
       )}
 
-      <DeleteAccountDialog
-        open={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-      />
     </div>
   )
 }

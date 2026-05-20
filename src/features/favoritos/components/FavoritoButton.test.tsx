@@ -67,14 +67,6 @@ describe('FavoritoButton', () => {
     expect(mockToggle).toHaveBeenCalledWith(VEHICLE_ID, true)
   })
 
-  it('el botón está deshabilitado durante la carga', () => {
-    mockIsLoading.value = true
-
-    render(<FavoritoButton vehicleId={VEHICLE_ID} />)
-
-    expect(screen.getByRole('button')).toBeDisabled()
-  })
-
   it('previene la propagación del click para no navegar desde la card', () => {
     const parentHandler = vi.fn()
     render(

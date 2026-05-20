@@ -4,6 +4,8 @@ import { t } from '@/i18n/es'
 import { cn } from '@/lib/utils'
 import { SortBar } from './SortBar'
 import type { VehiculoFilters, SortCriteria } from '../types'
+import type { Characteristic } from '@rocket-lease/contracts'
+import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '../utils/characteristics'
 
 interface FilterSheetProps {
   open:    boolean
@@ -15,8 +17,8 @@ interface FilterSheetProps {
 
 const SEAT_OPTIONS = [2, 4, 5, 7]
 const TRANSMISSION_OPTIONS = [
-  { value: 'automatic' as const, label: t('buscar.filter.transmission.automatic') },
-  { value: 'manual'    as const, label: t('buscar.filter.transmission.manual') },
+  { value: 'Automatico' as const, label: t('buscar.filter.transmission.automatic') },
+  { value: 'Manual'     as const, label: t('buscar.filter.transmission.manual') },
 ]
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -26,6 +28,14 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
 
   const set = <K extends keyof VehiculoFilters>(key: K, value: VehiculoFilters[K]) =>
     setLocalFilters(f => ({ ...f, [key]: value }))
+
+  const toggleCharacteristic = (char: Characteristic) => {
+    const current = localFilters.characteristics ?? []
+    const next = current.includes(char)
+      ? current.filter(c => c !== char)
+      : [...current, char]
+    set('characteristics', next)
+  }
 
   const handleApply = () => {
     onApply(localFilters, localSort)
@@ -202,6 +212,32 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
             >
               Apto discapacitados
             </button>
+          </section>
+
+          {/* Características */}
+          <section>
+            <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">
+              {t('vehiculo.features')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {ALL_CHARACTERISTICS.map(char => {
+                const isSelected = localFilters.characteristics?.includes(char)
+                return (
+                  <button
+                    key={char}
+                    onClick={() => toggleCharacteristic(char)}
+                    className={cn(
+                      'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                      isSelected
+                        ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
+                        : 'bg-surface-1 text-text-secondary border-white/10',
+                    )}
+                  >
+                    {getCharacteristicLabel(char)}
+                  </button>
+                )
+              })}
+            </div>
           </section>
 
         </div>

@@ -1,48 +1,63 @@
+import { UploadSignResponseSchema } from '@rocket-lease/contracts'
+import { apiClient } from '@/lib/api-client'
 
-const CLOUDINARY_API_KEY = import.meta.env.VITE_CLOUDINARY_API_KEY
-const CLOUDINARY_API_SECRET = import.meta.env.VITE_CLOUDINARY_API_SECRET
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-const VEHICLE_PHOTOS_BUCKET = 'rocket-lease/vehicle-photos'
-const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+type CloudinaryUploadResponse = {
+  secure_url?: string
+  url?: string
+  public_id?: string
+}
 
-const buildCloudinarySignature = async (params: Record<string, string>) => {
-    const stringToSign = Object.entries(params)
-        .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-        .map(([key, value]) => `${key}=${value}`)
-        .join('&')
+export type VehiclePhotoUploadResult = {
+  url: string
+  publicId: string
+}
 
-    const buf = await crypto.subtle.digest(
-        'SHA-1',
-        new TextEncoder().encode(`${stringToSign}${CLOUDINARY_API_SECRET}`),
-    )
+const extractPublicIdFromUrl = (url: string) => {
+  const uploadSegment = '/upload/'
+  const uploadIndex = url.indexOf(uploadSegment)
 
-    return Array.from(new Uint8Array(buf))
-        .map(byte => byte.toString(16).padStart(2, '0'))
-        .join('')
+  if (uploadIndex === -1) {
+    return url
+  }
+
+  const pathAfterUpload = decodeURIComponent(url.slice(uploadIndex + uploadSegment.length))
+  const withoutVersion = pathAfterUpload.replace(/^v\d+\//, '')
+  return withoutVersion.replace(/\.[^.]+$/, '')
 }
 
 export const photosApi = {
-  async uploadVehicleImage(file: File): Promise<string> {
-    const timestamp = Math.floor(Date.now() / 1000)
-    const signature = await buildCloudinarySignature({
-        folder: VEHICLE_PHOTOS_BUCKET,
-        timestamp: String(timestamp),
-    })
+  async uploadVehicleImage(file: File): Promise<VehiclePhotoUploadResult> {
+    const signed = UploadSignResponseSchema.parse(
+      await apiClient.post('/uploads/sign', {
+        resourceType: 'image',
+        folder: 'rocket-lease/vehicle-photos',
+      }),
+    )
 
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('api_key', CLOUDINARY_API_KEY)
-    fd.append('timestamp', String(timestamp))
-    fd.append('signature', signature)
-    fd.append('folder', VEHICLE_PHOTOS_BUCKET)
+    const formData = new FormData()
+    Object.entries(signed.fields).forEach(([key, value]) => formData.append(key, value))
+    formData.append('file', file)
 
-    const res = await fetch(UPLOAD_URL, { method: 'POST', body: fd })
+    const res = await fetch(signed.uploadUrl, { method: 'POST', body: formData })
     if (!res.ok) {
-        const txt = await res.text()
-        throw new Error(`Cloudinary upload failed: ${res.status} ${txt}`)
+      const txt = await res.text()
+      throw new Error(`Upload failed: ${res.status} ${txt}`)
     }
 
-    const json = await res.json()
-    return (json.secure_url ?? json.url) as string
+    const json = (await res.json()) as CloudinaryUploadResponse
+    const url = json.secure_url ?? json.url
+
+    if (!url || !json.public_id) {
+      throw new Error('Upload response missing required data')
     }
+
+    return { url, publicId: json.public_id }
+  },
+
+  async deleteVehicleImage(publicIdOrUrl: string): Promise<void> {
+    const publicId = publicIdOrUrl.startsWith('http')
+      ? extractPublicIdFromUrl(publicIdOrUrl)
+      : publicIdOrUrl
+    await apiClient.delete(`/uploads?publicId=${encodeURIComponent(publicId)}`)
+  },
 }

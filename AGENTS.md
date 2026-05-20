@@ -2,11 +2,11 @@
 
 Progressive Web App (PWA) for Rocket Lease. Vite + React + TypeScript, Tailwind for styling, shadcn/ui for base components, Supabase JS SDK for auth, `@<org>/contracts` for typed API access. Capacitor wrap planned as exit path to App Store / Play Store if needed.
 
-## Canonical rules (defer to infra)
+## Cross-repo docs (in api/docs/)
 
-For branching, PR gates, TS strictness, lint config, coverage thresholds, error format consumption (RFC 7807), date/money/IDs, pre-commit hooks: see `<org>/infra` → `playbook/canonical-rules.md`, sections §1–§12.
-
-Domain glossary (Spanish canonical): `<org>/infra/playbook/CONTEXT.md`. Use Spanish terms in user-facing strings; English code identifiers.
+- Domain glossary: `../api/docs/CONTEXT.md`. Spanish terms in user-facing strings, English code identifiers.
+- Cross-repo conventions (RFC 7807 errors, money, dates, commits): `../api/docs/CONVENTIONS.md`.
+- ADRs: `../api/docs/adr/`.
 
 ## Layout
 
@@ -110,14 +110,18 @@ Map to user-facing messages by `code`, not by HTTP status. Display via toast or 
 
 ## Local dev
 
+Prereq: clone `contracts` next to `web/` (same parent directory). web depends on `@rocket-lease/contracts` via `link:../contracts` — see `../api/docs/adr/0007-contracts-as-source.md`. A `preinstall` script aborts if the sibling is missing.
+
 - `pnpm install`
-- `pnpm dev` — runs `vite`. Opens at `http://localhost:5173`.
+- `make dev` — runs `vite`. Opens at `http://localhost:5173`.
 - For testing against local api: set `VITE_API_URL=http://localhost:3000` in `.env.local`.
-- For testing PWA install / SW: `pnpm build && pnpm preview` (SW only registers in production build).
+- For testing PWA install / SW: `make build && pnpm preview` (SW only registers in production build).
+
+Editing any `.ts` under `../contracts/src/` triggers HMR here automatically — no rebuild, no install.
 
 ## CI
 
-`.github/workflows/ci.yml` calls `<org>/infra/.github/workflows/ci-web.yml@main`.
+`.github/workflows/ci.yml` runs typecheck + lint + tests + build. It checks out `contracts` as a sibling (same branch if present, else PR base ref) before `pnpm install`. Vercel deploys via its native GitHub integration; the install hook in `vercel.json` clones contracts as a sibling.
 
 ## Pointers for AI agents
 

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
 import {
   MagnifyingGlass,
   CalendarCheck,
@@ -8,6 +8,7 @@ import {
   UserCircle,
   ChartBar,
   ClipboardText,
+  Bell,
 } from '@phosphor-icons/react'
 import { BottomNav } from '@/features/layout/components/BottomNav'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -30,36 +31,30 @@ function AppLayout() {
   ]
 
   const rentadorTabs = [
-    { to: '/dashboard',    icon: ChartBar,        label: t('nav.dashboard') },
-    { to: '/mis-vehiculos',icon: Car,             label: t('nav.misVehiculos') },
-    { to: '/mis-reservas', icon: ClipboardText,   label: t('nav.misReservas') },
-    { to: '/perfil',       icon: UserCircle,      label: t('nav.perfil') },
+    { to: '/dashboard',     icon: ChartBar,      label: t('nav.dashboard') },
+    { to: '/mis-vehiculos', icon: Car,           label: t('nav.misVehiculos') },
+    { to: '/reservas',      icon: ClipboardText, label: t('nav.misReservas'), search: { role: 'owner' as const } },
+    { to: '/perfil',        icon: UserCircle,    label: t('nav.perfil') },
   ]
 
   const tabs = activeRole === 'rentador' ? rentadorTabs : conductorTabs
   const role = activeRole === 'rentador' ? 'rentador' : 'conductor'
-  const roleGradient =
-    role === 'rentador'
-      ? 'linear-gradient(135deg, var(--color-owner) 0%, var(--color-brand-500) 100%)'
-      : 'linear-gradient(135deg, var(--color-client) 0%, var(--color-brand-500) 100%)'
-  const roleLabel = role === 'rentador' ? t('app.role.rentadorActive') : t('app.role.conductorActive')
 
   return (
-    <div className="flex min-h-svh flex-col bg-surface-0">
+    <div className="flex min-h-dvh flex-col bg-surface-0">
       {/* App top bar */}
-      <header className="flex items-center justify-between px-5 py-3 bg-surface-0/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5">
+      <header
+        className="flex items-center justify-between px-5 py-3 bg-surface-0/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
+      >
         <img src="/logo-symbol.png" alt="Rocket Lease" className="h-8 w-auto" />
-        <span
-          className="text-xs font-bold uppercase tracking-[0.18em]"
-          style={{
-            background: roleGradient,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
+        <Link
+          to="/notificaciones"
+          aria-label={t('nav.notificaciones')}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
         >
-          {roleLabel}
-        </span>
+          <Bell size={22} />
+        </Link>
       </header>
 
       <VerificationBanner />

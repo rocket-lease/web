@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '@/features/perfil/api/profile.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { type UpdateMyProfileRequest } from '@/features/perfil/types/profile.contract';
+import { type UpdateMyProfileRequest } from '@rocket-lease/contracts';
 
 const myProfileQueryKey = ['profile', 'me'] as const;
 

@@ -62,4 +62,8 @@ export interface ProblemDetails {
   code: string
   detail: string
   instance?: string
+  statusCode: number
+  message: string
+  timestamp: string
+  path: string
 }

@@ -1,0 +1,75 @@
+name: CI
+
+# Runs on PRs only. Vercel handles its own builds + deploys on push to main/dev
+# via its native GitHub integration.
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  ci:
+    name: Typecheck + lint + tests + build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout web
+        uses: actions/checkout@v4
+        with:
+          path: web
+
+      # Pull contracts as a sibling. Same branch first; on miss, base ref. See ADR-0007.
+      - name: Resolve contracts ref
+        id: contracts-ref
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACTS_TOKEN }}
+          REF: ${{ github.head_ref || github.ref_name }}
+          BASE: ${{ github.base_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          status=$(curl -fsS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/rocket-lease/contracts/branches/${REF}" || true)
+          if [ "$status" = "200" ]; then
+            echo "ref=${REF}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${BASE}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout contracts
+        uses: actions/checkout@v4
+        with:
+          repository: rocket-lease/contracts
+          ref: ${{ steps.contracts-ref.outputs.ref }}
+          token: ${{ secrets.CONTRACTS_TOKEN }}
+          path: contracts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@11.0.8
+
+      - name: Install contracts dependencies
+        working-directory: contracts
+        run: pnpm install --frozen-lockfile
+
+      - name: Install dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        working-directory: web
+        run: pnpm tsc -b
+
+      - name: Lint
+        working-directory: web
+        run: pnpm lint
+
+      - name: Unit tests
+        working-directory: web
+        run: pnpm test
+
+      - name: Build
+        working-directory: web
+        run: pnpm build

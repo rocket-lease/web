@@ -1,28 +1,36 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
 import { favoritosApi } from '../api/favoritos.api'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import type { FavoritoItem } from '../types'
+import { t } from '@/i18n/es'
+import type { FavoriteItem } from '@rocket-lease/contracts'
 
 export function useToggleFavorito() {
   const queryClient = useQueryClient()
-  const { user, isLoading: authLoading } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   const addMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.add(vehicleId),
-    onMutate: async (vehicleId) => {
-      await queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
-      const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
+    onMutate: (vehicleId) => {
+      queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
+      const prev = queryClient.getQueryData<FavoriteItem[]>(['favoritos', 'list'])
 
-      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) => [
-        ...old,
-        { id: `optimistic-${vehicleId}`, vehicleId, createdAt: new Date().toISOString() },
-      ])
+      queryClient.setQueryData<FavoriteItem[]>(['favoritos', 'list'], (old = []) => {
+        if (old.some((f) => f.vehicleId === vehicleId)) return old
+        return [
+          ...old,
+          { id: `optimistic-${vehicleId}`, vehicleId, createdAt: new Date().toISOString() },
+        ]
+      })
 
       return { prev }
     },
-    onError: (_err, _vehicleId, ctx) => {
+    onError: (err, _vehicleId, ctx) => {
+      // 409 = already a fav server-side; keep optimistic (UI correct)
+      const status = (err as { status?: number })?.status
+      if (status === 409) return
       if (ctx?.prev !== undefined) {
         queryClient.setQueryData(['favoritos', 'list'], ctx.prev)
       }
@@ -32,17 +40,20 @@ export function useToggleFavorito() {
 
   const removeMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.remove(vehicleId),
-    onMutate: async (vehicleId) => {
-      await queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
-      const prev = queryClient.getQueryData<FavoritoItem[]>(['favoritos', 'list'])
+    onMutate: (vehicleId) => {
+      queryClient.cancelQueries({ queryKey: ['favoritos', 'list'] })
+      const prev = queryClient.getQueryData<FavoriteItem[]>(['favoritos', 'list'])
 
-      queryClient.setQueryData<FavoritoItem[]>(['favoritos', 'list'], (old = []) =>
+      queryClient.setQueryData<FavoriteItem[]>(['favoritos', 'list'], (old = []) =>
         old.filter((f) => f.vehicleId !== vehicleId),
       )
 
       return { prev }
     },
-    onError: (_err, _vehicleId, ctx) => {
+    onError: (err, _vehicleId, ctx) => {
+      // 404 = already removed server-side; keep optimistic (UI correct)
+      const status = (err as { status?: number })?.status
+      if (status === 404) return
       if (ctx?.prev !== undefined) {
         queryClient.setQueryData(['favoritos', 'list'], ctx.prev)
       }
@@ -51,14 +62,26 @@ export function useToggleFavorito() {
   })
 
   const toggle = (vehicleId: string, isFavorito: boolean) => {
-    if (!authLoading && !user) {
+    if (!authLoading && !isAuthenticated) {
       navigate({ to: '/login', search: { hint: 'favoritos' } })
       return
     }
     if (isFavorito) {
-      removeMutation.mutate(vehicleId)
+      toast.success(t('favoritos.toast.removed'))
+      removeMutation.mutate(vehicleId, {
+        onError: (err) => {
+          const status = (err as { status?: number })?.status
+          if (status !== 404) toast.error(t('favoritos.toast.error'))
+        },
+      })
     } else {
-      addMutation.mutate(vehicleId)
+      toast.success(t('favoritos.toast.added'))
+      addMutation.mutate(vehicleId, {
+        onError: (err) => {
+          const status = (err as { status?: number })?.status
+          if (status !== 409) toast.error(t('favoritos.toast.error'))
+        },
+      })
     }
   }
 
