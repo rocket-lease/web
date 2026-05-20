@@ -1,23 +1,38 @@
+import { useEffect, useRef } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle, XCircle, CalendarDots, Car, User, Wallet } from '@phosphor-icons/react'
+import { RESERVATION_STATUS } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Separator } from '@/ui/separator'
+import { useConfirmPickup } from '../hooks/useConfirmPickup'
 
 export function VoucherVerifyPage() {
   const { token } = useParams({ strict: false })
+  const confirmedRef = useRef(false)
 
-  const { data: voucher, isLoading, isError } = useQuery({
+  const { data: voucher, isLoading, isError, refetch } = useQuery({
     queryKey: ['voucher', 'verify', token],
     queryFn: () => reservarApi.verifyVoucher(token as string),
     enabled: !!token,
     retry: false,
   })
 
-  if (isLoading) {
+  const confirmPickup = useConfirmPickup(voucher?.reservationId ?? '')
+
+  useEffect(() => {
+    if (!voucher || voucher.status !== RESERVATION_STATUS.confirmed) return
+    if (confirmedRef.current) return
+    confirmedRef.current = true
+    confirmPickup.mutateAsync(token as string)
+      .then(() => refetch())
+      .catch(() => {})
+  }, [voucher?.status])
+
+  if (isLoading || confirmPickup.isPending) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
         <PageHeader title={t('reservas.voucher.verifyTitle')} />
@@ -116,6 +131,7 @@ export function VoucherVerifyPage() {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   )
