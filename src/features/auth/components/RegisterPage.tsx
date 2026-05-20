@@ -56,18 +56,29 @@ export function RegisterPage() {
     } catch (err) {
       const problem = err as ProblemDetails
       if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
-        toast.error(t('auth.register.pendingVerification'), {
-          duration: 8000,
-          description: (
+        toast.custom(
+          (id) => (
             <button
               type="button"
-              onClick={() => navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })}
-              className="mt-0.5 w-full text-left text-xs underline decoration-dotted opacity-80 active:opacity-100"
+              onClick={() => {
+                toast.dismiss(id)
+                navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+              }}
+              className="w-full rounded-xl px-4 py-3 text-left active:opacity-80"
+              style={{
+                background: 'var(--color-surface-2)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: 'var(--color-text-primary)',
+              }}
             >
-              {t('auth.register.pendingVerificationHint')} →
+              <p className="text-sm font-semibold text-red-400">{t('auth.register.pendingVerification')}</p>
+              <p className="mt-0.5 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                {t('auth.register.pendingVerificationHint')}
+              </p>
             </button>
           ),
-        })
+          { duration: 8000 },
+        )
       } else {
         const msg = problem?.detail ?? t('error.default')
         toast.error(msg)
