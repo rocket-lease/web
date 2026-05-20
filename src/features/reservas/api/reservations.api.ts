@@ -1,9 +1,13 @@
 import { apiClient } from '@/lib/api-client'
 import {
   ApproveReservationResponseSchema,
+  ConfirmPickupResponseSchema,
+  ConfirmReturnResponseSchema,
   RejectReservationResponseSchema,
   ReservationsListResponseSchema,
   type ApproveReservationResponse,
+  type ConfirmPickupResponse,
+  type ConfirmReturnResponse,
   type RejectReservationRequest,
   type RejectReservationResponse,
   type ReservationsListRequest,
@@ -78,4 +82,18 @@ export async function rejectReservation(
     body,
   )
   return RejectReservationResponseSchema.parse(raw)
+}
+
+export async function confirmPickup(
+  voucherToken: string,
+): Promise<ConfirmPickupResponse> {
+  const raw = await apiClient.post<unknown>('/reservations/pickup', { voucherToken })
+  return ConfirmPickupResponseSchema.parse(raw)
+}
+
+export async function confirmReturn(
+  returnQrToken: string,
+): Promise<ConfirmReturnResponse> {
+  const raw = await apiClient.post<unknown>('/reservations/return', { returnQrToken })
+  return ConfirmReturnResponseSchema.parse(raw)
 }

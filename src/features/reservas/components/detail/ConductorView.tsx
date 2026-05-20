@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import { X as PhosphorX } from '@phosphor-icons/react'
 import {
   AlertOctagon,
   CalendarDays,
@@ -26,8 +27,10 @@ import { useCancelReservation } from '@/features/reservar/hooks/useCancelReserva
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
+import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -202,6 +205,10 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {contractAcceptedAt && <ContractSection acceptedAt={contractAcceptedAt} />}
 
       {isPostPayment && <PostPaymentActions />}
+
+      {status === RESERVATION_STATUS.in_progress && (
+        <ReturnAction reservationId={reservation.id} />
+      )}
     </div>
   )
 }
@@ -584,6 +591,79 @@ function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmMo
             {t('reservas.detail.cancel.back')}
           </Button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function ReturnAction({ reservationId }: { reservationId: string }) {
+  const [showScanner, setShowScanner] = useState(false)
+  const confirmReturn = useConfirmReturn(reservationId)
+
+  const handleScan = async (token: string) => {
+    try {
+      await confirmReturn.mutateAsync(token)
+      toast.success(t('reservas.devolucion.exito'))
+      setShowScanner(false)
+    } catch {
+      toast.error(t('reservas.devolucion.qrInvalido'))
+    }
+  }
+
+  return (
+    <>
+      <Separator />
+      <Button className="w-full rounded-full" onClick={() => setShowScanner(true)}>
+        {t('reservas.devolucion.cta')}
+      </Button>
+
+      {showScanner && (
+        <ReturnScannerModal
+          submitting={confirmReturn.isPending}
+          onScan={handleScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+    </>
+  )
+}
+
+interface ReturnScannerModalProps {
+  submitting: boolean
+  onScan: (token: string) => void
+  onClose: () => void
+}
+
+function ReturnScannerModal({ submitting, onScan, onClose }: ReturnScannerModalProps) {
+  useLockBodyScroll()
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-8 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-text-primary">{t('reservas.devolucion.scannerTitle')}</p>
+          <button
+            onClick={onClose}
+            className="text-text-muted hover:text-text-primary"
+            aria-label={t('reservas.qr.cancelar')}
+          >
+            <PhosphorX className="h-5 w-5" weight="bold" />
+          </button>
+        </div>
+        {submitting ? (
+          <p className="text-center text-text-muted py-8">{t('reservas.devolucion.confirmando')}</p>
+        ) : (
+          <QrScanner
+            onScan={onScan}
+            confirmLabel={t('reservas.devolucion.confirmar')}
+            fallbackLabel={t('reservas.retiro.fallback')}
+          />
+        )}
       </div>
     </div>
   )

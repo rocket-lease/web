@@ -1,6 +1,6 @@
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, XCircle, CalendarDays, Car, User, Wallet } from 'lucide-react'
+import { CheckCircle, XCircle, CalendarDots, Car, User, Wallet } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
@@ -92,7 +92,7 @@ export function VoucherVerifyPage() {
           <Separator />
 
           <div className="flex items-center gap-3">
-            <CalendarDays className="h-5 w-5 text-text-muted" />
+            <CalendarDots className="h-5 w-5 text-text-muted" />
             <div>
               <p className="text-xs text-text-muted">{t('reservas.detail.dates')}</p>
               <p className="font-medium text-text-primary">
