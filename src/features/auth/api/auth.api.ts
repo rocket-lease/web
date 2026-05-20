@@ -21,6 +21,9 @@ export const authApi = {
       access_token: res.access_token,
       refresh_token: res.refresh_token,
     })
+    // setSession does not always fire onAuthStateChange reliably; tell
+    // AuthProvider to re-read the session so the gate flips immediately.
+    window.dispatchEvent(new CustomEvent('auth:refresh'))
     return res
   },
 

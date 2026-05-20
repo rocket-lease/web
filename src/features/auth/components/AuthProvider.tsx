@@ -53,25 +53,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const prevUserIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
-      prevUserIdRef.current = data.session?.user?.id ?? null
-      setIsLoading(false)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const nextUserId = session?.user?.id ?? null
-      if (event === 'SIGNED_OUT' || prevUserIdRef.current !== nextUserId) {
+    const applySession = (nextSession: Session | null) => {
+      const nextUserId = nextSession?.user?.id ?? null
+      if (prevUserIdRef.current !== nextUserId) {
         queryClient.clear()
       }
       prevUserIdRef.current = nextUserId
-      setSession(session)
-      setUser(session?.user ?? null)
+      setSession(nextSession)
+      setUser(nextSession?.user ?? null)
       setIsLoading(false)
+    }
+
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      applySession(data.session)
+    }
+
+    syncSession()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      applySession(session)
     })
 
-    return () => subscription.unsubscribe()
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncSession()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    const onAuthRefresh = () => {
+      syncSession()
+    }
+    window.addEventListener('auth:refresh', onAuthRefresh)
+
+    return () => {
+      subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('auth:refresh', onAuthRefresh)
+    }
   }, [])
 
   const hasToken = Boolean(localStorage.getItem('rocket_lease:access_token'))
