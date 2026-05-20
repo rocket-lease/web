@@ -34,11 +34,14 @@ export function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await authApi.signIn(data)
-      if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/')) {
-        window.location.href = returnTo
-        return
-      }
-      navigate({ to: '/buscar' })
+      // Hard reload — un soft navigate dejaba a AuthGate viendo state pre-login
+      // hasta que el listener de Supabase corriera, lo que en la PWA podía
+      // tardar un ciclo entero. Remontar la app entera con la sesión ya
+      // guardada en localStorage es el camino seguro.
+      const target = returnTo && typeof returnTo === 'string' && returnTo.startsWith('/')
+        ? returnTo
+        : '/buscar'
+      window.location.href = target
     } catch (err) {
       const problem = err as ProblemDetails & { statusCode?: number; message?: string }
       if (problem?.statusCode === 403 || problem?.status === 403) {
