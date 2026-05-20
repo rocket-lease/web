@@ -40,7 +40,7 @@ export function ReservationRuleSetSelector({
         disabled={disabled || ruleSetsQuery.isLoading}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Sin reglas asignadas">{selectedRuleSet?.name}</SelectValue>
+          <SelectValue>{selectedRuleSet?.name ?? 'Sin reglas asignadas'}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">
