@@ -447,7 +447,7 @@ export function ReservarVehiculoPage() {
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
 
   const canContinueToContract =
-    validRange && !overlapsBusy && !rentalDurationViolation && rulesAcknowledged
+    validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
@@ -737,12 +737,12 @@ export function ReservarVehiculoPage() {
                 {t('reservar.contract.body')}
               </p>
             </div>
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={contractAccepted}
                 onChange={(e) => setContractAccepted(e.target.checked)}
-                className="mt-1 h-4 w-4 accent-brand-500"
+                className="checkbox-brand"
               />
               <span className="text-sm text-text-secondary">
                 {t('reservar.contract.accept')}
