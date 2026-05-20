@@ -119,6 +119,7 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
               onChange={(e) => setDescription(e.target.value)}
               disabled={createMutation.isPending}
               rows={2}
+              className="resize-none"
             />
           </div>
 

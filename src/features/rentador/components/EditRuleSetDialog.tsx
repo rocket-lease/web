@@ -126,6 +126,7 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
               onChange={(e) => setDescription(e.target.value)}
               disabled={updateMutation.isPending}
               rows={2}
+              className="resize-none"
             />
           </div>
 
