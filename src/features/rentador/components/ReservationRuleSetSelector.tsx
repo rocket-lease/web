@@ -35,16 +35,16 @@ export function ReservationRuleSetSelector({
         {t('reservationRules.title')}
       </label>
       <Select
-        value={selectedId ?? 'Sin reglas asignadas'}
+        value={selectedId ?? 'none'}
         onValueChange={(value) => onSelect(value === 'none' ? undefined : value)}
         disabled={disabled || ruleSetsQuery.isLoading}
       >
         <SelectTrigger>
-          <SelectValue placeholder="Sin reglas asignadas">{selectedRuleSet?.name}</SelectValue>
+          <SelectValue>{selectedRuleSet?.name ?? 'Sin reglas asignadas'}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">
-            {t('general.cancel')}
+            Sin reglas asignadas
           </SelectItem>
           {ruleSets.map((set) => (
             <SelectItem key={set.id} value={set.id}>

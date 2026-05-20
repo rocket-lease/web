@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Car, Pencil, Settings } from 'lucide-react'
+import { Plus, Car, Pencil } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
@@ -50,7 +50,6 @@ export function MisVehiculosPage() {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="vehiculos">{t('misVehiculos.title')}</TabsTrigger>
             <TabsTrigger value="reglas">
-              <Settings className="h-4 w-4 mr-2" />
               {t('reservationRules.title')}
             </TabsTrigger>
           </TabsList>

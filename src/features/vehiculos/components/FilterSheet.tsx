@@ -54,9 +54,9 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-overlay-in" onClick={onClose} />
 
-      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-0 border-t border-white/8 max-h-[85svh] flex flex-col">
+      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-0 border-t border-white/8 max-h-[85svh] flex flex-col animate-slide-up">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
