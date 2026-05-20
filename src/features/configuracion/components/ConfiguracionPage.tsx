@@ -99,7 +99,7 @@ export function ConfiguracionPage() {
             try {
               await signOut()
             } finally {
-              navigate({ to: '/login' })
+              navigate({ to: '/buscar' })
             }
           }}
           showChevron
