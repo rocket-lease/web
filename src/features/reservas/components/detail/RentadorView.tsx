@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { X as PhosphorX } from '@phosphor-icons/react'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
@@ -12,9 +14,11 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
+import { useConfirmPickup } from '../../hooks/useConfirmPickup'
 
 interface RentadorViewProps {
   reservation: GetReservationResponse
@@ -175,6 +179,14 @@ export function RentadorView({ reservation }: RentadorViewProps) {
 
       {reservation.status === RESERVATION_STATUS.pending_approval && (
         <ApprovalActions reservationId={reservation.id} />
+      )}
+
+      {reservation.status === RESERVATION_STATUS.confirmed && (
+        <PickupAction reservationId={reservation.id} />
+      )}
+
+      {reservation.status === RESERVATION_STATUS.in_progress && reservation.returnQrToken && (
+        <ReturnQrDisplay returnQrToken={reservation.returnQrToken} />
       )}
     </div>
   )
@@ -390,6 +402,96 @@ function RejectReasonModal({ submitting, onSubmit, onCancel }: RejectReasonModal
               : t('rentador.reservas.rechazar.confirmar')}
           </Button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function PickupAction({ reservationId }: { reservationId: string }) {
+  const [showScanner, setShowScanner] = useState(false)
+  const confirmPickup = useConfirmPickup(reservationId)
+
+  const handleScan = async (token: string) => {
+    try {
+      await confirmPickup.mutateAsync(token)
+      toast.success(t('reservas.retiro.exito'))
+      setShowScanner(false)
+    } catch {
+      toast.error(t('reservas.retiro.qrInvalido'))
+    }
+  }
+
+  return (
+    <>
+      <Button className="w-full rounded-full" onClick={() => setShowScanner(true)}>
+        {t('reservas.retiro.cta')}
+      </Button>
+
+      {showScanner && (
+        <ScannerModal
+          title={t('reservas.retiro.scannerTitle')}
+          submitting={confirmPickup.isPending}
+          onScan={handleScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+    </>
+  )
+}
+
+function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    QRCode.toDataURL(returnQrToken, { width: 200, margin: 1 })
+      .then(setQrDataUrl)
+      .catch(console.error)
+  }, [returnQrToken])
+
+  return (
+    <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 flex flex-col items-center gap-3">
+      <p className="font-semibold text-text-primary">{t('reservas.devolucion.qrTitle')}</p>
+      {qrDataUrl && (
+        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="rounded-xl w-48 h-48" />
+      )}
+      <p className="text-xs text-text-muted text-center">{t('reservas.devolucion.qrHelp')}</p>
+    </div>
+  )
+}
+
+interface ScannerModalProps {
+  title: string
+  submitting: boolean
+  onScan: (token: string) => void
+  onClose: () => void
+}
+
+function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps) {
+  useLockBodyScroll()
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-8 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-text-primary">{title}</p>
+          <button
+            onClick={onClose}
+            className="text-text-muted hover:text-text-primary"
+            aria-label={t('reservas.qr.cancelar')}
+          >
+            <PhosphorX className="h-5 w-5" weight="bold" />
+          </button>
+        </div>
+        {submitting ? (
+          <p className="text-center text-text-muted py-8">{t('reservas.retiro.confirmando')}</p>
+        ) : (
+          <QrScanner onScan={onScan} />
+        )}
       </div>
     </div>
   )
