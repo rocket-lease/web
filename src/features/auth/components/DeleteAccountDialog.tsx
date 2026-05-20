@@ -6,6 +6,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
 
 const CONFIRM_WORD = 'ELIMINAR'
 
@@ -40,8 +41,10 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
       toast.success(t('perfil.deleteAccount.success'))
       navigate({ to: '/login' })
     } catch (err) {
-      const status = (err as { statusCode?: number })?.statusCode
-      if (status === 409) {
+      const problem = err as ProblemDetails
+      if (problem?.code === ErrorCodes.USER_HAS_ACTIVE_RESERVATIONS) {
+        toast.error(t('perfil.deleteAccount.hasActiveReservations'), { duration: 6000 })
+      } else if (problem?.code === ErrorCodes.USER_HAS_VEHICLES) {
         toast.error(t('perfil.deleteAccount.hasVehicles'), { duration: 6000 })
       } else {
         toast.error(t('error.default'))
