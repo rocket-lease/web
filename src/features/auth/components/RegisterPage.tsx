@@ -1,8 +1,8 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from '@tanstack/react-router'
-import { User, Envelope, Lock, Phone, IdentificationCard } from '@phosphor-icons/react'
+import { useNavigate } from '@tanstack/react-router'
+import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -61,7 +61,15 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-surface-0 px-5 py-12">
+    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+      <button
+        onClick={() => window.history.back()}
+        aria-label="Volver"
+        className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text-secondary transition-colors hover:text-text-primary active:scale-[0.97]"
+      >
+        <CaretLeft size={20} />
+      </button>
+      <div className="flex flex-1 flex-col items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-3">
           <img src="/logo-symbol.png" alt="Rocket Lease" className="h-16 w-auto" />
@@ -169,10 +177,14 @@ export function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-text-muted">
           {t('auth.register.hasAccount')}{' '}
-          <Link to="/login" className="font-semibold text-brand-400 hover:text-brand-300">
+          <button
+            onClick={() => navigate({ to: '/login', replace: true })}
+            className="font-semibold text-brand-400 hover:text-brand-300 transition-colors"
+          >
             {t('auth.register.login')}
-          </Link>
+          </button>
         </p>
+      </div>
       </div>
     </div>
   )
