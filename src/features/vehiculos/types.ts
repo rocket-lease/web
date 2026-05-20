@@ -21,6 +21,8 @@ export interface Vehiculo {
   patente: string
   transmission: Transmission
   asientos: number
+  trunkLiters: number
+  isAccessible: boolean
   combustible: 'nafta' | 'diesel' | 'gnc' | 'electrico' | 'hibrido'
   descripcion: string
   tags: string[]
@@ -43,6 +45,7 @@ export interface Vehiculo {
     reviewCount: number
     level: 'bronze' | 'silver' | 'gold' | 'platinum'
   }
+  owner?: { name: string }
   createdAt: string
 }
 
@@ -54,7 +57,8 @@ export interface VehiculoFilters {
   minSeats?:     number | null
   minYear?:      number | null
   maxYear?:      number | null
-  // US-18 los usará para filtrar en el servidor
+  isAccessible?: boolean
+  minTrunk?:     number | null
   fechaDesde?:   string
   fechaHasta?:   string
 }

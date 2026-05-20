@@ -25,6 +25,8 @@ function applyFilters(vehicles: Vehiculo[], filters: VehiculoFilters): Vehiculo[
     if (filters.minSeats != null && v.asientos < filters.minSeats) return false
     if (filters.minYear  != null && v.anio < filters.minYear)     return false
     if (filters.maxYear  != null && v.anio > filters.maxYear)     return false
+    if (filters.isAccessible && !v.isAccessible) return false
+    if (filters.minTrunk != null && v.trunkLiters < filters.minTrunk) return false
     return true
   })
 }
@@ -53,10 +55,12 @@ export function BuscarPage() {
 
   useEffect(() => {
     if (!profile || hasAppliedPreferences.current) return
+    const accessibilityPref = profile.preferences.accessibility
     setFilters(f => ({
       ...f,
       transmission: profile.preferences.transmission as VehiculoFilters['transmission'],
-      maxPrice:     profile.preferences.maxPriceDaily,
+      maxPrice:     profile.preferences.maxPriceDaily ?? undefined,
+      isAccessible: accessibilityPref && accessibilityPref.length > 0 ? true : undefined,
     }))
     hasAppliedPreferences.current = true
   }, [profile])
@@ -64,14 +68,21 @@ export function BuscarPage() {
   const { data, isLoading } = useSearchVehiculos({ city, startDate, endDate })
 
   const apiVehiculos = useMemo(
-    () => (data?.vehicles ?? []).map(fromApiToVehiculo),
+    () => (data ?? []).map(fromApiToVehiculo),
     [data]
   )
 
   const activeFiltersCount = useMemo(() =>
-    Object.entries(filters)
-      .filter(([k, v]) => k !== 'query' && v != null && v !== '')
-      .length,
+    [
+      filters.transmission,
+      filters.minPrice,
+      filters.maxPrice,
+      filters.minSeats,
+      filters.minYear,
+      filters.maxYear,
+      filters.isAccessible || null,
+      filters.minTrunk,
+    ].filter(v => v != null).length,
     [filters]
   )
 
@@ -167,7 +178,11 @@ export function BuscarPage() {
                 <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
                 <div>
                   <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-                  <p className="text-xs text-text-muted mt-1">{t('buscar.noResultsHint')}</p>
+                  <p className="text-xs text-text-muted mt-1">
+                    {startDate ?? endDate
+                      ? t('buscar.noResultsDatesHint')
+                      : t('buscar.noResultsHint')}
+                  </p>
                 </div>
                 {activeFiltersCount > 0 && (
                   <button

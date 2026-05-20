@@ -64,6 +64,10 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             </Badge>
           </div>
 
+          {vehiculo.owner?.name && (
+            <span className="text-xs text-text-muted">por {vehiculo.owner.name}</span>
+          )}
+
           {/* Price — protagonista */}
           <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-1">

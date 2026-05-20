@@ -110,6 +110,9 @@ export const es = {
   'buscar.fechaDesde':           'Desde',
   'buscar.fechaHasta':           'Hasta',
   'buscar.cargando':             'Buscando vehículos...',
+  'buscar.filter.dates':         'Fechas',
+  'buscar.filter.trunk':         'Baúl mínimo',
+  'buscar.noResultsDatesHint':   'No hay vehículos disponibles en esas fechas. Probá con otro rango.',
 
   // ─── Vehículo ───
   'vehiculo.reservar': 'Reservar',
