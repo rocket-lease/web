@@ -469,22 +469,23 @@ interface ScannerModalProps {
 function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps) {
   useLockBodyScroll()
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <>
       <div
-        className="w-full max-w-sm rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-8 space-y-4"
+        className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-overlay-in"
+        onClick={onClose}
+      />
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-[max(2rem,env(safe-area-inset-bottom))] space-y-4 animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <p className="font-semibold text-text-primary">{title}</p>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary"
             aria-label={t('reservas.qr.cancelar')}
           >
-            <PhosphorX className="h-5 w-5" weight="bold" />
+            <PhosphorX className="h-4 w-4" weight="bold" />
           </button>
         </div>
         {submitting ? (
@@ -493,7 +494,7 @@ function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps)
           <QrScanner onScan={onScan} />
         )}
       </div>
-    </div>
+    </>
   )
 }
 
