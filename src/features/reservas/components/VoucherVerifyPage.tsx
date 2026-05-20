@@ -27,7 +27,7 @@ export function VoucherVerifyPage() {
   const confirmPickup = useConfirmPickup(voucher?.reservationId ?? '')
   const { user } = useAuth()
   const navigate = useNavigate()
-  const goHome = () => navigate({ to: '/mis-vehiculos' })
+  const goHome = () => navigate({ to: '/buscar' })
 
   if (isLoading) {
     return (
