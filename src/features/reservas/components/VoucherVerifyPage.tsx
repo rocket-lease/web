@@ -26,7 +26,7 @@ export function VoucherVerifyPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
-        <PageHeader title={t('reservas.voucher.verifyTitle')} />
+        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack />
         <div className="flex-1 flex items-center justify-center">
           <p className="text-text-muted">{t('general.loading')}</p>
         </div>
@@ -37,7 +37,7 @@ export function VoucherVerifyPage() {
   if (isError || !voucher) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
-        <PageHeader title={t('reservas.voucher.verifyTitle')} />
+        <PageHeader title={t('reservas.voucher.verifyTitle')} showBack />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
           <XCircle className="h-16 w-16 text-danger" weight="fill" />
           <h2 className="text-xl font-bold text-text-primary">{t('reservas.voucher.invalidTitle')}</h2>
