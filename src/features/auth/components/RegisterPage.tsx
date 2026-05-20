@@ -56,12 +56,17 @@ export function RegisterPage() {
     } catch (err) {
       const problem = err as ProblemDetails
       if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
-        toast.error('Ya existe una cuenta con este email pendiente de verificación. Revisá tu casilla.', {
+        toast.error(t('auth.register.pendingVerification'), {
           duration: 8000,
-          action: {
-            label: 'Ir a verificar',
-            onClick: () => navigate({ to: '/verificar', search: { channel: 'email', email: data.email } }),
-          },
+          description: (
+            <button
+              type="button"
+              onClick={() => navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })}
+              className="mt-0.5 w-full text-left text-xs underline decoration-dotted opacity-80 active:opacity-100"
+            >
+              {t('auth.register.pendingVerificationHint')} →
+            </button>
+          ),
         })
       } else {
         const msg = problem?.detail ?? t('error.default')
