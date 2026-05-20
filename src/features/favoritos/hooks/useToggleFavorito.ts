@@ -73,17 +73,7 @@ export function useToggleFavorito() {
           if (status !== 404) toast.error(t('favoritos.toast.error'))
         },
       })
-      toast(t('favoritos.toast.removed'), {
-        action: {
-          label: t('favoritos.toast.undo'),
-          onClick: () => {
-            favoritosApi.add(vehicleId).then(() => {
-              queryClient.invalidateQueries({ queryKey: ['favoritos', 'list'] })
-            })
-          },
-        },
-        duration: 4000,
-      })
+      toast(t('favoritos.toast.removed'))
     } else {
       toast.success(t('favoritos.toast.added'))
       addMutation.mutate(vehicleId, {
