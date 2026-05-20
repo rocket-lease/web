@@ -742,7 +742,7 @@ export function ReservarVehiculoPage() {
                 type="checkbox"
                 checked={contractAccepted}
                 onChange={(e) => setContractAccepted(e.target.checked)}
-                className="mt-1 h-4 w-4 accent-brand-500"
+                className="checkbox-brand mt-0.5"
               />
               <span className="text-sm text-text-secondary">
                 {t('reservar.contract.accept')}
