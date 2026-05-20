@@ -8,7 +8,7 @@ import { fmt } from '@/lib/formatters'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Separator } from '@/ui/separator'
-import { useConfirmPickup } from './hooks/useConfirmPickup'
+import { useConfirmPickup } from '../hooks/useConfirmPickup'
 
 export function VoucherVerifyPage() {
   const { token } = useParams({ strict: false })
