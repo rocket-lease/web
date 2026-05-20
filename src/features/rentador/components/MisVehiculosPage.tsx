@@ -79,7 +79,7 @@ export function MisVehiculosPage() {
           ) : (
             <div className="px-4 py-4 space-y-3">
               {vehicles.map(v => {
-                const priceCents = v.basePriceCents ?? (typeof v.basePriceCents === 'number' ? Math.round(v.basePriceCents * 100) : 0)
+                const priceCents = v.basePriceCents ?? 0
                 return (
                   <Link key={v.id} to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
                     <article className="card flex gap-4 p-4 transition-transform duration-150 active:scale-[0.99]">
