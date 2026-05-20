@@ -447,7 +447,7 @@ export function ReservarVehiculoPage() {
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
 
   const canContinueToContract =
-    validRange && !overlapsBusy && !rentalDurationViolation && rulesAcknowledged
+    validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
