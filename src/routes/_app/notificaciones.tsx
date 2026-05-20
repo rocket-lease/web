@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Bell } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { AuthGate } from '@/features/auth/components/AuthGate'
 
 function NotificacionesPage() {
   return (
@@ -17,6 +18,14 @@ function NotificacionesPage() {
   )
 }
 
+function NotificacionesRoute() {
+  return (
+    <AuthGate>
+      <NotificacionesPage />
+    </AuthGate>
+  )
+}
+
 export const Route = createFileRoute('/_app/notificaciones')({
-  component: NotificacionesPage,
+  component: NotificacionesRoute,
 })
