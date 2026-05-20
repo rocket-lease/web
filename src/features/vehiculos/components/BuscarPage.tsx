@@ -1,4 +1,4 @@
-import { MagnifyingGlass, SlidersHorizontal, MapPin } from '@phosphor-icons/react'
+import { MagnifyingGlass, SlidersHorizontal, MapPin, X } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
@@ -9,9 +9,7 @@ import type { SortCriteria, VehiculoFilters } from '../types'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
-
-const DEFAULT_CITY = 'Buenos Aires'
-const CITIES = ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza', 'La Plata', 'Mar del Plata']
+const FEATURED_CITIES = ['CABA', 'Córdoba', 'Rosario', 'Mendoza', 'La Plata', 'Mar del Plata', 'Tucumán', 'Salta']
 
 const FILTER_CHIPS = [
   { key: 'transmission', value: 'Automatico', label: t('buscar.filter.transmission.automatic') },
@@ -19,7 +17,7 @@ const FILTER_CHIPS = [
 ] as const
 
 export function BuscarPage() {
-  const [city,       setCity]       = useState(DEFAULT_CITY)
+  const [city,       setCity]       = useState<string | undefined>()
   const [cityOpen,   setCityOpen]   = useState(false)
   const [startDate,  setStartDate]  = useState<string | undefined>()
   const [endDate,    setEndDate]    = useState<string | undefined>()
@@ -32,7 +30,7 @@ export function BuscarPage() {
 
   const serverCharacteristics = filters.characteristics ?? []
   const { data: vehicles = [], isLoading, isError } = useQuery({
-    queryKey: ['vehicles', serverCharacteristics, city, startDate, endDate],
+    queryKey: ['vehicles', serverCharacteristics, city ?? null, startDate, endDate],
     queryFn: () => vehiclesApi.getAll({ city, characteristics: serverCharacteristics, from: startDate, to: endDate }),
   })
 
@@ -98,10 +96,23 @@ export function BuscarPage() {
         <div className="flex items-center gap-2 mb-3">
           <button
             onClick={() => setCityOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-surface-1 border border-white/8 px-3 h-10 text-sm font-medium text-text-primary shrink-0 hover:border-brand-500/40 transition-colors"
+            className={`flex items-center gap-1.5 rounded-full border px-3 h-10 text-sm font-medium shrink-0 transition-colors ${
+              city
+                ? 'bg-brand-500/10 border-brand-500/40 text-brand-300'
+                : 'bg-surface-1 border-white/8 text-text-muted hover:border-brand-500/40'
+            }`}
           >
-            <MapPin size={14} weight="fill" className="text-client" />
-            <span>{city}</span>
+            <MapPin size={14} weight="fill" className={city ? 'text-brand-400' : 'text-text-muted'} />
+            <span className="whitespace-nowrap">{city ?? 'Todas las ciudades'}</span>
+            {city && (
+              <span
+                role="button"
+                onClick={e => { e.stopPropagation(); setCity(undefined) }}
+                className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/10 hover:bg-white/20"
+              >
+                <X size={10} />
+              </span>
+            )}
           </button>
           <DateRangePicker
             startDate={startDate}
@@ -234,14 +245,20 @@ export function BuscarPage() {
             onClick={e => e.stopPropagation()}
           >
             <p className="text-sm font-semibold text-text-primary mb-4">{t('buscar.ciudad')}</p>
-            {CITIES.map(c => (
+            <button
+              onClick={() => { setCity(undefined); setCityOpen(false) }}
+              className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                !city ? 'bg-client/15 text-client font-semibold' : 'text-text-secondary hover:bg-surface-2'
+              }`}
+            >
+              Todas las ciudades
+            </button>
+            {FEATURED_CITIES.map(c => (
               <button
                 key={c}
                 onClick={() => { setCity(c); setCityOpen(false) }}
                 className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
-                  c === city
-                    ? 'bg-client/15 text-client font-semibold'
-                    : 'text-text-secondary hover:bg-surface-2'
+                  c === city ? 'bg-client/15 text-client font-semibold' : 'text-text-secondary hover:bg-surface-2'
                 }`}
               >
                 {c}
