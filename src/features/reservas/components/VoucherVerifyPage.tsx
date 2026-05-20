@@ -43,6 +43,10 @@ export function VoucherVerifyPage() {
             ))}
           </div>
         </div>
+        <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-surface-0/95 backdrop-blur-sm border-t border-white/8 flex flex-col gap-3">
+          <Skeleton className="h-11 w-full rounded-full" />
+          <Skeleton className="h-11 w-full rounded-full" />
+        </div>
       </div>
     )
   }
