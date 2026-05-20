@@ -54,7 +54,7 @@ export function VoucherVerifyPage() {
     <div className="flex flex-col min-h-dvh bg-surface-0">
       <PageHeader title={t('reservas.voucher.verifyTitle')} />
 
-      <div className="flex-1 p-4 space-y-4">
+      <div className="flex-1 p-4 pb-36 space-y-4">
         {(confirmPickup.isSuccess || isAlreadyInProgress) && (
           <div className="rounded-2xl bg-brand-500/10 border border-brand-500/20 p-6 flex flex-col items-center text-center gap-3">
             <CheckCircle className="h-12 w-12 text-brand-500" weight="fill" />
@@ -96,28 +96,29 @@ export function VoucherVerifyPage() {
           <ReservationDetails voucher={voucher} />
         )}
 
-        {isConfirmed && !confirmPickup.isSuccess && (
-          <div className="flex flex-col gap-3 pt-2">
-            <Button
-              onClick={() => confirmPickup.mutate(token as string)}
-              disabled={confirmPickup.isPending}
-              className="w-full"
-            >
-              {confirmPickup.isPending
-                ? t('reservas.retiro.confirmando')
-                : t('reservas.retiro.confirmar')}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => toast.info(t('reservas.retiro.dataMismatchToast'))}
-              disabled={confirmPickup.isPending}
-              className="w-full"
-            >
-              {t('reservas.retiro.dataMismatch')}
-            </Button>
-          </div>
-        )}
       </div>
+
+      {isConfirmed && !confirmPickup.isSuccess && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] bg-surface-0/95 backdrop-blur-sm border-t border-white/8 flex flex-col gap-3">
+          <Button
+            onClick={() => confirmPickup.mutate(token as string)}
+            disabled={confirmPickup.isPending}
+            className="w-full"
+          >
+            {confirmPickup.isPending
+              ? t('reservas.retiro.confirmando')
+              : t('reservas.retiro.confirmar')}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => toast.info(t('reservas.retiro.dataMismatchToast'))}
+            disabled={confirmPickup.isPending}
+            className="w-full"
+          >
+            {t('reservas.retiro.dataMismatch')}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
