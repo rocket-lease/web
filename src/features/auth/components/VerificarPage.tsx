@@ -153,6 +153,7 @@ function ChannelCard({
   const [cooldown, setCooldown] = useState(0)
   const [resending, setResending] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [failCount, setFailCount] = useState(0)
   const interval = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
@@ -176,7 +177,7 @@ function ChannelCard({
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!/^\d{6}$/.test(code)) {
-      setErrorMessage(t('auth.verify.error.incorrect'))
+      setErrorMessage(t('auth.verify.error.format'))
       return
     }
     setSubmitting(true)
@@ -190,7 +191,13 @@ function ChannelCard({
       toast.success(t('auth.verify.success'))
       onVerified()
     } catch {
-      setErrorMessage(t('auth.verify.error.incorrect'))
+      const newFailCount = failCount + 1
+      setFailCount(newFailCount)
+      if (newFailCount >= 3) {
+        setErrorMessage(t('auth.verify.error.maxAttempts'))
+      } else {
+        setErrorMessage(t('auth.verify.error.incorrect'))
+      }
       setCode('')
     } finally {
       setSubmitting(false)
@@ -205,6 +212,7 @@ function ChannelCard({
       setCooldown(RESEND_COOLDOWN_SECONDS)
       setErrorMessage(null)
       setCode('')
+      setFailCount(0)
       toast.success(t('auth.verify.sent'))
     } catch {
       toast.error(t('error.default'))
@@ -259,7 +267,7 @@ function ChannelCard({
 
         <Button
           type="submit"
-          disabled={submitting || code.length !== 6}
+          disabled={submitting || code.length !== 6 || failCount >= 3}
           size="lg"
           className="w-full"
         >
