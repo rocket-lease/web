@@ -1,11 +1,6 @@
 import { useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/ui/dialog'
+import { X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
@@ -50,7 +45,7 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
     e.preventDefault()
 
     if (!name.trim()) {
-      alert(t('reservationRules.nameRequired'))
+      toast.error(t('reservationRules.nameRequired'))
       return
     }
 
@@ -84,16 +79,26 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
     })
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t('reservationRules.createNew')}</DialogTitle>
-          <DialogDescription>{t('reservationRules.createDescription')}</DialogDescription>
-        </DialogHeader>
+  if (!open) return null
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nombre */}
+  return (
+    <>
+      <div
+        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
+      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 max-h-[85svh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
+          <p className="font-semibold text-text-primary">{t('reservationRules.createNew')}</p>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-5 py-4 space-y-4 pb-8">
           <div className="space-y-2">
             <Label htmlFor="name">{t('reservationRules.name')}</Label>
             <Input
@@ -105,7 +110,6 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             />
           </div>
 
-          {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description">{t('reservationRules.createDescription')}</Label>
             <Textarea
@@ -118,12 +122,11 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             />
           </div>
 
-          {/* Política de cancelación */}
           <div className="space-y-2">
             <Label>{t('reservationRules.cancellationPolicy')}</Label>
             <Select value={cancellationPolicy} onValueChange={(v) => setCancellationPolicy(v as CancellationPolicy)}>
               <SelectTrigger disabled={createMutation.isPending}>
-                <SelectValue>{cancellationPolicy ? getCancellationPolicyLabel(cancellationPolicy) : ''}</SelectValue>
+                <SelectValue>{getCancellationPolicyLabel(cancellationPolicy)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="FLEXIBLE">{getCancellationPolicyLabel('FLEXIBLE')}</SelectItem>
@@ -133,12 +136,11 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             </Select>
           </div>
 
-          {/* Seña */}
           <div className="space-y-2">
             <Label>{t('reservationRules.deposit')}</Label>
             <Select value={deposit} onValueChange={(v) => setDeposit(v as Deposit)}>
               <SelectTrigger disabled={createMutation.isPending}>
-                <SelectValue>{deposit ? getDepositLabel(deposit) : ''}</SelectValue>
+                <SelectValue>{getDepositLabel(deposit)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="NONE">{getDepositLabel('NONE')}</SelectItem>
@@ -148,7 +150,6 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             </Select>
           </div>
 
-          {/* Kilometraje */}
           <div className="space-y-2">
             <Label>{t('reservationRules.maxKilometrage')}</Label>
             <div className="flex gap-2">
@@ -168,24 +169,23 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
                   value={kmValue}
                   onChange={(e) => setKmValue(e.target.value)}
                   disabled={createMutation.isPending}
-                  min="0"
+                  min="1"
                 />
               )}
             </div>
           </div>
 
-          {/* Tiempo mínimo/máximo */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="minDays">{t('reservationRules.minDays')}</Label>
               <Input
                 id="minDays"
                 type="number"
-                placeholder="0"
+                placeholder="1"
                 value={minDays}
                 onChange={(e) => setMinDays(e.target.value)}
                 disabled={createMutation.isPending}
-                min="0"
+                min="1"
               />
             </div>
             <div className="space-y-2">
@@ -193,17 +193,16 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
               <Input
                 id="maxDays"
                 type="number"
-                placeholder="0"
+                placeholder="1"
                 value={maxDays}
                 onChange={(e) => setMaxDays(e.target.value)}
                 disabled={createMutation.isPending}
-                min="0"
+                min="1"
               />
             </div>
           </div>
 
-          {/* Botones */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-2">
             <Button
               type="button"
               variant="secondary"
@@ -218,7 +217,7 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   )
 }
