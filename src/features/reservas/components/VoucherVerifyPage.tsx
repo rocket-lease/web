@@ -1,18 +1,18 @@
-import { useEffect, useRef } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { CheckCircle, XCircle, CalendarDots, Car, User, Wallet, WarningCircle } from '@phosphor-icons/react'
 import { RESERVATION_STATUS, type VerifyVoucherResponse } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { useConfirmPickup } from '../hooks/useConfirmPickup'
 
 export function VoucherVerifyPage() {
   const { token } = useParams({ strict: false })
-  const confirmedRef = useRef(false)
 
   const { data: voucher, isLoading, isError } = useQuery({
     queryKey: ['voucher', 'verify', token],
@@ -23,14 +23,7 @@ export function VoucherVerifyPage() {
 
   const confirmPickup = useConfirmPickup(voucher?.reservationId ?? '')
 
-  useEffect(() => {
-    if (!voucher || voucher.status !== RESERVATION_STATUS.confirmed) return
-    if (confirmedRef.current) return
-    confirmedRef.current = true
-    confirmPickup.mutate(token as string)
-  }, [voucher?.status])
-
-  if (isLoading || confirmPickup.isPending) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-dvh bg-surface-0">
         <PageHeader title={t('reservas.voucher.verifyTitle')} />
@@ -54,82 +47,76 @@ export function VoucherVerifyPage() {
     )
   }
 
-  const showDetails =
-    !confirmPickup.isError &&
-    (confirmPickup.isSuccess ||
-      voucher.status === RESERVATION_STATUS.confirmed ||
-      voucher.status === RESERVATION_STATUS.in_progress)
+  const isAlreadyInProgress = voucher.status === RESERVATION_STATUS.in_progress
+  const isConfirmed = voucher.status === RESERVATION_STATUS.confirmed
 
   return (
     <div className="flex flex-col min-h-dvh bg-surface-0">
       <PageHeader title={t('reservas.voucher.verifyTitle')} />
 
       <div className="flex-1 p-4 space-y-4">
-        <PickupStatusBanner
-          voucherStatus={voucher.status}
-          pickupSucceeded={confirmPickup.isSuccess}
-          pickupError={confirmPickup.isError}
-        />
+        {(confirmPickup.isSuccess || isAlreadyInProgress) && (
+          <div className="rounded-2xl bg-brand-500/10 border border-brand-500/20 p-6 flex flex-col items-center text-center gap-3">
+            <CheckCircle className="h-12 w-12 text-brand-500" weight="fill" />
+            <div>
+              <h2 className="text-xl font-bold text-brand-500">{t('reservas.retiro.exito')}</h2>
+              <p className="text-sm text-text-secondary mt-1">{t('reservas.voucher.validBody')}</p>
+            </div>
+          </div>
+        )}
 
-        {showDetails && <ReservationDetails voucher={voucher} />}
-      </div>
-    </div>
-  )
-}
+        {confirmPickup.isError && (
+          <div className="rounded-2xl bg-danger/10 border border-danger/20 p-6 flex flex-col items-center text-center gap-3">
+            <WarningCircle className="h-12 w-12 text-danger" weight="fill" />
+            <div>
+              <h2 className="text-xl font-bold text-danger">{t('reservas.retiro.qrInvalido')}</h2>
+              <p className="text-sm text-text-secondary mt-1">{t('reservas.voucher.invalidBody')}</p>
+            </div>
+          </div>
+        )}
 
-function PickupStatusBanner({
-  voucherStatus,
-  pickupSucceeded,
-  pickupError,
-}: {
-  voucherStatus: string
-  pickupSucceeded: boolean
-  pickupError: boolean
-}) {
-  if (pickupSucceeded || voucherStatus === RESERVATION_STATUS.in_progress) {
-    return (
-      <div className="rounded-2xl bg-brand-500/10 border border-brand-500/20 p-6 flex flex-col items-center text-center gap-3">
-        <CheckCircle className="h-12 w-12 text-brand-500" weight="fill" />
-        <div>
-          <h2 className="text-xl font-bold text-brand-500">{t('reservas.retiro.exito')}</h2>
-          <p className="text-sm text-text-secondary mt-1">{t('reservas.voucher.validBody')}</p>
-        </div>
-      </div>
-    )
-  }
+        {!confirmPickup.isSuccess && !isAlreadyInProgress && !confirmPickup.isError && (isConfirmed ? (
+          <div className="rounded-2xl bg-brand-500/10 border border-brand-500/20 p-4 flex flex-col items-center text-center gap-2">
+            <CheckCircle className="h-10 w-10 text-brand-500" />
+            <p className="text-sm font-semibold text-brand-500">{t('reservas.voucher.validTitle')}</p>
+          </div>
+        ) : (
+          <div className="rounded-2xl bg-danger/10 border border-danger/20 p-6 flex flex-col items-center text-center gap-3">
+            <XCircle className="h-12 w-12 text-danger" weight="fill" />
+            <div>
+              <h2 className="text-xl font-bold text-danger">{t('reservas.voucher.invalidTitle')}</h2>
+              <p className="text-sm text-text-secondary mt-1">
+                {t('reservas.voucher.statusWas')} <strong className="uppercase">{voucher.status}</strong>
+              </p>
+            </div>
+          </div>
+        ))}
 
-  if (pickupError) {
-    return (
-      <div className="rounded-2xl bg-danger/10 border border-danger/20 p-6 flex flex-col items-center text-center gap-3">
-        <WarningCircle className="h-12 w-12 text-danger" weight="fill" />
-        <div>
-          <h2 className="text-xl font-bold text-danger">{t('reservas.retiro.qrInvalido')}</h2>
-          <p className="text-sm text-text-secondary mt-1">{t('reservas.voucher.invalidBody')}</p>
-        </div>
-      </div>
-    )
-  }
+        {(isConfirmed || confirmPickup.isSuccess || isAlreadyInProgress) && (
+          <ReservationDetails voucher={voucher} />
+        )}
 
-  if (voucherStatus === RESERVATION_STATUS.confirmed) {
-    return (
-      <div className="rounded-2xl bg-brand-500/10 border border-brand-500/20 p-6 flex flex-col items-center text-center gap-3">
-        <CheckCircle className="h-12 w-12 text-brand-500" />
-        <div>
-          <h2 className="text-xl font-bold text-brand-500">{t('reservas.voucher.validTitle')}</h2>
-          <p className="text-sm text-text-secondary mt-1">{t('reservas.voucher.validBody')}</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="rounded-2xl bg-danger/10 border border-danger/20 p-6 flex flex-col items-center text-center gap-3">
-      <XCircle className="h-12 w-12 text-danger" weight="fill" />
-      <div>
-        <h2 className="text-xl font-bold text-danger">{t('reservas.voucher.invalidTitle')}</h2>
-        <p className="text-sm text-text-secondary mt-1">
-          {t('reservas.voucher.statusWas')} <strong className="uppercase">{voucherStatus}</strong>
-        </p>
+        {isConfirmed && !confirmPickup.isSuccess && (
+          <div className="flex flex-col gap-3 pt-2">
+            <Button
+              onClick={() => confirmPickup.mutate(token as string)}
+              disabled={confirmPickup.isPending}
+              className="w-full"
+            >
+              {confirmPickup.isPending
+                ? t('reservas.retiro.confirmando')
+                : t('reservas.retiro.confirmar')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => toast.info(t('reservas.retiro.dataMismatchToast'))}
+              disabled={confirmPickup.isPending}
+              className="w-full"
+            >
+              {t('reservas.retiro.dataMismatch')}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

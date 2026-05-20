@@ -240,6 +240,8 @@ export const es = {  // --- App ---
   'reservas.retiro.confirmando': 'Confirmando...',
   'reservas.retiro.exito': '¡Vehículo entregado! El alquiler comenzó.',
   'reservas.retiro.qrInvalido': 'Código inválido. Verificá con el conductor.',
+  'reservas.retiro.dataMismatch': 'Los datos no coinciden',
+  'reservas.retiro.dataMismatchToast': 'Contactá a soporte para reportar el problema.',
   'reservas.devolucion.cta': 'Devolver vehículo',
   'reservas.devolucion.scannerTitle': 'Escaneá el QR del rentador',
   'reservas.devolucion.confirmar': 'Confirmar devolución',
