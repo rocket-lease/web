@@ -737,12 +737,12 @@ export function ReservarVehiculoPage() {
                 {t('reservar.contract.body')}
               </p>
             </div>
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={contractAccepted}
                 onChange={(e) => setContractAccepted(e.target.checked)}
-                className="checkbox-brand mt-0.5"
+                className="checkbox-brand"
               />
               <span className="text-sm text-text-secondary">
                 {t('reservar.contract.accept')}
