@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { useNavigate, Link } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import {
   CheckCircle,
   ChevronRight,
@@ -28,7 +28,6 @@ import { t } from '@/i18n/es'
  * secciones es suficiente.
  */
 export function ConfiguracionPage() {
-  const navigate = useNavigate()
   const { signOut } = useAuth()
   const { data: profile, isLoading } = useMyProfile()
   const { status: verification, loading: verificationLoading } = useVerificationStatus()
@@ -99,7 +98,7 @@ export function ConfiguracionPage() {
             try {
               await signOut()
             } finally {
-              navigate({ to: '/buscar' })
+              window.location.href = '/buscar'
             }
           }}
           showChevron
