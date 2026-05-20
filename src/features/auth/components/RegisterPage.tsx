@@ -8,7 +8,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
-import type { ProblemDetails } from '@rocket-lease/contracts'
+import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
 
 // Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
 const schema = z
@@ -55,8 +55,18 @@ export function RegisterPage() {
       navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
     } catch (err) {
       const problem = err as ProblemDetails
-      const msg = problem?.detail ?? t('error.default')
-      toast.error(msg)
+      if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
+        toast.error('Ya existe una cuenta con este email pendiente de verificación. Revisá tu casilla.', {
+          duration: 8000,
+          action: {
+            label: 'Ir a verificar',
+            onClick: () => navigate({ to: '/verificar', search: { channel: 'email', email: data.email } }),
+          },
+        })
+      } else {
+        const msg = problem?.detail ?? t('error.default')
+        toast.error(msg)
+      }
     }
   }
 

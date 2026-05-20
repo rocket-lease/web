@@ -66,6 +66,8 @@ export const es = {  // --- App ---
   'auth.verify.success': 'Verificado correctamente',
   'auth.verify.verified': 'Verificado',
   'auth.verify.error.incorrect': 'Codigo incorrecto',
+  'auth.verify.error.format': 'El código debe ser de 6 dígitos numéricos',
+  'auth.verify.error.maxAttempts': 'Alcanzaste el máximo de intentos. Solicitá un nuevo código.',
   'auth.verify.banner': 'Tu cuenta no esta verificada',
   'auth.verify.banner.cta': 'Verificar',
 
@@ -109,6 +111,9 @@ export const es = {  // --- App ---
   'buscar.filter.characteristics': 'Características',
   'buscar.filter.clearAll': 'Limpiar todo',
   'buscar.filter.applyFilters': 'Aplicar',
+  'buscar.filter.dates': 'Fechas de alquiler',
+  'buscar.filter.trunk': 'Baúl mínimo',
+  'buscar.noResultsDatesHint': 'Probá ampliar el rango de fechas',
 
   // --- Vehiculo ---
   'vehiculo.reservar': 'Reservar',
@@ -342,6 +347,7 @@ export const es = {  // --- App ---
   'perfil.deleteAccount.deleting': 'Eliminando...',
   'perfil.deleteAccount.success': 'Cuenta eliminada.',
   'perfil.deleteAccount.hasVehicles': 'No podés eliminar tu cuenta mientras tengas vehículos publicados. Eliminá tus vehículos primero.',
+  'perfil.deleteAccount.hasActiveReservations': 'Tenés reservas activas. Cancelalas antes de eliminar tu cuenta.',
   'perfil.logout': 'Cerrar sesión',
   'perfil.switchRole': 'Cambiar a modo Rentador',
   'perfil.switchRoleConductor': 'Cambiar a modo Conductor',
@@ -454,7 +460,8 @@ export const es = {  // --- App ---
   'favoritos.add': 'Agregar a favoritos',
   'favoritos.remove': 'Quitar de favoritos',
   'favoritos.toast.added': 'Agregado a favoritos',
-  'favoritos.toast.removed': 'Quitado de favoritos',
+  'favoritos.toast.removed': 'Eliminado de favoritos',
+  'favoritos.toast.undo': 'Deshacer',
   'favoritos.toast.error': 'No pudimos actualizar tus favoritos',
 
   // --- Soporte / FAQ ---
