@@ -38,6 +38,7 @@ export const es = {  // --- App ---
   'auth.register.hasAccount': 'Ya tenes cuenta?',
   'auth.register.login': 'Ingresa',
   'auth.register.pendingVerification': 'Ya existe una cuenta con este correo pendiente de verificación.',
+  'auth.register.emailTaken': 'Ya existe una cuenta registrada con este correo.',
   'auth.recover.title': 'Recuperar contraseña',
   'auth.recover.subtitle': 'Te enviamos un enlace a tu correo',
   'auth.recover.email': 'Correo electronico',

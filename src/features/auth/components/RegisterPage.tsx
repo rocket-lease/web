@@ -58,9 +58,10 @@ export function RegisterPage() {
       if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
         toast.info(t('auth.register.pendingVerification'))
         navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+      } else if (problem?.code === ErrorCodes.ENTITY_ALREADY_EXISTS) {
+        toast.error(t('auth.register.emailTaken'))
       } else {
-        const msg = problem?.detail ?? t('error.default')
-        toast.error(msg)
+        toast.error(t('error.default'))
       }
     }
   }
