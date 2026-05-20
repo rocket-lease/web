@@ -444,7 +444,7 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
 
   useEffect(() => {
     const url = `${window.location.origin}/voucher/return/${returnQrToken}`
-    QRCode.toDataURL(url, { width: 200, margin: 1 })
+    QRCode.toDataURL(url, { width: 180, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
       .then(setQrDataUrl)
       .catch(console.error)
   }, [returnQrToken])
@@ -453,7 +453,9 @@ function ReturnQrDisplay({ returnQrToken }: { returnQrToken: string }) {
     <div className="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-4 flex flex-col items-center gap-3">
       <p className="font-semibold text-text-primary">{t('reservas.devolucion.qrTitle')}</p>
       {qrDataUrl && (
-        <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="w-48 h-48" />
+        <div className="h-48 w-48 rounded-2xl bg-white flex items-center justify-center overflow-hidden border border-white/6 p-2">
+          <img src={qrDataUrl} alt={t('reservas.devolucion.qrTitle')} className="w-full h-full object-contain mix-blend-multiply" />
+        </div>
       )}
       <p className="text-xs text-text-muted text-center">{t('reservas.devolucion.qrHelp')}</p>
     </div>
