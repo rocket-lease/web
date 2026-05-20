@@ -11,11 +11,8 @@ import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 export function VehiculoCardSkeleton({ className }: { className?: string }) {
   return (
     <div className={cn('overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card', className)}>
-      {/* Foto */}
       <Skeleton className="aspect-video w-full rounded-none" />
-      {/* Info */}
       <div className="p-5 space-y-4">
-        {/* Nombre + badge */}
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5 flex-1 min-w-0">
             <Skeleton className="h-4 w-3/4" />
@@ -23,11 +20,8 @@ export function VehiculoCardSkeleton({ className }: { className?: string }) {
           </div>
           <Skeleton className="h-5 w-16 rounded-full shrink-0" />
         </div>
-        {/* Ubicación */}
         <Skeleton className="h-3 w-2/5" />
-        {/* Precio */}
         <Skeleton className="h-7 w-1/3" />
-        {/* Características */}
         <div className="flex items-center gap-3 pt-1 border-t border-white/5">
           <Skeleton className="h-3 w-12" />
           <Skeleton className="h-3 w-8" />
@@ -93,6 +87,11 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
             <span>{vehiculo.city}, {vehiculo.province}</span>
           </div>
 
+          {/* Rentador */}
+          {vehiculo.owner?.name && (
+            <span className="text-xs text-text-muted">por {vehiculo.owner.name}</span>
+          )}
+
           {/* Precio */}
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>
@@ -117,7 +116,6 @@ export function VehiculoCard({ vehiculo, className }: VehiculoCardProps) {
         </div>
       </Link>
 
-      {/* Boton favorito (fuera del Link para no propagar nav) */}
       <div className="absolute right-1 top-1 z-10">
         <FavoritoButton vehicleId={vehiculo.id} />
       </div>

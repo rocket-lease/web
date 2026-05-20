@@ -89,6 +89,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react-day-picker', 'date-fns', 'date-fns/locale'],
+  },
   server: {
     allowedHosts: ['dreamy-anyplace-zebra.ngrok-free.dev'],
     fs: {
