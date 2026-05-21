@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -13,21 +14,41 @@ import {
   formatMaxKilometrage,
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
+import { CreateRuleSetDialog } from './CreateRuleSetDialog'
 
 interface ReservationRuleSetSelectorProps {
   selectedId?: string
   onSelect: (id: string | undefined) => void
   disabled?: boolean
+  /**
+   * Vehículo al que pertenece este selector. Si está presente, la opción
+   * "+ Crear nuevo set" abre el diálogo con la opción de privado/compartido (US-49).
+   */
+  vehicleId?: string
+  vehicleName?: string
 }
+
+const CREATE_NEW_VALUE = '__create_new__'
 
 export function ReservationRuleSetSelector({
   selectedId,
   onSelect,
   disabled = false,
+  vehicleId,
+  vehicleName,
 }: ReservationRuleSetSelectorProps) {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const ruleSetsQuery = useReservationRuleSets()
   const ruleSets = ruleSetsQuery.data ?? []
   const selectedRuleSet = ruleSets.find((set) => set.id === selectedId)
+
+  const handleValueChange = (value: string) => {
+    if (value === CREATE_NEW_VALUE) {
+      setCreateDialogOpen(true)
+      return
+    }
+    onSelect(value === 'none' ? undefined : value)
+  }
 
   return (
     <div className="space-y-2">
@@ -36,16 +57,16 @@ export function ReservationRuleSetSelector({
       </label>
       <Select
         value={selectedId ?? 'none'}
-        onValueChange={(value) => onSelect(value === 'none' ? undefined : value)}
+        onValueChange={handleValueChange}
         disabled={disabled || ruleSetsQuery.isLoading}
       >
         <SelectTrigger>
-          <SelectValue>{selectedRuleSet?.name ?? 'Sin reglas asignadas'}</SelectValue>
+          <SelectValue>
+            {selectedRuleSet?.name ?? t('reservationRules.selector.none')}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="none">
-            Sin reglas asignadas
-          </SelectItem>
+          <SelectItem value="none">{t('reservationRules.selector.none')}</SelectItem>
           {ruleSets.map((set) => (
             <SelectItem key={set.id} value={set.id}>
               <div className="flex flex-col">
@@ -54,6 +75,11 @@ export function ReservationRuleSetSelector({
               </div>
             </SelectItem>
           ))}
+          <SelectItem value={CREATE_NEW_VALUE}>
+            <span className="font-medium text-brand-400">
+              {t('reservationRules.selector.createNew')}
+            </span>
+          </SelectItem>
         </SelectContent>
       </Select>
       {selectedRuleSet && (
@@ -65,7 +91,7 @@ export function ReservationRuleSetSelector({
             Cancelación: <span className="font-medium">{getCancellationPolicyLabel(selectedRuleSet.cancellationPolicy)}</span>
           </p>
           <p>
-            Seña: <span className="font-medium">{getDepositLabel(selectedRuleSet.deposit)}</span>
+            Seña: <span className="font-medium">{getDepositLabel(selectedRuleSet.depositPercentage)}</span>
           </p>
           <p>
             Kilometraje: <span className="font-medium">{formatMaxKilometrage(selectedRuleSet.maxKilometrage)}</span>
@@ -75,6 +101,21 @@ export function ReservationRuleSetSelector({
           </p>
         </div>
       )}
+
+      <CreateRuleSetDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        vehicleIdForPrivateOption={vehicleId}
+        vehicleNameForScopeDialog={vehicleName}
+        onCreated={(response, scope) => {
+          // Si el set fue creado como compartido, se autoselecciona.
+          // Si fue privado, el vehículo ya queda atado vía el endpoint del api,
+          // pero también lo dejamos autoseleccionado para feedback inmediato.
+          onSelect(response.id)
+          // scope se ignora a nivel UI — la lógica viva en api/web está en el payload.
+          void scope
+        }}
+      />
     </div>
   )
 }

@@ -10,6 +10,8 @@ import { t } from '@/i18n/es'
 
 const ruleSetQueryKey = (id: string) => ['reservation-rules', id] as const
 const ruleSetListQueryKey = () => ['reservation-rules', 'list'] as const
+const privateRuleSetQueryKey = (vehicleId: string) =>
+  ['rentador', 'rule-sets', 'private', vehicleId] as const
 
 /**
  * Hook para obtener lista de sets de reglas del rentador
@@ -35,6 +37,24 @@ export function useReservationRuleSet(id: string | undefined): UseQueryResult<Re
 }
 
 /**
+ * Hook para obtener el set privado de un vehículo (US-49).
+ *
+ * Devuelve `null` si el vehículo no tiene set privado.
+ * El query se habilita sólo si hay un `vehicleId` válido.
+ */
+export function usePrivateRuleSet(
+  vehicleId: string | undefined,
+): UseQueryResult<ReservationRuleSet | null, Error> {
+  return useQuery({
+    queryKey: vehicleId ? privateRuleSetQueryKey(vehicleId) : ['rentador', 'rule-sets', 'private', 'disabled'],
+    queryFn: () =>
+      vehicleId ? rulesApi.getPrivateRuleSetForVehicle(vehicleId) : Promise.resolve(null),
+    enabled: Boolean(vehicleId),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+/**
  * Hook para crear un nuevo set de reglas
  */
 export function useCreateReservationRuleSet() {
@@ -42,8 +62,14 @@ export function useCreateReservationRuleSet() {
 
   return useMutation({
     mutationFn: (data: CreateReservationRuleSetRequest) => rulesApi.createRuleSet(data),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ruleSetListQueryKey() })
+      // Si el set es privado de un vehículo, también invalidamos su query.
+      if (variables.vehicleId) {
+        queryClient.invalidateQueries({
+          queryKey: privateRuleSetQueryKey(variables.vehicleId),
+        })
+      }
       toast.success(t('reservationRules.created'))
       return response
     },

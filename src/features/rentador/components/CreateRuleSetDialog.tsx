@@ -5,6 +5,8 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Textarea } from '@/ui/textarea'
+import { Switch } from '@/ui/switch'
+import { Slider } from '@/ui/slider'
 import {
   Select,
   SelectContent,
@@ -15,45 +17,85 @@ import {
 import { t } from '@/i18n/es'
 import { useCreateReservationRuleSet } from '@/features/rentador/hooks/useReservationRules'
 import {
-  getCancellationPolicyLabel,
-  getDepositLabel,
-} from '@/features/vehiculos/utils/rules-formatter'
+  useRuleSetScopePreference,
+  type RuleSetScope,
+} from '@/features/rentador/hooks/useRuleSetScopePreference'
+import { getCancellationPolicyLabel } from '@/features/vehiculos/utils/rules-formatter'
+import { RuleSetScopeDialog } from './RuleSetScopeDialog'
 import type {
   CancellationPolicy,
-  Deposit,
   CreateReservationRuleSetRequest,
+  CreateReservationRuleSetResponse,
 } from '@rocket-lease/contracts'
 
 interface CreateRuleSetDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /**
+   * Si está seteado, al guardar se ofrece elegir entre crear el set como
+   * privado de este vehículo o como compartido (US-49). Si no se setea,
+   * el set se crea siempre como compartido (`vehicleId: null`).
+   */
+  vehicleIdForPrivateOption?: string
+  /**
+   * Nombre del vehículo para mostrar en el modal de scope.
+   */
+  vehicleNameForScopeDialog?: string
+  /**
+   * Callback al guardar exitosamente. Útil para autoseleccionar el set
+   * recién creado en un selector externo.
+   */
+  onCreated?: (response: CreateReservationRuleSetResponse, scope: RuleSetScope) => void
 }
 
-export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogProps) {
+const DEFAULT_DEPOSIT_PERCENTAGE = 30
+
+export function CreateRuleSetDialog({
+  open,
+  onOpenChange,
+  vehicleIdForPrivateOption,
+  vehicleNameForScopeDialog = '',
+  onCreated,
+}: CreateRuleSetDialogProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('FLEXIBLE')
-  const [deposit, setDeposit] = useState<Deposit>('NONE')
+  const [depositEnabled, setDepositEnabled] = useState(false)
+  const [depositPercentage, setDepositPercentage] = useState<number>(DEFAULT_DEPOSIT_PERCENTAGE)
   const [kmType, setKmType] = useState<'UNLIMITED' | 'LIMITED'>('UNLIMITED')
   const [kmValue, setKmValue] = useState('1000')
   const [minDays, setMinDays] = useState('')
   const [maxDays, setMaxDays] = useState('')
 
+  // Estado del modal de scope (compartido vs privado). Se abre sólo si
+  // se invocó el dialog con `vehicleIdForPrivateOption` y el rentador no
+  // dejó una preferencia previa.
+  const [scopePromptOpen, setScopePromptOpen] = useState(false)
+  const scopePref = useRuleSetScopePreference()
+
   const createMutation = useCreateReservationRuleSet()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const resetForm = () => {
+    setName('')
+    setDescription('')
+    setCancellationPolicy('FLEXIBLE')
+    setDepositEnabled(false)
+    setDepositPercentage(DEFAULT_DEPOSIT_PERCENTAGE)
+    setKmType('UNLIMITED')
+    setKmValue('1000')
+    setMinDays('')
+    setMaxDays('')
+  }
 
-    if (!name.trim()) {
-      toast.error(t('reservationRules.nameRequired'))
-      return
-    }
+  const buildPayload = (scope: RuleSetScope): CreateReservationRuleSetRequest => {
+    const vehicleId =
+      scope === 'PRIVATE' && vehicleIdForPrivateOption ? vehicleIdForPrivateOption : null
 
-    const payload: CreateReservationRuleSetRequest = {
+    return {
       name: name.trim(),
       description: description.trim() || undefined,
       cancellationPolicy,
-      deposit,
+      depositPercentage: depositEnabled ? depositPercentage : null,
       maxKilometrage:
         kmType === 'UNLIMITED'
           ? { type: 'UNLIMITED' }
@@ -62,21 +104,51 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
         minDays: minDays ? parseInt(minDays, 10) : undefined,
         maxDays: maxDays ? parseInt(maxDays, 10) : undefined,
       },
+      vehicleId,
     }
+  }
 
+  const submitWithScope = (scope: RuleSetScope) => {
+    const payload = buildPayload(scope)
     createMutation.mutate(payload, {
-      onSuccess: () => {
-        setName('')
-        setDescription('')
-        setCancellationPolicy('FLEXIBLE')
-        setDeposit('NONE')
-        setKmType('UNLIMITED')
-        setKmValue('1000')
-        setMinDays('')
-        setMaxDays('')
+      onSuccess: (response) => {
+        onCreated?.(response, scope)
+        resetForm()
         onOpenChange(false)
       },
     })
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!name.trim()) {
+      toast.error(t('reservationRules.nameRequired'))
+      return
+    }
+
+    // Sin vehículo asociado: siempre se crea como compartido.
+    if (!vehicleIdForPrivateOption) {
+      submitWithScope('SHARED')
+      return
+    }
+
+    // Con vehículo asociado: usar preferencia guardada o preguntar.
+    const stored = scopePref.get()
+    if (stored) {
+      submitWithScope(stored)
+      return
+    }
+
+    setScopePromptOpen(true)
+  }
+
+  const handleScopeChoose = (scope: RuleSetScope, remember: boolean) => {
+    if (remember) {
+      scopePref.set(scope)
+    }
+    setScopePromptOpen(false)
+    submitWithScope(scope)
   }
 
   if (!open) return null
@@ -137,18 +209,52 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>{t('reservationRules.deposit')}</Label>
-            <Select value={deposit} onValueChange={(v) => setDeposit(v as Deposit)}>
-              <SelectTrigger disabled={createMutation.isPending}>
-                <SelectValue>{getDepositLabel(deposit)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NONE">{getDepositLabel('NONE')}</SelectItem>
-                <SelectItem value="TEN_PERCENT">{getDepositLabel('TEN_PERCENT')}</SelectItem>
-                <SelectItem value="FIFTY_PERCENT">{getDepositLabel('FIFTY_PERCENT')}</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Sección de seña (US-49): switch + slider */}
+          <div className="space-y-3 rounded-xl border border-white/8 bg-surface-2 p-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="deposit-switch">{t('reservationRules.deposit.enable')}</Label>
+                {!depositEnabled && (
+                  <p className="text-xs text-text-muted">{t('reservationRules.deposit.none')}</p>
+                )}
+              </div>
+              <Switch
+                id="deposit-switch"
+                checked={depositEnabled}
+                onCheckedChange={setDepositEnabled}
+                disabled={createMutation.isPending}
+                aria-label={t('reservationRules.deposit.enable')}
+              />
+            </div>
+            {depositEnabled && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-text-secondary">
+                    {t('reservationRules.deposit.label')}
+                  </span>
+                  <span
+                    className="text-base font-semibold text-brand-400"
+                    aria-live="polite"
+                    data-testid="deposit-percentage-display"
+                  >
+                    {t('reservationRules.deposit.formatted').replace(
+                      '{percentage}',
+                      String(depositPercentage),
+                    )}
+                  </span>
+                </div>
+                <Slider
+                  value={depositPercentage}
+                  onValueChange={setDepositPercentage}
+                  min={10}
+                  max={50}
+                  step={5}
+                  disabled={createMutation.isPending}
+                  aria-label={t('reservationRules.deposit.label')}
+                />
+                <p className="text-xs text-text-muted">{t('reservationRules.deposit.sliderHint')}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -219,6 +325,13 @@ export function CreateRuleSetDialog({ open, onOpenChange }: CreateRuleSetDialogP
           </div>
         </form>
       </div>
+
+      <RuleSetScopeDialog
+        open={scopePromptOpen}
+        vehicleName={vehicleNameForScopeDialog}
+        onChoose={handleScopeChoose}
+        onCancel={() => setScopePromptOpen(false)}
+      />
     </>
   )
 }

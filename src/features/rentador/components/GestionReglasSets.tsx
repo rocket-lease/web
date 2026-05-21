@@ -113,7 +113,7 @@ export function GestionReglasSets() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
-                      {getDepositLabel(ruleSet.deposit)}
+                      {getDepositLabel(ruleSet.depositPercentage)}
                     </Badge>
                   </div>
                 </div>

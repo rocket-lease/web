@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Textarea } from '@/ui/textarea'
+import { Switch } from '@/ui/switch'
+import { Slider } from '@/ui/slider'
 import {
   Select,
   SelectContent,
@@ -14,14 +16,10 @@ import {
 } from '@/ui/select'
 import { t } from '@/i18n/es'
 import { useUpdateReservationRuleSet } from '@/features/rentador/hooks/useReservationRules'
-import {
-  getCancellationPolicyLabel,
-  getDepositLabel,
-} from '@/features/vehiculos/utils/rules-formatter'
+import { getCancellationPolicyLabel } from '@/features/vehiculos/utils/rules-formatter'
 import type {
   ReservationRuleSet,
   CancellationPolicy,
-  Deposit,
   UpdateReservationRuleSetRequest,
 } from '@rocket-lease/contracts'
 
@@ -31,11 +29,14 @@ interface EditRuleSetDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+const DEFAULT_DEPOSIT_PERCENTAGE = 30
+
 export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDialogProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('FLEXIBLE')
-  const [deposit, setDeposit] = useState<Deposit>('NONE')
+  const [depositEnabled, setDepositEnabled] = useState(false)
+  const [depositPercentage, setDepositPercentage] = useState<number>(DEFAULT_DEPOSIT_PERCENTAGE)
   const [kmType, setKmType] = useState<'UNLIMITED' | 'LIMITED'>('UNLIMITED')
   const [kmValue, setKmValue] = useState('1000')
   const [minDays, setMinDays] = useState('')
@@ -48,7 +49,9 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
       setName(ruleSet.name)
       setDescription(ruleSet.description || '')
       setCancellationPolicy(ruleSet.cancellationPolicy)
-      setDeposit(ruleSet.deposit)
+      const dp = ruleSet.depositPercentage
+      setDepositEnabled(dp !== null)
+      setDepositPercentage(dp ?? DEFAULT_DEPOSIT_PERCENTAGE)
       setKmType(ruleSet.maxKilometrage.type)
       setKmValue(ruleSet.maxKilometrage.type === 'LIMITED' ? String(ruleSet.maxKilometrage.value) : '1000')
       setMinDays(ruleSet.rentalTimeConstraints.minDays ? String(ruleSet.rentalTimeConstraints.minDays) : '')
@@ -68,7 +71,7 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
       name: name.trim(),
       description: description.trim() || undefined,
       cancellationPolicy,
-      deposit,
+      depositPercentage: depositEnabled ? depositPercentage : null,
       maxKilometrage:
         kmType === 'UNLIMITED'
           ? { type: 'UNLIMITED' }
@@ -88,6 +91,8 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
 
   if (!open) return null
 
+  const isPrivate = ruleSet.vehicleId !== null
+
   return (
     <>
       <div
@@ -106,6 +111,13 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
         </div>
 
         <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 px-5 py-4 space-y-4 pb-8">
+          {isPrivate && (
+            <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              <Lock className="h-4 w-4 shrink-0" />
+              <span>{t('reservationRules.scope.privateNote')}</span>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="edit-name">{t('reservationRules.name')}</Label>
             <Input
@@ -144,18 +156,52 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>{t('reservationRules.deposit')}</Label>
-            <Select value={deposit} onValueChange={(v) => setDeposit(v as Deposit)}>
-              <SelectTrigger disabled={updateMutation.isPending}>
-                <SelectValue>{getDepositLabel(deposit)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NONE">{getDepositLabel('NONE')}</SelectItem>
-                <SelectItem value="TEN_PERCENT">{getDepositLabel('TEN_PERCENT')}</SelectItem>
-                <SelectItem value="FIFTY_PERCENT">{getDepositLabel('FIFTY_PERCENT')}</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Seña: switch + slider (US-49) */}
+          <div className="space-y-3 rounded-xl border border-white/8 bg-surface-2 p-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="edit-deposit-switch">{t('reservationRules.deposit.enable')}</Label>
+                {!depositEnabled && (
+                  <p className="text-xs text-text-muted">{t('reservationRules.deposit.none')}</p>
+                )}
+              </div>
+              <Switch
+                id="edit-deposit-switch"
+                checked={depositEnabled}
+                onCheckedChange={setDepositEnabled}
+                disabled={updateMutation.isPending}
+                aria-label={t('reservationRules.deposit.enable')}
+              />
+            </div>
+            {depositEnabled && (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-text-secondary">
+                    {t('reservationRules.deposit.label')}
+                  </span>
+                  <span
+                    className="text-base font-semibold text-brand-400"
+                    aria-live="polite"
+                    data-testid="deposit-percentage-display"
+                  >
+                    {t('reservationRules.deposit.formatted').replace(
+                      '{percentage}',
+                      String(depositPercentage),
+                    )}
+                  </span>
+                </div>
+                <Slider
+                  value={depositPercentage}
+                  onValueChange={setDepositPercentage}
+                  min={10}
+                  max={50}
+                  step={5}
+                  disabled={updateMutation.isPending}
+                  aria-label={t('reservationRules.deposit.label')}
+                />
+                <p className="text-xs text-text-muted">{t('reservationRules.deposit.sliderHint')}</p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

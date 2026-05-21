@@ -109,24 +109,12 @@ function makeReservation(opts: MakeOpts = {}) {
     transferExpiresAt: null,
     createdAt: '2026-05-16T10:00:00.000Z',
     updatedAt: '2026-05-16T10:00:00.000Z',
-    vehicle: {
-      id: VEH,
-      brand: 'Toyota',
-      model: 'Etios',
-      year: 2020,
-      photo: null,
-      reservationRuleSet:
-        opts.cancellationPolicy === null
-          ? null
-          : {
-              id: '55555555-5555-5555-5555-555555555555',
-              rentalorId: RENT,
-              cancellationPolicy: opts.cancellationPolicy ?? 'FLEXIBLE',
-              deposit: 'TEN_PERCENT' as const,
-              maxKilometrage: { type: 'UNLIMITED' as const },
-              rentalTimeConstraints: {},
-            },
-    },
+    depositPercentageSnapshot: null,
+    basePriceCentsSnapshot: 50000,
+    cancellationPolicySnapshot: 'FLEXIBLE' as const,
+    maxKilometrageSnapshot: { type: 'UNLIMITED' as const },
+    rentalTimeConstraintsSnapshot: {},
+    vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
 }

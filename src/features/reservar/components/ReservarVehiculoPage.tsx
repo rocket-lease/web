@@ -643,7 +643,7 @@ export function ReservarVehiculoPage() {
                           {t('reservar.rules.deposit')}
                         </p>
                         <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {getDepositLabel(vehicle.reservationRuleSet.deposit)}
+                          {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
                         </p>
                       </div>
 

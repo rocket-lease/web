@@ -8,6 +8,7 @@ import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { useState } from 'react'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
+import { calculateRentalDurationDays } from '@/features/reservar/utils/rental-duration'
 
 const PAYMENT_METHODS = [
   { id: 'credit_card' as const, label: 'reservas.pago.metodo.credit_card', icon: CreditCard },
@@ -39,6 +40,19 @@ export function PagarReservaPage() {
   const totalCents = reservation?.totalCents ?? 0
   const vehicle = reservation?.vehicle
   const vehicleName = vehicle ? `${vehicle.brand} ${vehicle.model} ${vehicle.year}` : ''
+
+  // Breakdown del cobro cuando hay seña configurada (US-49).
+  // Si depositPercentageSnapshot es null, mostramos sólo el total.
+  const depositPercentage = reservation?.depositPercentageSnapshot ?? null
+  const depositCents =
+    depositPercentage !== null ? Math.floor((totalCents * depositPercentage) / 100) : 0
+  const restCents = totalCents - depositCents
+  const days =
+    reservation?.startAt && reservation?.endAt
+      ? calculateRentalDurationDays(reservation.startAt, reservation.endAt)
+      : null
+  const basePriceCents = reservation?.basePriceCentsSnapshot ?? 0
+  const subtotalCents = days != null ? Math.round(basePriceCents * days) : totalCents
 
   const handleConfirm = async () => {
     if (!selectedMethod) return
@@ -74,6 +88,44 @@ export function PagarReservaPage() {
             <span className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</span>
           </div>
         </div>
+
+        {/* Breakdown si hay seña configurada (US-49) */}
+        {depositPercentage !== null && (
+          <div
+            className="card p-4 space-y-2"
+            data-testid="payment-breakdown"
+          >
+            <p className="text-xs uppercase tracking-wider text-text-muted">
+              {t('reserva.breakdown.title')}
+            </p>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-secondary">{t('reserva.breakdown.price')}</span>
+              <span className="text-text-primary">{fmt.currency(subtotalCents)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-secondary">
+                {t('reserva.breakdown.deposit').replace(
+                  '{percentage}',
+                  String(depositPercentage),
+                )}
+              </span>
+              <span className="text-text-primary">{fmt.currency(depositCents)}</span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-text-primary">
+                {t('reserva.breakdown.payNow')}
+              </span>
+              <span className="text-lg font-bold text-brand-400">
+                {fmt.currency(depositCents)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-text-muted">{t('reserva.breakdown.payAtPickup')}</span>
+              <span className="text-text-secondary">{fmt.currency(restCents)}</span>
+            </div>
+          </div>
+        )}
 
         <Separator />
 
