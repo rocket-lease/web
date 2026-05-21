@@ -67,9 +67,6 @@ export function CreateRuleSetDialog({
   const [minDays, setMinDays] = useState('')
   const [maxDays, setMaxDays] = useState('')
 
-  // Estado del modal de scope (compartido vs privado). Se abre sólo si
-  // se invocó el dialog con `vehicleIdForPrivateOption` y el rentador no
-  // dejó una preferencia previa.
   const [scopePromptOpen, setScopePromptOpen] = useState(false)
   const scopePref = useRuleSetScopePreference()
 
@@ -127,13 +124,11 @@ export function CreateRuleSetDialog({
       return
     }
 
-    // Sin vehículo asociado: siempre se crea como compartido.
     if (!vehicleIdForPrivateOption) {
       submitWithScope('SHARED')
       return
     }
 
-    // Con vehículo asociado: usar preferencia guardada o preguntar.
     const stored = scopePref.get()
     if (stored) {
       submitWithScope(stored)

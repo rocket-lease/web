@@ -65,7 +65,6 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
     getById.mockResolvedValue(makeReservation({ depositPercentageSnapshot: null }))
     render(<PagarReservaPage />, { wrapper: createWrapper() })
 
-    // Esperamos el render
     await waitFor(() => expect(getById).toHaveBeenCalled())
     expect(screen.queryByTestId('payment-breakdown')).not.toBeInTheDocument()
   })
@@ -82,7 +81,6 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
 
     const breakdown = await screen.findByTestId('payment-breakdown')
     expect(breakdown).toBeInTheDocument()
-    // 30% de 100.000 = 30.000 centavos = $300
     expect(breakdown).toHaveTextContent(/Seña \(30%\)/i)
   })
 
@@ -96,7 +94,6 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
     render(<PagarReservaPage />, { wrapper: createWrapper() })
 
     const breakdown = await screen.findByTestId('payment-breakdown')
-    // 50% de 200000 = 100000 cents → "$1.000"
     const collapsed = breakdown.textContent?.replace(/\s/g, '') ?? ''
     expect(collapsed).toMatch(/Apagarahora\$1\.000/)
     expect(collapsed).toMatch(/Restoalretirar\$1\.000/)

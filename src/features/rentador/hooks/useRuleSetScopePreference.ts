@@ -30,7 +30,7 @@ export function useRuleSetScopePreference() {
     try {
       localStorage.setItem(STORAGE_KEY, value)
     } catch {
-      // sin tracking — modo privado / quota
+      return
     }
   }
 
@@ -38,7 +38,7 @@ export function useRuleSetScopePreference() {
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {
-      // ignore
+      return
     }
   }
 

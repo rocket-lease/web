@@ -24,16 +24,9 @@ beforeEach(() => {
 })
 
 async function openDropdown() {
-  // Esperamos a que la lista (vacía) ya esté disponible — el Select se
-  // habilita cuando la query no está loading. Buscamos un texto que sólo
-  // existe cuando el render completo ya pasó al menos una vez.
   await waitFor(() => expect(listRuleSets).toHaveBeenCalled())
-  // Tras la resolución del query, el Select queda habilitado.
-  // Hacemos un click extra que dispara open=true.
   const trigger = screen.getByRole('button')
   fireEvent.click(trigger)
-  // Si el primer click no abrió (porque el rerender por isLoading=false todavía
-  // no ocurrió), un segundo click lo hará — pero antes, esperamos.
   await waitFor(() => {
     if (!screen.queryByText(/\+ Crear nuevo set/i)) {
       fireEvent.click(trigger)

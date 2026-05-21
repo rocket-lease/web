@@ -30,7 +30,6 @@ describe('CreateRuleSetDialog — seña con slider (US-49)', () => {
       { wrapper: createWrapper() },
     )
 
-    // Completar nombre (obligatorio)
     fireEvent.change(screen.getByLabelText(/Nombre del set/i), {
       target: { value: 'Set sin seña' },
     })
@@ -57,10 +56,7 @@ describe('CreateRuleSetDialog — seña con slider (US-49)', () => {
       target: { value: 'Set con seña' },
     })
 
-    // Activar switch
     fireEvent.click(screen.getByRole('switch', { name: /Requerir seña/i }))
-
-    // Aparece display
     expect(screen.getByTestId('deposit-percentage-display')).toHaveTextContent('30%')
 
     fireEvent.click(screen.getByRole('button', { name: /^Crear set$/i }))
@@ -114,11 +110,9 @@ describe('CreateRuleSetDialog — seña con slider (US-49)', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /^Crear set$/i }))
 
-    // Modal de scope aparece, todavía no se llamó al api
     expect(await screen.findByText(/Cómo querés guardar este set/i)).toBeInTheDocument()
     expect(createRuleSet).not.toHaveBeenCalled()
 
-    // Elegimos "Solo para este vehículo" → se postea con vehicleId
     fireEvent.click(screen.getByText(/Solo para este vehículo/i))
 
     await waitFor(() => expect(createRuleSet).toHaveBeenCalledTimes(1))

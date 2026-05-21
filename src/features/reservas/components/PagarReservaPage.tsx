@@ -41,8 +41,6 @@ export function PagarReservaPage() {
   const vehicle = reservation?.vehicle
   const vehicleName = vehicle ? `${vehicle.brand} ${vehicle.model} ${vehicle.year}` : ''
 
-  // Breakdown del cobro cuando hay seña configurada (US-49).
-  // Si depositPercentageSnapshot es null, mostramos sólo el total.
   const depositPercentage = reservation?.depositPercentageSnapshot ?? null
   const depositCents =
     depositPercentage !== null ? Math.floor((totalCents * depositPercentage) / 100) : 0
