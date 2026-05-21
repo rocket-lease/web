@@ -1,6 +1,10 @@
 import { apiClient } from '@/lib/api-client'
 import { GetVehicleResponseSchema } from '@rocket-lease/contracts'
 import type {
+  ActiveReservationsCountRequest,
+  ActiveReservationsCountResponse,
+  BulkPriceUpdateRequest,
+  BulkPriceUpdateResponse,
   Characteristic,
   CreateVehicleRequest,
   CreateVehicleResponse,
@@ -67,5 +71,13 @@ export const vehiclesApi = {
 
   async deleteVehicle(vehicleId: string): Promise<void> {
     await apiClient.delete<void>(`/vehicle/${vehicleId}`)
+  },
+
+  async bulkUpdatePrices(body: BulkPriceUpdateRequest): Promise<BulkPriceUpdateResponse> {
+    return apiClient.patch<BulkPriceUpdateResponse>('/vehicle/bulk-prices', body)
+  },
+
+  async getActiveReservationsCount(body: ActiveReservationsCountRequest): Promise<ActiveReservationsCountResponse> {
+    return apiClient.post<ActiveReservationsCountResponse>('/vehicle/active-reservations-count', body)
   },
 }

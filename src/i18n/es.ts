@@ -684,6 +684,27 @@ export const es = {  // --- App ---
   'promocionar.paidAt': 'Pagado el {date}',
   'promocionar.transactionId': 'Transacción: {id}',
 
+  // --- Ajuste masivo de precios ---
+  'bulkPrice.enterSelectionMode': 'Editar precios',
+  'bulkPrice.exitSelectionMode': 'Cancelar',
+  'bulkPrice.selectedCount': '{count} de {total} seleccionados',
+  'bulkPrice.selectAll': 'Seleccionar todos',
+  'bulkPrice.continue': 'Continuar',
+  'bulkPrice.dialogTitle': 'Ajustar precio en lote',
+  'bulkPrice.operationSet': 'Establecer precio fijo',
+  'bulkPrice.operationPercentage': 'Ajustar por porcentaje',
+  'bulkPrice.inputAmountLabel': 'Nuevo precio (pesos)',
+  'bulkPrice.inputPercentageLabel': 'Porcentaje (ej: 15 para +15%, -10 para -10%)',
+  'bulkPrice.previewTitle': 'Vista previa del ajuste',
+  'bulkPrice.activeReservationsWarning': '{count} reservas activas mantendrán el precio anterior',
+  'bulkPrice.invalidPriceRow': 'Precio inválido',
+  'bulkPrice.confirm': 'Confirmar {count} cambios',
+  'bulkPrice.viewPreview': 'Ver vista previa',
+  'bulkPrice.successToast': '{count} vehículos actualizados',
+  'bulkPrice.errors.notOwned': 'Uno de los vehículos seleccionados ya no te pertenece.',
+  'bulkPrice.errors.unavailable': 'Uno de los vehículos ya no está disponible. Volvé a seleccionar.',
+  'bulkPrice.errors.resultInvalid': 'El ajuste daría precio cero o negativo en algún vehículo.',
+
   // --- Generales ---
   'general.loading': 'Cargando...',
   'general.retry': 'Reintentar',
