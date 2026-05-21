@@ -37,14 +37,14 @@ function computeNewPrice(basePriceCents: number, operation: BulkPriceOperation):
 }
 
 function buildOperation(type: OperationType, rawValue: string): BulkPriceOperation | null {
-  const parsed = parseInt(rawValue, 10)
-  if (isNaN(parsed)) return null
+  const num = Number(rawValue)
+  if (!Number.isInteger(num) || isNaN(num)) return null
   if (type === 'SET') {
-    if (parsed <= 0) return null
-    return { type: 'SET', valueCents: parsed * 100 }
+    if (num <= 0) return null
+    return { type: 'SET', valueCents: num * 100 }
   }
-  if (parsed < -90 || parsed > 1000) return null
-  return { type: 'PERCENTAGE', delta: parsed }
+  if (num < -90 || num > 1000) return null
+  return { type: 'PERCENTAGE', delta: num }
 }
 
 const ERROR_CODE_MAP: Record<string, string> = {
@@ -126,9 +126,14 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
         className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-overlay-in"
         onClick={handleClose}
       />
-      <div className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 max-h-[85svh] flex flex-col animate-slide-up">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bulk-price-dialog-title"
+        className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 max-h-[85svh] flex flex-col animate-slide-up"
+      >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
-          <p className="font-semibold text-text-primary">{t('bulkPrice.dialogTitle')}</p>
+          <p id="bulk-price-dialog-title" className="font-semibold text-text-primary">{t('bulkPrice.dialogTitle')}</p>
           <button
             onClick={handleClose}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary"
