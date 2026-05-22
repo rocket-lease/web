@@ -23,6 +23,7 @@ import { Avatar } from '@/ui/avatar'
 import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
+import { VehicleLocationMap } from '@/features/mapa/components/VehicleLocationMap'
 import { getCharacteristicLabel } from '../utils/characteristics'
 import {
   getCancellationPolicyLabel,
@@ -247,6 +248,19 @@ export function VehiculoDetailPage() {
               <p className="text-sm font-semibold text-text-primary">{fmt.dateShort(vehicle.availableFrom)}</p>
             </div>
           </div>
+        </div>
+
+        {/* Ubicación */}
+        <Separator />
+        <div>
+          <p className="text-sm text-text-muted mb-2">{t('vehiculo.location')}</p>
+          <VehicleLocationMap
+            latitude={vehicle.latitude}
+            longitude={vehicle.longitude}
+            address={vehicle.address}
+            city={vehicle.city}
+            province={vehicle.province}
+          />
         </div>
 
         {vehicle.description && (

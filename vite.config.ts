@@ -100,6 +100,16 @@ export default defineConfig({
   },
   server: {
     allowedHosts: ['dreamy-anyplace-zebra.ngrok-free.dev'],
+    // Proxy de la API en desarrollo: el front llama a `/api/*` (mismo origen,
+    // sin CORS ni mixed-content) y Vite lo reenvía al backend local. Permite
+    // usar la app desde el celular vía un único túnel ngrok (el del front).
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api/, ''),
+      },
+    },
     fs: {
       // Vite refuses to serve files outside the project root by default.
       // Allow the sibling contracts/ folder so its TS source can be imported.

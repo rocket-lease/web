@@ -16,6 +16,7 @@ import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { ReservaUbicacion } from './ReservaUbicacion'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
@@ -69,6 +70,8 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           </p>
         </div>
       </div>
+
+      <ReservaUbicacion vehicleId={reservation.vehicle.id} />
 
       <Separator />
 
