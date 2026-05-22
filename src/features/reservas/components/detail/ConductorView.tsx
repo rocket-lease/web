@@ -13,9 +13,16 @@ import {
   Inbox,
   LifeBuoy,
   QrCode,
+  ShieldCheck,
   XCircle,
 } from 'lucide-react'
-import { RESERVATION_STATUS, type GetReservationResponse, type PaymentMethod } from '@rocket-lease/contracts'
+import {
+  RESERVATION_STATUS,
+  type CancellationPolicy,
+  type GetReservationResponse,
+  type PaymentMethod,
+  type ReservationRuleSetPublic,
+} from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -30,6 +37,7 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
+import { getCancellationRefundSummary } from '../../utils/cancellation-policy'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 
 interface ConductorViewProps {
@@ -186,6 +194,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         <p className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</p>
       </div>
 
+      <CancellationPolicyCard reservation={reservation} />
+
       {canPay && (
         <PendingPaymentSection
           reservationId={reservation.id}
@@ -298,6 +308,133 @@ function PostPaymentActions() {
       </div>
     </>
   )
+}
+
+function CancellationPolicyCard({ reservation }: { reservation: GetReservationResponse }) {
+  const summary = getCancellationRefundSummary(reservation)
+  const ruleSet = reservation.vehicle.reservationRuleSet
+
+  const deadline = summary.deadlineAt ? fmt.dateTime(summary.deadlineAt) : null
+  let refundMessage = ''
+
+  switch (summary.state) {
+    case 'flexible_active':
+      refundMessage = t('reservas.detail.cancellation.refund.flexible.active').replace('{deadline}', deadline ?? '—')
+      break
+    case 'flexible_expired':
+      refundMessage = t('reservas.detail.cancellation.refund.flexible.expired')
+      break
+    case 'moderate_active':
+      refundMessage = t('reservas.detail.cancellation.refund.moderate.active').replace('{deadline}', deadline ?? '—')
+      break
+    case 'moderate_expired':
+      refundMessage = t('reservas.detail.cancellation.refund.moderate.expired')
+      break
+    case 'strict_active':
+      refundMessage = t('reservas.detail.cancellation.refund.strict.active').replace('{deadline}', deadline ?? '—')
+      break
+    case 'strict_expired':
+      refundMessage = t('reservas.detail.cancellation.refund.strict.expired')
+      break
+    case 'invalid_dates':
+      refundMessage = t('reservas.detail.cancellation.refund.invalidDates')
+      break
+    default:
+      refundMessage = t('reservas.detail.cancellation.refund.missingPolicy')
+  }
+
+  const rules = getRuleHighlights(ruleSet, summary.policy)
+
+  return (
+    <div className="rounded-xl border border-info/20 bg-info/10 p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-info">
+            {t('reservas.detail.cancellation.title')}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-text-primary">
+            {t('reservas.detail.cancellation.policy')}: {getPolicyLabel(summary.policy)}
+          </p>
+          <p className="mt-1 text-sm text-text-secondary">{refundMessage}</p>
+        </div>
+      </div>
+
+      <div className="rounded-lg bg-surface-1/70 px-3 py-2">
+        <p className="text-xs font-medium text-text-muted uppercase tracking-wider">
+          {t('reservas.detail.cancellation.rulesTitle')}
+        </p>
+        <ul className="mt-2 space-y-1 text-sm text-text-secondary">
+          {rules.map((rule) => (
+            <li key={rule} className="leading-relaxed">{rule}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function getRuleHighlights(
+  ruleSet: ReservationRuleSetPublic | null | undefined,
+  policy: CancellationPolicy | null,
+): string[] {
+  if (!ruleSet) {
+    return [t('reservas.detail.cancellation.rules.missing')]
+  }
+
+  const rules = [
+    t('reservas.detail.cancellation.rules.policy').replace('{value}', getPolicyLabel(policy)),
+    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(ruleSet.deposit)),
+    t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(ruleSet)),
+  ]
+
+  const rentalTime = getRentalTimeLabel(ruleSet)
+  if (rentalTime) {
+    rules.push(t('reservas.detail.cancellation.rules.rentalTime').replace('{value}', rentalTime))
+  }
+
+  return rules
+}
+
+function getPolicyLabel(policy: ReservationRuleSetPublic['cancellationPolicy'] | null): string {
+  if (policy === 'FLEXIBLE') return t('reservas.detail.cancellation.policy.flexible')
+  if (policy === 'MODERATE') return t('reservas.detail.cancellation.policy.moderate')
+  if (policy === 'STRICT') return t('reservas.detail.cancellation.policy.strict')
+  return t('reservas.detail.cancellation.policy.unknown')
+}
+
+function getDepositLabel(deposit: ReservationRuleSetPublic['deposit']): string {
+  if (deposit === 'NONE') return t('reservas.detail.cancellation.deposit.none')
+  if (deposit === 'TEN_PERCENT') return t('reservas.detail.cancellation.deposit.ten')
+  return t('reservas.detail.cancellation.deposit.fifty')
+}
+
+function getKilometrageLabel(ruleSet: ReservationRuleSetPublic): string {
+  if (ruleSet.maxKilometrage.type === 'UNLIMITED') {
+    return t('reservas.detail.cancellation.kilometrage.unlimited')
+  }
+  return t('reservas.detail.cancellation.kilometrage.limited').replace(
+    '{value}',
+    String(ruleSet.maxKilometrage.value),
+  )
+}
+
+function getRentalTimeLabel(ruleSet: ReservationRuleSetPublic): string | null {
+  const minDays = ruleSet.rentalTimeConstraints.minDays
+  const maxDays = ruleSet.rentalTimeConstraints.maxDays
+
+  if (minDays && maxDays) {
+    return t('reservas.detail.cancellation.rentalTime.between')
+      .replace('{min}', String(minDays))
+      .replace('{max}', String(maxDays))
+  }
+  if (minDays) {
+    return t('reservas.detail.cancellation.rentalTime.min').replace('{min}', String(minDays))
+  }
+  if (maxDays) {
+    return t('reservas.detail.cancellation.rentalTime.max').replace('{max}', String(maxDays))
+  }
+  return null
 }
 
 interface PendingApprovalSectionProps {

@@ -202,6 +202,44 @@ export const es = {  // --- App ---
   'reservas.detail.cancel.success': 'Reserva cancelada',
   'reservas.detail.cancel.postPayUnavailable':
     'Las reservas confirmadas todavía no se pueden cancelar desde la app. Contactá a soporte si necesitás hacerlo.',
+  'reservas.detail.cancellation.title': 'Reembolso por cancelación',
+  'reservas.detail.cancellation.policy': 'Política aplicada',
+  'reservas.detail.cancellation.rulesTitle': 'Reglas de la reserva',
+  'reservas.detail.cancellation.policy.flexible': 'Flexible',
+  'reservas.detail.cancellation.policy.moderate': 'Moderada',
+  'reservas.detail.cancellation.policy.strict': 'Estricta',
+  'reservas.detail.cancellation.policy.unknown': 'Sin política definida',
+  'reservas.detail.cancellation.refund.flexible.active':
+    'Recibirás un reembolso total si cancelás antes del {deadline}.',
+  'reservas.detail.cancellation.refund.flexible.expired':
+    'Ya no aplica reembolso para esta reserva según la política flexible.',
+  'reservas.detail.cancellation.refund.moderate.active':
+    'Recibirás un reembolso del 50% si cancelás antes del {deadline}.',
+  'reservas.detail.cancellation.refund.moderate.expired':
+    'Ya no aplica reembolso para esta reserva según la política moderada.',
+  'reservas.detail.cancellation.refund.strict.active':
+    'Podrás cancelar con reembolso hasta el {deadline}.',
+  'reservas.detail.cancellation.refund.strict.expired':
+    'Esta reserva ya no tiene reembolso disponible.',
+  'reservas.detail.cancellation.refund.invalidDates':
+    'No pudimos calcular el reembolso por fechas inválidas en la reserva.',
+  'reservas.detail.cancellation.refund.missingPolicy':
+    'Esta reserva no tiene una política de cancelación configurada.',
+  'reservas.detail.cancellation.rules.policy': 'Política: {value}',
+  'reservas.detail.cancellation.rules.deposit': 'Seña: {value}',
+  'reservas.detail.cancellation.rules.kilometrage': 'Kilometraje: {value}',
+  'reservas.detail.cancellation.rules.rentalTime': 'Duración del alquiler: {value}',
+  'reservas.detail.cancellation.rules.missing':
+    'No hay reglas de reserva disponibles para este vehículo.',
+  'reservas.detail.cancellation.deposit.none': 'Sin seña',
+  'reservas.detail.cancellation.deposit.ten': '10% de seña',
+  'reservas.detail.cancellation.deposit.fifty': '50% de seña',
+  'reservas.detail.cancellation.kilometrage.unlimited': 'Ilimitado',
+  'reservas.detail.cancellation.kilometrage.limited': 'Hasta {value} km',
+  'reservas.detail.cancellation.rentalTime.min': 'Mínimo {min} días',
+  'reservas.detail.cancellation.rentalTime.max': 'Máximo {max} días',
+  'reservas.detail.cancellation.rentalTime.between':
+    'Entre {min} y {max} días',
   'reservas.empty.conductor.sinReservas': 'No tenés reservas en esta categoría todavía.',
   'reservas.empty.conductor.cta': 'Buscar vehículos',
   'reservas.empty.owner.sinReservas': 'No tenés reservas en esta categoría todavía.',
@@ -535,7 +573,7 @@ export const es = {  // --- App ---
   'reservationRules.cancellation.moderate': 'Moderada',
   'reservationRules.cancellation.moderateDesc': '50% de reembolso hasta 48 horas antes',
   'reservationRules.cancellation.strict': 'Estricta',
-  'reservationRules.cancellation.strictDesc': 'Sin reembolso si se cancela dentro de 7 días',
+  'reservationRules.cancellation.strictDesc': 'Sin posibilidad de reembolso',
   'reservationRules.deposit': 'Uso de seña/depósito',
   'reservationRules.deposit.none': 'No se toma seña',
   'reservationRules.deposit.tenPercent': 'Seña del 10%',
