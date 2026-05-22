@@ -1,12 +1,10 @@
 import { registerSW } from 'virtual:pwa-register'
 
 export function setupPWA() {
+  // En modo autoUpdate vite-plugin-pwa instala el nuevo SW, hace skipWaiting,
+  // toma control de los clientes y recarga la página automáticamente. No
+  // proveemos onNeedRefresh porque eso desactivaría el auto-reload.
   const updateSW = registerSW({
-    onNeedRefresh() {
-      window.dispatchEvent(
-        new CustomEvent('pwa:update-available', { detail: { updateSW } }),
-      )
-    },
     onOfflineReady() {
       window.dispatchEvent(new CustomEvent('pwa:offline-ready'))
     },

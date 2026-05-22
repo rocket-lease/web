@@ -15,6 +15,7 @@ import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts
 import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 import { ReservationRuleSetSelector } from './ReservationRuleSetSelector'
+import { LocationPicker } from './LocationPicker'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const MAX_PHOTOS = 10
@@ -37,6 +38,10 @@ type VehicleDraft = {
   availableFrom: string
   province: string
   city: string
+  address: string
+  latitude: number | null
+  longitude: number | null
+  locationApproximate: boolean
   description: string
   enabled: boolean
   isAccessible: boolean
@@ -54,6 +59,10 @@ function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
     availableFrom: vehicle.availableFrom ?? '',
     province: vehicle.province ?? '',
     city: vehicle.city ?? '',
+    address: vehicle.address ?? '',
+    latitude: vehicle.latitude ?? null,
+    longitude: vehicle.longitude ?? null,
+    locationApproximate: Boolean(vehicle.locationApproximate),
     description: vehicle.description ?? '',
     enabled: Boolean(vehicle.enabled),
     isAccessible: Boolean(vehicle.isAccessible),
@@ -276,6 +285,13 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         availableFrom: draft.availableFrom,
         province: draft.province.trim(),
         city: draft.city.trim(),
+        ...(draft.latitude !== null && draft.longitude !== null
+          ? {
+              address: draft.address.trim(),
+              latitude: draft.latitude,
+              longitude: draft.longitude,
+            }
+          : {}),
         description: draft.description.trim() ? draft.description.trim() : null,
         enabled: draft.enabled,
         isAccessible: draft.isAccessible,
@@ -645,6 +661,38 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
                   disabled={isSaving || isDeleting}
                 />
               </div>
+            </div>
+
+            <div className="mt-4">
+              <LocationPicker
+                approximate={draft.locationApproximate}
+                value={
+                  draft.latitude !== null && draft.longitude !== null
+                    ? {
+                        latitude: draft.latitude,
+                        longitude: draft.longitude,
+                        address: draft.address,
+                        province: draft.province,
+                        city: draft.city,
+                      }
+                    : null
+                }
+                onChange={loc => {
+                  setDraft(current =>
+                    current
+                      ? {
+                          ...current,
+                          latitude: loc.latitude,
+                          longitude: loc.longitude,
+                          address: loc.address,
+                          province: loc.province,
+                          city: loc.city,
+                          locationApproximate: false,
+                        }
+                      : current,
+                  )
+                }}
+              />
             </div>
 
             <div>

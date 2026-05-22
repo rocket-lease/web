@@ -29,6 +29,7 @@ import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 
@@ -109,6 +110,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
           </p>
         </div>
       </div>
+
+      <ReservaUbicacion vehicleId={vehicle.id} />
 
       {showVoucher && voucherToken && (
         <div className="card p-5 flex flex-col items-center gap-3">

@@ -19,7 +19,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      // autoUpdate + skipWaiting + clientsClaim: cuando hay una versión nueva
+      // el SW se instala y toma control sin pedir confirmación. Sin esto, el
+      // PWA instalado queda corriendo el bundle viejo aunque deployees fixes.
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'Rocket Lease',
@@ -54,6 +57,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
@@ -94,6 +100,16 @@ export default defineConfig({
   },
   server: {
     allowedHosts: ['dreamy-anyplace-zebra.ngrok-free.dev'],
+    // Proxy de la API en desarrollo: el front llama a `/api/*` (mismo origen,
+    // sin CORS ni mixed-content) y Vite lo reenvía al backend local. Permite
+    // usar la app desde el celular vía un único túnel ngrok (el del front).
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api/, ''),
+      },
+    },
     fs: {
       // Vite refuses to serve files outside the project root by default.
       // Allow the sibling contracts/ folder so its TS source can be imported.

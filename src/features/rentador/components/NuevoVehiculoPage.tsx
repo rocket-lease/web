@@ -9,8 +9,8 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
 import type { Characteristic, CreateVehicleRequest } from '@rocket-lease/contracts'
-import { ARGENTINA_PROVINCES, getCitiesForProvince } from '@/lib/argentina-cities'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
+import { LocationPicker } from './LocationPicker'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -46,6 +46,9 @@ type VehicleFormData = {
   availableFrom: string
   province: string
   city: string
+  address: string
+  latitude: number | null
+  longitude: number | null
   dailyPrice: string
   photos: Array<VehiclePhoto>
   characteristics: Characteristic[]
@@ -67,6 +70,9 @@ const initialFormData: VehicleFormData = {
   availableFrom: '',
   province: '',
   city: '',
+  address: '',
+  latitude: null,
+  longitude: null,
   dailyPrice: '',
   photos: [],
   characteristics: [],
@@ -101,9 +107,6 @@ export function NuevoVehiculoPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photosRef = useRef(formData.photos)
 
-  const provinces = ARGENTINA_PROVINCES
-  const [cities, setCities] = useState<Array<{ name: string }>>([])
-
   useEffect(() => {
     photosRef.current = formData.photos
   }, [formData.photos])
@@ -113,20 +116,6 @@ export function NuevoVehiculoPage() {
       photosRef.current.forEach(photo => URL.revokeObjectURL(photo.previewUrl))
     }
   }, [])
-
-  useEffect(() => {
-    if (!formData.province) {
-      setCities([])
-      return
-    }
-
-    try {
-      const list = getCitiesForProvince(formData.province)
-      setCities(list)
-    } catch {
-      setCities([])
-    }
-  }, [formData.province])
 
   const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? [])
@@ -195,7 +184,14 @@ export function NuevoVehiculoPage() {
       formData.description.trim(),
   )
   const canContinueFromPhotos = formData.photos.length >= MIN_PHOTOS
-  const canContinueFromAvailability = Boolean(formData.availableFrom && formData.province && formData.city)
+  const canContinueFromAvailability = Boolean(
+    formData.availableFrom &&
+      formData.province &&
+      formData.city &&
+      formData.address &&
+      formData.latitude !== null &&
+      formData.longitude !== null,
+  )
   const canContinueFromPricing = Number(formData.dailyPrice) > 0
 
   const transmissionLabel = formData.transmission === 'Automatico'
@@ -204,7 +200,10 @@ export function NuevoVehiculoPage() {
       ? 'Semiautomático'
       : 'Manual'
 
-  const formPayload: Omit<CreateVehicleRequest, 'photos' | 'availableFrom' | 'province' | 'city'> = {
+  const formPayload: Omit<
+    CreateVehicleRequest,
+    'photos' | 'availableFrom' | 'province' | 'city' | 'address' | 'latitude' | 'longitude'
+  > = {
     brand: formData.brand,
     model: formData.model,
     year: Number(formData.year || 0),
@@ -262,8 +261,11 @@ export function NuevoVehiculoPage() {
         ...formPayload,
         photos: uploadedPhotos.map(photo => photo.url),
         availableFrom: formData.availableFrom,
-        province: provinces.find(p => p.isoCode === formData.province)?.name ?? formData.province,
+        province: formData.province,
         city: formData.city,
+        address: formData.address,
+        latitude: formData.latitude ?? 0,
+        longitude: formData.longitude ?? 0,
         characteristics: formData.characteristics,
         autoAccept: formData.autoAccept,
       } as CreateVehicleRequest
@@ -492,34 +494,30 @@ export function NuevoVehiculoPage() {
               <p className="mt-2 text-xs text-text-muted">
                 Elegí la fecha a partir de la cual el auto estará disponible para alquilar.
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Provincia</label>
-                  <select
-                    value={formData.province}
-                    onChange={e => handleFieldChange('province', e.target.value)}
-                    className="mt-1 block w-full rounded-lg bg-surface-1 border border-white/6 px-3 py-2 text-sm"
-                  >
-                    <option value="">Seleccioná provincia</option>
-                    {provinces.map(p => (
-                      <option key={p.isoCode} value={p.isoCode}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">Ciudad</label>
-                  <select
-                    value={formData.city}
-                    onChange={e => handleFieldChange('city', e.target.value)}
-                    disabled={!formData.province}
-                    className="mt-1 block w-full rounded-lg bg-surface-1 border border-white/6 px-3 py-2 text-sm"
-                  >
-                    <option value="">Seleccioná ciudad</option>
-                    {cities.map(c => (
-                      <option key={c.name} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
+              <div className="mt-4">
+                <LocationPicker
+                  value={
+                    formData.latitude !== null && formData.longitude !== null
+                      ? {
+                          latitude: formData.latitude,
+                          longitude: formData.longitude,
+                          address: formData.address,
+                          province: formData.province,
+                          city: formData.city,
+                        }
+                      : null
+                  }
+                  onChange={loc => {
+                    setFormData(current => ({
+                      ...current,
+                      latitude: loc.latitude,
+                      longitude: loc.longitude,
+                      address: loc.address,
+                      province: loc.province,
+                      city: loc.city,
+                    }))
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -590,7 +588,7 @@ export function NuevoVehiculoPage() {
                 <p><span className="font-medium text-text-primary">Color:</span> {formData.color || '-'}</p>
                 <p><span className="font-medium text-text-primary">Kilometraje:</span> {formData.mileage || '-'}</p>
                 <p><span className="font-medium text-text-primary">Disponible desde:</span> {formData.availableFrom || '-'}</p>
-                <p><span className="font-medium text-text-primary">Ubicación:</span> {formData.province ? (provinces.find(p => p.isoCode === formData.province)?.name || formData.province) : '-'}{formData.city ? `, ${formData.city}` : ''}</p>
+                <p><span className="font-medium text-text-primary">Ubicación:</span> {formData.address || '-'}</p>
                 <p><span className="font-medium text-text-primary">Precio por día:</span> {formData.dailyPrice || '-'} </p>
                 <p><span className="font-medium text-text-primary">Fotos cargadas:</span> {formData.photos.length}</p>
               </div>

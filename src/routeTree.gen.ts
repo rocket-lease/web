@@ -20,6 +20,7 @@ import { Route as AppReservasRouteImport } from './routes/_app/reservas'
 import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 import { Route as AppNotificacionesRouteImport } from './routes/_app/notificaciones'
 import { Route as AppMisVehiculosRouteImport } from './routes/_app/mis-vehiculos'
+import { Route as AppMapaRouteImport } from './routes/_app/mapa'
 import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/_app/configuracion'
@@ -88,6 +89,11 @@ const AppNotificacionesRoute = AppNotificacionesRouteImport.update({
 const AppMisVehiculosRoute = AppMisVehiculosRouteImport.update({
   id: '/mis-vehiculos',
   path: '/mis-vehiculos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMapaRoute = AppMapaRouteImport.update({
+  id: '/mapa',
+  path: '/mapa',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFavoritosRoute = AppFavoritosRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
+  '/mapa': typeof AppMapaRoute
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
   '/perfil': typeof AppPerfilRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
+  '/mapa': typeof AppMapaRoute
   '/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/notificaciones': typeof AppNotificacionesRoute
   '/perfil': typeof AppPerfilRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/_app/configuracion': typeof AppConfiguracionRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/favoritos': typeof AppFavoritosRoute
+  '/_app/mapa': typeof AppMapaRoute
   '/_app/mis-vehiculos': typeof AppMisVehiculosRouteWithChildren
   '/_app/notificaciones': typeof AppNotificacionesRoute
   '/_app/perfil': typeof AppPerfilRoute
@@ -262,6 +271,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/dashboard'
     | '/favoritos'
+    | '/mapa'
     | '/mis-vehiculos'
     | '/notificaciones'
     | '/perfil'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/dashboard'
     | '/favoritos'
+    | '/mapa'
     | '/mis-vehiculos'
     | '/notificaciones'
     | '/perfil'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/_app/configuracion'
     | '/_app/dashboard'
     | '/_app/favoritos'
+    | '/_app/mapa'
     | '/_app/mis-vehiculos'
     | '/_app/notificaciones'
     | '/_app/perfil'
@@ -423,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/mis-vehiculos'
       fullPath: '/mis-vehiculos'
       preLoaderRoute: typeof AppMisVehiculosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mapa': {
+      id: '/_app/mapa'
+      path: '/mapa'
+      fullPath: '/mapa'
+      preLoaderRoute: typeof AppMapaRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/favoritos': {
@@ -564,6 +583,7 @@ interface AppRouteChildren {
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFavoritosRoute: typeof AppFavoritosRoute
+  AppMapaRoute: typeof AppMapaRoute
   AppMisVehiculosRoute: typeof AppMisVehiculosRouteWithChildren
   AppNotificacionesRoute: typeof AppNotificacionesRoute
   AppPerfilRoute: typeof AppPerfilRoute
@@ -582,6 +602,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFavoritosRoute: AppFavoritosRoute,
+  AppMapaRoute: AppMapaRoute,
   AppMisVehiculosRoute: AppMisVehiculosRouteWithChildren,
   AppNotificacionesRoute: AppNotificacionesRoute,
   AppPerfilRoute: AppPerfilRoute,

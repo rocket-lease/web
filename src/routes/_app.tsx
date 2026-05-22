@@ -9,6 +9,7 @@ import {
   ChartBar,
   ClipboardText,
   Bell,
+  MapTrifold,
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from '@/features/layout/components/BottomNav'
@@ -33,6 +34,7 @@ function AppLayout() {
 
   const conductorTabs = [
     { to: '/buscar',      icon: MagnifyingGlass, label: t('nav.buscar') },
+    { to: '/mapa',        icon: MapTrifold,      label: t('nav.mapa') },
     { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
     { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
     { to: '/soporte',     icon: Headset,         label: t('nav.soporte') },
