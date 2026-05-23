@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ReservaDetailPage } from './ReservaDetailPage'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { createWrapper } from '@/test/query-wrapper'
+import { fmt } from '@/lib/formatters'
 
 vi.mock('@/features/reservar/api/reservar.api', () => ({
   reservarApi: {
@@ -50,6 +51,7 @@ vi.mock('@/features/perfil/api/profile.api', () => ({
       verificationStatus: 'verified' as const,
       level: 'bronze' as const,
       reputationScore: 4.5,
+      balanceInCents: 0,
       preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
       autoAccept: false,
     }),
@@ -80,6 +82,9 @@ interface MakeOpts {
     | 'expired'
   rejectionReason?: string | null
   holdExpiresAt?: string | null
+  cancellationPolicy?: 'FLEXIBLE' | 'MODERATE' | 'STRICT' | null
+  startAt?: string
+  paidAt?: string | null
 }
 
 function makeReservation(opts: MakeOpts = {}) {
@@ -89,7 +94,7 @@ function makeReservation(opts: MakeOpts = {}) {
     conductorId: CON,
     rentadorId: RENT,
     status: opts.status ?? 'pending_approval',
-    startAt: '2026-06-01T10:00:00.000Z',
+    startAt: opts.startAt ?? '2026-06-01T10:00:00.000Z',
     endAt: '2026-06-03T10:00:00.000Z',
     holdExpiresAt: opts.holdExpiresAt ?? '2026-05-17T10:00:00.000Z',
     totalCents: 100000,
@@ -97,14 +102,31 @@ function makeReservation(opts: MakeOpts = {}) {
     paymentMethod: null,
     walletProvider: null,
     contractAcceptedAt: '2026-05-16T10:00:00.000Z',
-    paidAt: null,
+    paidAt: opts.paidAt ?? null,
     rejectionReason: opts.rejectionReason ?? null,
     transferCode: null,
     transferAlias: null,
     transferExpiresAt: null,
     createdAt: '2026-05-16T10:00:00.000Z',
     updatedAt: '2026-05-16T10:00:00.000Z',
-    vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null },
+    vehicle: {
+      id: VEH,
+      brand: 'Toyota',
+      model: 'Etios',
+      year: 2020,
+      photo: null,
+      reservationRuleSet:
+        opts.cancellationPolicy === null
+          ? null
+          : {
+              id: '55555555-5555-5555-5555-555555555555',
+              rentalorId: RENT,
+              cancellationPolicy: opts.cancellationPolicy ?? 'FLEXIBLE',
+              deposit: 'TEN_PERCENT' as const,
+              maxKilometrage: { type: 'UNLIMITED' as const },
+              rentalTimeConstraints: {},
+            },
+    },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
 }
@@ -149,7 +171,13 @@ describe('ReservaDetailPage (conductor) — pending_approval', () => {
 
   it('al confirmar "Retirar" llama al endpoint de cancel con el id', async () => {
     getById.mockResolvedValue(makeReservation({ status: 'pending_approval' }))
-    cancel.mockResolvedValue({ id: RES, status: 'cancelled' })
+    cancel.mockResolvedValue({
+      id: RES,
+      status: 'cancelled',
+      refundCents: 0,
+      balanceInCents: 0,
+      currency: 'ARS',
+    })
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
 
@@ -202,6 +230,145 @@ describe('ReservaDetailPage (conductor) — rejected', () => {
 
     expect(
       await screen.findByText(/El rentador no aceptó la solicitud/i),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
+  it('muestra el CTA real de cancelar cuando la reserva ya está confirmada', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        paidAt: '2026-05-31T10:00:00.000Z',
+        cancellationPolicy: 'FLEXIBLE',
+      }),
+    )
+    cancel.mockResolvedValue({
+      id: RES,
+      status: 'cancelled',
+      refundCents: 100000,
+      balanceInCents: 100000,
+      currency: 'ARS',
+    })
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByRole('button', { name: /Cancelar reserva/i }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Cancelar reserva/i }))
+
+    expect(await screen.findByText(/¿Cancelar la reserva\?/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        (_, element) =>
+          element?.tagName === 'P' &&
+          element.textContent?.includes(`Sí, vas a recibir ${fmt.currency(100000)} Rocketokens de reembolso.`) === true,
+      ),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: /Cancelar reserva/i })[1])
+
+    await waitFor(() => expect(cancel).toHaveBeenCalledWith(RES))
+  })
+})
+
+describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
+  it('muestra flexible con mensaje de reembolso total', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'pending_payment',
+        cancellationPolicy: 'FLEXIBLE',
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Recibirás un reembolso total si cancelás antes del/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra moderada con mensaje de 50%', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'pending_payment',
+        cancellationPolicy: 'MODERATE',
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Recibirás un reembolso del 50% si cancelás antes del/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra estricta vigente con deadline basado en paidAt', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        cancellationPolicy: 'STRICT',
+        paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Podrás cancelar con reembolso hasta el/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra estricta vencida cuando paidAt + 7 días ya pasó', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        cancellationPolicy: 'STRICT',
+        paidAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Esta reserva ya no tiene reembolso disponible/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra estricta vencida cuando faltan 48h o menos para el inicio', async () => {
+    const startAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        cancellationPolicy: 'STRICT',
+        startAt,
+        paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Esta reserva ya no tiene reembolso disponible/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra flexible por defecto cuando no hay reglas configuradas', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'pending_payment',
+        cancellationPolicy: null,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Política aplicada: Flexible/i),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Recibirás un reembolso total si cancelás antes del/i),
     ).toBeInTheDocument()
   })
 })
