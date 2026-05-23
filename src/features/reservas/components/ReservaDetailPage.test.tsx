@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ReservaDetailPage } from './ReservaDetailPage'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { createWrapper } from '@/test/query-wrapper'
+import { fmt } from '@/lib/formatters'
 
 vi.mock('@/features/reservar/api/reservar.api', () => ({
   reservarApi: {
@@ -50,6 +51,7 @@ vi.mock('@/features/perfil/api/profile.api', () => ({
       verificationStatus: 'verified' as const,
       level: 'bronze' as const,
       reputationScore: 4.5,
+      balanceInCents: 0,
       preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
       autoAccept: false,
     }),
@@ -169,7 +171,13 @@ describe('ReservaDetailPage (conductor) — pending_approval', () => {
 
   it('al confirmar "Retirar" llama al endpoint de cancel con el id', async () => {
     getById.mockResolvedValue(makeReservation({ status: 'pending_approval' }))
-    cancel.mockResolvedValue({ id: RES, status: 'cancelled' })
+    cancel.mockResolvedValue({
+      id: RES,
+      status: 'cancelled',
+      refundCents: 0,
+      balanceInCents: 0,
+      currency: 'ARS',
+    })
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
 
@@ -223,6 +231,45 @@ describe('ReservaDetailPage (conductor) — rejected', () => {
     expect(
       await screen.findByText(/El rentador no aceptó la solicitud/i),
     ).toBeInTheDocument()
+  })
+})
+
+describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
+  it('muestra el CTA real de cancelar cuando la reserva ya está confirmada', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        paidAt: '2026-05-31T10:00:00.000Z',
+        cancellationPolicy: 'FLEXIBLE',
+      }),
+    )
+    cancel.mockResolvedValue({
+      id: RES,
+      status: 'cancelled',
+      refundCents: 100000,
+      balanceInCents: 100000,
+      currency: 'ARS',
+    })
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByRole('button', { name: /Cancelar reserva/i }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Cancelar reserva/i }))
+
+    expect(await screen.findByText(/¿Cancelar la reserva\?/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        (_, element) =>
+          element?.tagName === 'P' &&
+          element.textContent?.includes(`Sí, vas a recibir ${fmt.currency(100000)} Rocketokens de reembolso.`) === true,
+      ),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: /Cancelar reserva/i })[1])
+
+    await waitFor(() => expect(cancel).toHaveBeenCalledWith(RES))
   })
 })
 
@@ -286,6 +333,42 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
 
     expect(
       await screen.findByText(/Esta reserva ya no tiene reembolso disponible/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra estricta vencida cuando faltan 48h o menos para el inicio', async () => {
+    const startAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        cancellationPolicy: 'STRICT',
+        startAt,
+        paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Esta reserva ya no tiene reembolso disponible/i),
+    ).toBeInTheDocument()
+  })
+
+  it('muestra flexible por defecto cuando no hay reglas configuradas', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'pending_payment',
+        cancellationPolicy: null,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(
+      await screen.findByText(/Política aplicada: Flexible/i),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Recibirás un reembolso total si cancelás antes del/i),
     ).toBeInTheDocument()
   })
 })

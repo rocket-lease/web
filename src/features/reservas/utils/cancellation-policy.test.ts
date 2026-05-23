@@ -84,11 +84,11 @@ describe('getCancellationRefundSummary', () => {
     const summary = getCancellationRefundSummary(reservation, nowMs)
 
     expect(summary.state).toBe('moderate_expired')
-    expect(summary.refundPercent).toBe(50)
+    expect(summary.refundPercent).toBe(0)
     expect(summary.deadlineAt?.toISOString()).toBe('2026-06-13T12:00:00.000Z')
   })
 
-  it('calcula estricta vigente según paidAt + 7 días', () => {
+  it('calcula estricta vigente cuando está dentro de 7 días y faltan más de 48h', () => {
     const reservation = makeReservation({
       vehicle: {
         ...makeReservation().vehicle,
@@ -104,12 +104,12 @@ describe('getCancellationRefundSummary', () => {
 
     expect(summary.state).toBe('strict_active')
     expect(summary.deadlineAt?.toISOString()).toBe('2026-06-08T12:00:00.000Z')
+    expect(summary.refundPercent).toBe(100)
   })
 
-  it('calcula estricta con el deadline más temprano entre paidAt + 7 días y 48h antes del inicio', () => {
+  it('calcula estricta con deadline en startAt - 48h cuando ese límite es anterior', () => {
     const reservation = makeReservation({
-      startAt: '2026-06-06T12:00:00.000Z',
-      endAt: '2026-06-08T12:00:00.000Z',
+      paidAt: '2026-06-10T12:00:00.000Z',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -119,11 +119,11 @@ describe('getCancellationRefundSummary', () => {
       },
     })
 
-    const nowMs = new Date('2026-06-04T11:59:00.000Z').getTime()
+    const nowMs = new Date('2026-06-12T11:59:00.000Z').getTime()
     const summary = getCancellationRefundSummary(reservation, nowMs)
 
     expect(summary.state).toBe('strict_active')
-    expect(summary.deadlineAt?.toISOString()).toBe('2026-06-04T12:00:00.000Z')
+    expect(summary.deadlineAt?.toISOString()).toBe('2026-06-13T12:00:00.000Z')
   })
 
   it('calcula estricta vencida cuando pasó paidAt + 7 días', () => {
@@ -143,7 +143,25 @@ describe('getCancellationRefundSummary', () => {
     expect(summary.state).toBe('strict_expired')
   })
 
-  it('reporta missing_policy cuando la reserva no trae Rule Set', () => {
+  it('calcula estricta vencida cuando faltan 48h o menos para el inicio', () => {
+    const reservation = makeReservation({
+      vehicle: {
+        ...makeReservation().vehicle,
+        reservationRuleSet: {
+          ...makeReservation().vehicle.reservationRuleSet!,
+          cancellationPolicy: 'STRICT',
+        },
+      },
+    })
+
+    const nowMs = new Date('2026-06-13T12:00:00.000Z').getTime()
+    const summary = getCancellationRefundSummary(reservation, nowMs)
+
+    expect(summary.state).toBe('strict_expired')
+    expect(summary.refundPercent).toBe(0)
+  })
+
+  it('usa flexible por defecto cuando la reserva no trae Rule Set', () => {
     const reservation = makeReservation({
       vehicle: {
         ...makeReservation().vehicle,
@@ -151,8 +169,11 @@ describe('getCancellationRefundSummary', () => {
       },
     })
 
-    const summary = getCancellationRefundSummary(reservation)
-    expect(summary.state).toBe('missing_policy')
+    const nowMs = new Date('2026-06-14T11:59:00.000Z').getTime()
+    const summary = getCancellationRefundSummary(reservation, nowMs)
+    expect(summary.state).toBe('flexible_active')
+    expect(summary.policy).toBe('FLEXIBLE')
+    expect(summary.refundPercent).toBe(100)
   })
 
   it('reporta invalid_dates cuando strict no tiene paidAt', () => {

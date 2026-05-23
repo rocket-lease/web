@@ -200,6 +200,10 @@ export const es = {  // --- App ---
   'reservas.detail.cancel.canceling': 'Cancelando...',
   'reservas.detail.cancel.back': 'Volver',
   'reservas.detail.cancel.success': 'Reserva cancelada',
+  'reservas.detail.cancel.refund.success': 'Recibiste {amount} Rocketokens de reembolso.',
+  'reservas.detail.cancel.refund.preview': 'Sí, vas a recibir {amount} Rocketokens de reembolso.',
+  'reservas.detail.cancel.noRefund.preview': 'No, esta cancelación no genera reembolso.',
+  'reservas.detail.cancel.refund.unknown': 'No pudimos calcular un reembolso para esta reserva.',
   'reservas.detail.cancel.postPayUnavailable':
     'Las reservas confirmadas todavía no se pueden cancelar desde la app. Contactá a soporte si necesitás hacerlo.',
   'reservas.detail.cancellation.title': 'Reembolso por cancelación',
@@ -218,7 +222,7 @@ export const es = {  // --- App ---
   'reservas.detail.cancellation.refund.moderate.expired':
     'Ya no aplica reembolso para esta reserva según la política moderada.',
   'reservas.detail.cancellation.refund.strict.active':
-    'Podrás cancelar con reembolso hasta el {deadline}.',
+    'Podrás cancelar con reembolso hasta el {deadline}, siempre que todavía falten más de 48 horas para el inicio.',
   'reservas.detail.cancellation.refund.strict.expired':
     'Esta reserva ya no tiene reembolso disponible.',
   'reservas.detail.cancellation.refund.invalidDates':
@@ -429,6 +433,8 @@ export const es = {  // --- App ---
   'perfil.form.transmissionPreference': 'Preferencia de transmision',
   'perfil.form.maxPriceDaily': 'Precio maximo diario preferido',
   'perfil.form.accessibility': 'Accesibilidad (separado por coma)',
+  'perfil.balance.title': 'Rocketokens',
+  'perfil.balance.subtitle': 'Saldo disponible',
   'perfil.saveSuccess': 'Perfil actualizado',
   'perfil.saving': 'Guardando...',
   'vehiculo.instantBook': 'Reserva inmediata',

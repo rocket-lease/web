@@ -20,6 +20,7 @@ export function useCancelReservation() {
       queryClient.invalidateQueries({ queryKey: ['reservations'] })
       queryClient.invalidateQueries({ queryKey: ['reservationsCount'] })
       queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
     },
   })
 }

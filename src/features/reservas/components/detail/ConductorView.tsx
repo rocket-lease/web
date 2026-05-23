@@ -198,7 +198,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       {canPay && (
         <PendingPaymentSection
-          reservationId={reservation.id}
+          reservation={reservation}
           holdExpiresAt={holdExpiresAt}
         />
       )}
@@ -214,7 +214,9 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       {contractAcceptedAt && <ContractSection acceptedAt={contractAcceptedAt} />}
 
-      {isPostPayment && <PostPaymentActions />}
+      {isPostPayment && (
+        <PostPaymentActions reservation={reservation} status={status} />
+      )}
 
       {status === RESERVATION_STATUS.in_progress && (
         <ReturnAction reservationId={reservation.id} />
@@ -274,30 +276,51 @@ function ContractSection({ acceptedAt }: ContractSectionProps) {
 
 /**
  * Bloque de acciones para reservas activas post-pago (`confirmed` /
- * `in_progress`). Muestra "Cancelar reserva" y "Reportar problema".
- *
- * El botón "Cancelar reserva" hoy solo informa con un toast que la acción
- * no está disponible — la api rechaza la transición `confirmed → cancelled`
- * (state machine). Cuando se implemente cancel-con-penalidad (ver web#38)
- * se reemplaza el handler por la mutación real.
+ * `in_progress`). En `confirmed` permite cancelar con reembolso real; en
+ * `in_progress` solo deja reportar un problema.
  */
-function PostPaymentActions() {
-  const onCancelAttempt = () => {
-    toast.info(t('reservas.detail.cancel.postPayUnavailable'))
+function PostPaymentActions({
+  reservation,
+  status,
+}: {
+  reservation: GetReservationResponse
+  status: GetReservationResponse['status']
+}) {
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const cancelMutation = useCancelReservation()
+
+  const canCancel = status === RESERVATION_STATUS.confirmed
+  const refundPreview = getCancellationRefundPreview(reservation)
+
+  const handleCancel = async () => {
+    try {
+      const result = await cancelMutation.mutateAsync(reservation.id)
+      toast.success(
+        result.refundCents > 0
+          ? t('reservas.detail.cancel.refund.success').replace('{amount}', fmt.currency(result.refundCents))
+          : t('reservas.detail.cancel.success'),
+      )
+      setShowCancelModal(false)
+    } catch {
+      toast.error(t('error.default'))
+    }
   }
 
   return (
     <>
       <Separator />
       <div className="space-y-2">
-        <Button
-          variant="outline"
-          className="w-full border-danger/40 text-danger-400 hover:bg-danger/10"
-          onClick={onCancelAttempt}
-        >
-          <XCircle className="h-4 w-4" />
-          {t('reservas.detail.cancel.cta')}
-        </Button>
+        {canCancel && (
+          <Button
+            variant="outline"
+            className="w-full border-danger/40 text-danger-400 hover:bg-danger/10"
+            onClick={() => setShowCancelModal(true)}
+            disabled={cancelMutation.isPending}
+          >
+            <XCircle className="h-4 w-4" />
+            {t('reservas.detail.cancel.cta')}
+          </Button>
+        )}
         <Link
           to="/soporte"
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
@@ -306,13 +329,22 @@ function PostPaymentActions() {
           {t('reservas.detail.actions.reportar')}
         </Link>
       </div>
+
+      {showCancelModal && (
+        <CancelConfirmModal
+          submitting={cancelMutation.isPending}
+          refundPreview={refundPreview}
+          onConfirm={handleCancel}
+          onCancel={() => setShowCancelModal(false)}
+        />
+      )}
     </>
   )
 }
 
 function CancellationPolicyCard({ reservation }: { reservation: GetReservationResponse }) {
   const summary = getCancellationRefundSummary(reservation)
-  const ruleSet = reservation.vehicle.reservationRuleSet
+  const ruleSet = reservation.vehicle.reservationRuleSet ?? getDefaultCancellationRuleSet(reservation.rentador.id)
 
   const deadline = summary.deadlineAt ? fmt.dateTime(summary.deadlineAt) : null
   let refundMessage = ''
@@ -340,7 +372,7 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
       refundMessage = t('reservas.detail.cancellation.refund.invalidDates')
       break
     default:
-      refundMessage = t('reservas.detail.cancellation.refund.missingPolicy')
+      refundMessage = t('reservas.detail.cancellation.refund.flexible.expired')
   }
 
   const rules = getRuleHighlights(ruleSet, summary.policy)
@@ -378,17 +410,15 @@ function getRuleHighlights(
   ruleSet: ReservationRuleSetPublic | null | undefined,
   policy: CancellationPolicy | null,
 ): string[] {
-  if (!ruleSet) {
-    return [t('reservas.detail.cancellation.rules.missing')]
-  }
+  const effectiveRuleSet = ruleSet ?? getDefaultCancellationRuleSet()
 
   const rules = [
     t('reservas.detail.cancellation.rules.policy').replace('{value}', getPolicyLabel(policy)),
-    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(ruleSet.deposit)),
-    t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(ruleSet)),
+    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(effectiveRuleSet.deposit)),
+    t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(effectiveRuleSet)),
   ]
 
-  const rentalTime = getRentalTimeLabel(ruleSet)
+  const rentalTime = getRentalTimeLabel(effectiveRuleSet)
   if (rentalTime) {
     rules.push(t('reservas.detail.cancellation.rules.rentalTime').replace('{value}', rentalTime))
   }
@@ -566,7 +596,7 @@ function RejectedSection({ reason }: { reason: string | null }) {
           <p className="text-xs font-semibold text-danger-400 uppercase tracking-wider">
             {t('conductor.reservas.rechazoTitulo')}
           </p>
-          <p className="mt-1 text-sm text-text-secondary break-words">{display}</p>
+          <p className="mt-1 text-sm text-text-secondary wrap-break-word">{display}</p>
         </div>
       </div>
     </>
@@ -574,11 +604,12 @@ function RejectedSection({ reason }: { reason: string | null }) {
 }
 
 interface PendingPaymentSectionProps {
-  reservationId: string
+  reservation: GetReservationResponse
   holdExpiresAt: string | null
 }
 
-function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentSectionProps) {
+function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSectionProps) {
+  const reservationId = reservation.id
   const [method, setMethod] = useState<PaymentMethod | null>(null)
   const [holdExpired, setHoldExpired] = useState(false)
   const [showCancelModal, setShowCancelModal] = useState(false)
@@ -586,6 +617,7 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
   const initiateTransfer = useInitiateTransfer(reservationId)
   const cancelMutation = useCancelReservation()
   const navigate = useNavigate()
+  const refundPreview = getCancellationRefundPreview(reservation)
 
   /**
    * Dispara la mutación de pago y traga la excepción. El error queda
@@ -610,8 +642,12 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
 
   const onCancel = async () => {
     try {
-      await cancelMutation.mutateAsync(reservationId)
-      toast.success(t('reservas.detail.cancel.success'))
+      const result = await cancelMutation.mutateAsync(reservationId)
+      toast.success(
+        result.refundCents > 0
+          ? t('reservas.detail.cancel.refund.success').replace('{amount}', fmt.currency(result.refundCents))
+          : t('reservas.detail.cancel.success'),
+      )
       setShowCancelModal(false)
     } catch {
       toast.error(t('error.default'))
@@ -677,6 +713,7 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
       {showCancelModal && (
         <CancelConfirmModal
           submitting={cancelMutation.isPending}
+          refundPreview={refundPreview}
           onConfirm={onCancel}
           onCancel={() => setShowCancelModal(false)}
         />
@@ -687,6 +724,7 @@ function PendingPaymentSection({ reservationId, holdExpiresAt }: PendingPaymentS
 
 interface CancelConfirmModalProps {
   submitting: boolean
+  refundPreview: string
   onConfirm: () => void
   onCancel: () => void
 }
@@ -695,7 +733,7 @@ interface CancelConfirmModalProps {
  * Modal anti-misclick para cancelar una reserva. El botón principal es
  * "Volver" (no cancelar) para evitar cancelaciones accidentales por tap rápido.
  */
-function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmModalProps) {
+function CancelConfirmModal({ submitting, refundPreview, onConfirm, onCancel }: CancelConfirmModalProps) {
   useLockBodyScroll()
   return (
     <div
@@ -712,6 +750,9 @@ function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmMo
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
           {t('reservas.detail.cancel.modalBody')}
+        </p>
+        <p className="mt-3 rounded-lg bg-surface-2 px-3 py-2 text-sm font-medium text-text-primary">
+          {refundPreview}
         </p>
         <div className="mt-5 flex gap-2 justify-end">
           <Button
@@ -731,6 +772,31 @@ function CancelConfirmModal({ submitting, onConfirm, onCancel }: CancelConfirmMo
       </div>
     </div>
   )
+}
+
+function getCancellationRefundPreview(reservation: GetReservationResponse): string {
+  const summary = getCancellationRefundSummary(reservation)
+
+  if (summary.refundCents > 0) {
+    return t('reservas.detail.cancel.refund.preview').replace('{amount}', fmt.currency(summary.refundCents))
+  }
+
+  if (summary.state === 'invalid_dates') {
+    return t('reservas.detail.cancel.refund.unknown')
+  }
+
+  return t('reservas.detail.cancel.noRefund.preview')
+}
+
+function getDefaultCancellationRuleSet(rentalorId = '00000000-0000-0000-0000-000000000000'): ReservationRuleSetPublic {
+  return {
+    id: '00000000-0000-0000-0000-000000000000',
+    rentalorId,
+    cancellationPolicy: 'FLEXIBLE',
+    deposit: 'NONE',
+    maxKilometrage: { type: 'UNLIMITED' },
+    rentalTimeConstraints: {},
+  }
 }
 
 function ReturnAction({ reservationId }: { reservationId: string }) {
@@ -776,11 +842,11 @@ function ReturnScannerModal({ submitting, onScan, onClose }: ReturnScannerModalP
   return (
     <>
       <div
-        className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-overlay-in"
+        className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm animate-overlay-in"
         onClick={onClose}
       />
       <div
-        className="fixed bottom-0 left-0 right-0 z-[61] rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-[max(2rem,env(safe-area-inset-bottom))] space-y-4 animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-61 rounded-t-2xl bg-surface-1 border-t border-white/8 p-5 pb-[max(2rem,env(safe-area-inset-bottom))] space-y-4 animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">

@@ -21,6 +21,7 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
@@ -147,6 +148,25 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <Save className="h-4 w-4" />
             {isUploadingAvatar ? t('perfil.saving') : 'Guardar foto'}
           </Button>
+        )}
+
+        {canEdit && (
+          <div className="w-full rounded-xl border border-info/20 bg-info/10 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-wider text-info">
+              {t('perfil.balance.title')}
+            </p>
+            <div className="mt-2 flex items-end justify-between gap-3">
+              <div>
+                <p className="text-sm text-text-secondary">{t('perfil.balance.subtitle')}</p>
+                <p className="text-2xl font-bold text-text-primary">
+                  {fmt.currency(profile.balanceInCents)}
+                </p>
+              </div>
+              <span className="rounded-full bg-info/15 px-3 py-1 text-xs font-medium text-info">
+                Rocketokens
+              </span>
+            </div>
+          </div>
         )}
 
         {/* Level + reputation */}
