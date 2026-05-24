@@ -723,6 +723,8 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               selectedId={draft.reservationRuleSetId}
               onSelect={(id) => handleFieldChange('reservationRuleSetId', id)}
               disabled={isSaving || isDeleting}
+              vehicleId={vehicleId}
+              vehicleName={vehicle ? `${vehicle.brand} ${vehicle.model}` : undefined}
             />
 
             <div>
