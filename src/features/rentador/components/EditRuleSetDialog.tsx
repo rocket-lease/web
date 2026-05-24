@@ -141,7 +141,7 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-description">{t('reservationRules.description')}</Label>
+            <Label htmlFor="edit-description">{t('reservationRules.createDescription')}</Label>
             <Textarea
               id="edit-description"
               placeholder={t('reservationRules.descriptionPlaceholder')}
