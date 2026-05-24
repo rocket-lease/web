@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Gear, Users, MapPin, Lightning } from '@phosphor-icons/react'
+import { Gear, Users, MapPin, Lightning, Sparkle } from '@phosphor-icons/react'
 import { Badge } from '@/ui/badge'
 import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
@@ -58,6 +58,14 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
             className="h-full w-full object-cover"
             loading="lazy"
           />
+          {vehiculo.isPromoted && (
+            <div className="absolute left-2 top-2">
+              <Badge variant="warning" className="text-[10px] gap-0.5">
+                <Sparkle size={10} weight="fill" />
+                {t('promocionar.active')}
+              </Badge>
+            </div>
+          )}
           {vehiculo.isAccessible && (
             <div className="absolute left-2 bottom-2">
               <Badge variant="secondary" className="text-[10px]">Accesible</Badge>

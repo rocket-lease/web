@@ -350,7 +350,7 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
   const ruleSet = reservation.vehicle.reservationRuleSet ?? getDefaultCancellationRuleSet(reservation.rentador.id)
 
   const deadline = summary.deadlineAt ? fmt.dateTime(summary.deadlineAt) : null
-  let refundMessage = ''
+  let refundMessage: string
 
   switch (summary.state) {
     case 'flexible_active':

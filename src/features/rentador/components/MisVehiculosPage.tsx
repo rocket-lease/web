@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Car, Pencil } from 'lucide-react'
+import { Plus, Car, Pencil, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
@@ -11,6 +11,7 @@ import { t } from '@/i18n/es'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 import { GestionReglasSets } from './GestionReglasSets'
+import { PromocionarDialog } from '@/features/promocionar/components/PromocionarDialog'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80'
@@ -23,6 +24,7 @@ const getVehiclePhotoUrl = (photos: unknown): string => {
 
 export function MisVehiculosPage() {
   const [activeTab, setActiveTab] = useState('vehiculos')
+  const [promotingVehicleId, setPromotingVehicleId] = useState<string | null>(null)
   const vehiclesQuery = useQuery({
     queryKey: myVehiclesQueryKey,
     queryFn: () => vehiclesApi.getMyVehicles(),
@@ -90,9 +92,17 @@ export function MisVehiculosPage() {
                           <p className="font-bold text-text-primary">
                             {v.brand} {v.model} {v.year}
                           </p>
-                          <Badge variant={v.enabled ? 'success' : 'secondary'}>
-                            {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
-                          </Badge>
+                          <div className="flex gap-1.5 shrink-0">
+                            {v.isPromoted && (
+                              <Badge variant="warning">
+                                <Sparkles className="h-3 w-3" />
+                                {t('promocionar.active')}
+                              </Badge>
+                            )}
+                            <Badge variant={v.enabled ? 'success' : 'secondary'}>
+                              {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
+                            </Badge>
+                          </div>
                         </div>
                         <p className="mt-1 text-sm text-text-secondary">
                           {fmt.currency(priceCents)} {t('vehiculo.perDay')}
@@ -114,7 +124,11 @@ export function MisVehiculosPage() {
                           </p>
                         ) : null}
 
-                        <div className="mt-3">
+                        <div className="mt-3 flex gap-2">
+                          <Button size="sm" variant="ghost" onClick={(e) => { e.preventDefault(); setPromotingVehicleId(v.id) }}>
+                            <Sparkles className="h-4 w-4 text-owner" />
+                            Promocionar
+                          </Button>
                           <Button size="sm" variant="ghost">
                             <Pencil className="h-4 w-4" />
                             Editar vehiculo
@@ -133,6 +147,12 @@ export function MisVehiculosPage() {
           <GestionReglasSets />
         </TabsContent>
       </Tabs>
+
+      <PromocionarDialog
+        open={promotingVehicleId !== null}
+        onOpenChange={(open) => { if (!open) setPromotingVehicleId(null) }}
+        vehicleId={promotingVehicleId ?? ''}
+      />
     </div>
   )
 }
