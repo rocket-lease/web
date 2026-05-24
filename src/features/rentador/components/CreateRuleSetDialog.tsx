@@ -62,6 +62,7 @@ export function CreateRuleSetDialog({
   const [cancellationPolicy, setCancellationPolicy] = useState<CancellationPolicy>('FLEXIBLE')
   const [depositEnabled, setDepositEnabled] = useState(false)
   const [depositPercentage, setDepositPercentage] = useState<number>(DEFAULT_DEPOSIT_PERCENTAGE)
+  const [depositInput, setDepositInput] = useState(String(DEFAULT_DEPOSIT_PERCENTAGE))
   const [kmType, setKmType] = useState<'UNLIMITED' | 'LIMITED'>('UNLIMITED')
   const [kmValue, setKmValue] = useState('1000')
   const [minDays, setMinDays] = useState('')
@@ -72,12 +73,22 @@ export function CreateRuleSetDialog({
 
   const createMutation = useCreateReservationRuleSet()
 
+  const commitDeposit = () => {
+    const parsed = Number(depositInput)
+    if (isNaN(parsed)) { setDepositInput(String(depositPercentage)); return }
+    const snapped = Math.round(parsed / 5) * 5
+    const clamped = Math.min(50, Math.max(10, snapped))
+    setDepositPercentage(clamped)
+    setDepositInput(String(clamped))
+  }
+
   const resetForm = () => {
     setName('')
     setDescription('')
     setCancellationPolicy('FLEXIBLE')
     setDepositEnabled(false)
     setDepositPercentage(DEFAULT_DEPOSIT_PERCENTAGE)
+    setDepositInput(String(DEFAULT_DEPOSIT_PERCENTAGE))
     setKmType('UNLIMITED')
     setKmValue('1000')
     setMinDays('')
@@ -228,25 +239,34 @@ export function CreateRuleSetDialog({
                     {t('reservationRules.deposit.label')}
                   </span>
                   <span
-                    className="text-base font-semibold text-brand-400"
+                    className="flex items-baseline gap-0.5 text-base font-semibold text-brand-400"
                     aria-live="polite"
                     data-testid="deposit-percentage-display"
                   >
-                    {t('reservationRules.deposit.formatted').replace(
-                      '{percentage}',
-                      String(depositPercentage),
-                    )}
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={10}
+                      max={50}
+                      step={5}
+                      value={depositInput}
+                      onChange={(e) => setDepositInput(e.target.value)}
+                      onBlur={commitDeposit}
+                      onKeyDown={(e) => e.key === 'Enter' && commitDeposit()}
+                      disabled={createMutation.isPending}
+                      className="w-8 bg-transparent text-right text-base font-semibold text-brand-400 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
+                    %
                   </span>
                 </div>
                 <Slider
                   value={depositPercentage}
-                  onValueChange={setDepositPercentage}
+                  onValueChange={(v) => { setDepositPercentage(v); setDepositInput(String(v)) }}
                   min={10}
                   max={50}
                   step={5}
                   disabled={createMutation.isPending}
                   aria-label={t('reservationRules.deposit.label')}
-                  showInput
                 />
                 <p className="text-xs text-text-muted">{t('reservationRules.deposit.sliderHint')}</p>
               </div>
