@@ -69,11 +69,10 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
     expect(screen.queryByTestId('payment-breakdown')).not.toBeInTheDocument()
   })
 
-  it('muestra el breakdown cuando depositPercentageSnapshot=30', async () => {
+  it('muestra el aviso de seña cuando depositPercentageSnapshot=30', async () => {
     getById.mockResolvedValue(
       makeReservation({
         depositPercentageSnapshot: 30,
-        basePriceCentsSnapshot: 50000,
         totalCents: 100000,
       }),
     )
@@ -81,10 +80,10 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
 
     const breakdown = await screen.findByTestId('payment-breakdown')
     expect(breakdown).toBeInTheDocument()
-    expect(breakdown).toHaveTextContent(/Seña \(30%\)/i)
+    expect(breakdown).toHaveTextContent(/30%/)
   })
 
-  it('calcula correctamente "A pagar ahora" = total × porcentaje', async () => {
+  it('muestra el monto de seña calculado en el aviso', async () => {
     getById.mockResolvedValue(
       makeReservation({
         depositPercentageSnapshot: 50,
@@ -94,8 +93,7 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
     render(<PagarReservaPage />, { wrapper: createWrapper() })
 
     const breakdown = await screen.findByTestId('payment-breakdown')
-    const collapsed = breakdown.textContent?.replace(/\s/g, '') ?? ''
-    expect(collapsed).toMatch(/Apagarahora\$1\.000/)
-    expect(collapsed).toMatch(/Restoalretirar\$1\.000/)
+    expect(breakdown).toHaveTextContent(/50%/)
+    expect(breakdown).toHaveTextContent(/\$ 1\.000/)
   })
 })

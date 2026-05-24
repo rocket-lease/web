@@ -413,12 +413,7 @@ export const es = {  // --- App ---
   'reservas.pago.selectWallet': 'Seleccioná tu billetera',
   'reservas.pago.transferInfo': 'Transferencia bancaria',
   'reservas.pago.transferHint': 'Vas a recibir los datos para transferir. La reserva queda pendiente hasta que se acredite.',
-  // Breakdown de precio cuando hay seña configurada (US-49)
-  'reserva.breakdown.title': 'Detalle del cobro',
-  'reserva.breakdown.price': 'Precio',
-  'reserva.breakdown.deposit': 'Seña ({percentage}%)',
-  'reserva.breakdown.payNow': 'A pagar ahora',
-  'reserva.breakdown.payAtPickup': 'Resto al retirar',
+  'reserva.breakdown.depositNotice': 'Este alquiler requiere una seña del {percentage}% ({amount}) según las condiciones del rentador.',
   'reservas.transfer.title': 'Transferencia bancaria',
   'reservas.transfer.pending': 'Pendiente de acreditación',
   'reservas.transfer.expiresIn': 'Vence en',
