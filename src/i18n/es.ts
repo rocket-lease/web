@@ -651,6 +651,8 @@ export const es = {  // --- App ---
   'reservationRules.createFirst': 'Crear primer set',
   'reservationRules.assignedTo': 'Asignado a vehículo(s)',
   'reservationRules.notAssigned': 'No asignado a ningún vehículo',
+  'reservationRules.vehicle': 'vehículo',
+  'reservationRules.vehicles': 'vehículos',
   'reservationRules.nameRequired': 'El nombre del set es requerido',
 
   // --- Promocionar ---
