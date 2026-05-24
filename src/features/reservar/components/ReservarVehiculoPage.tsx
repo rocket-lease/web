@@ -22,6 +22,7 @@ import {
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
+import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { estimateReservationTotalCents } from '../utils/pricing'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
@@ -403,6 +404,7 @@ export function ReservarVehiculoPage() {
   const [endAtLocal, setEndAtLocal] = useState('')
   const [contractAccepted, setContractAccepted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [walletProvider, setWalletProvider] = useState<string | null>(null)
   const [holdExpired, setHoldExpired] = useState(false)
   const [rulesCollapsed, setRulesCollapsed] = useState(false)
   const [rulesAcknowledged, setRulesAcknowledged] = useState(false)
@@ -411,6 +413,8 @@ export function ReservarVehiculoPage() {
   const reservationId = createReservation.data?.id ?? null
   const confirmPayment = useConfirmPayment(reservationId)
   const initiateTransfer = useInitiateTransfer(reservationId)
+  
+  const { paymentMethods: savedPaymentMethods, isLoading: isLoadingPaymentMethods } = usePaymentMethods()
 
   const estimatedTotal = useMemo(() => {
     if (!vehicle || !startAtLocal || !endAtLocal) return 0
@@ -518,7 +522,7 @@ export function ReservarVehiculoPage() {
           params: { id: reservationId },
         })
       } else {
-        await confirmPayment.mutateAsync({ paymentMethod })
+        await confirmPayment.mutateAsync({ paymentMethod, walletProvider: walletProvider || undefined })
         navigate({
           to: '/reservas/$id',
           params: { id: reservationId },
@@ -801,8 +805,14 @@ export function ReservarVehiculoPage() {
               </p>
               <PaymentMethodPicker
                 value={paymentMethod}
-                onChange={setPaymentMethod}
+                selectedWalletProvider={walletProvider}
+                onChange={(method, provider) => {
+                  setPaymentMethod(method)
+                  setWalletProvider(provider || null)
+                }}
                 disabled={confirmPayment.isPending || holdExpired}
+                savedMethods={savedPaymentMethods || []}
+                isLoading={isLoadingPaymentMethods}
               />
             </div>
 

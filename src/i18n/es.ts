@@ -707,6 +707,31 @@ export const es = {  // --- App ---
   'reservar.errors.RESERVATION_FORBIDDEN': 'No tenes permiso sobre esta reserva.',
   'reservar.errors.RESERVATION_OWNER_CANNOT_RESERVE': 'No podes reservar tu propio vehiculo.',
   'reservar.errors.generic': 'No pudimos completar la reserva. Intentalo nuevamente.',
+
+  // --- Medios de Pago ---
+  'paymentMethods.title': 'Medios de pago',
+  'paymentMethods.add': 'Agregar medio de pago',
+  'paymentMethods.empty': 'No tenés medios de pago guardados',
+  'paymentMethods.card': 'Tarjeta',
+  'paymentMethods.wallet': 'Billetera virtual',
+  'paymentMethods.lastFour': 'Terminada en {lastFour}',
+  'paymentMethods.edit': 'Editar',
+  'paymentMethods.delete': 'Eliminar',
+  'paymentMethods.save': 'Guardar',
+  'paymentMethods.createSuccess': 'Medio de pago agregado',
+  'paymentMethods.updateSuccess': 'Medio de pago actualizado',
+  'paymentMethods.deleteSuccess': 'Medio de pago eliminado',
+  'paymentMethods.deleteWarning': 'Estás a punto de eliminar tu último medio de pago. Quedarás sin medios de pago registrados.',
+  'paymentMethods.deleteConfirm': 'Eliminar de todas formas',
+  'paymentMethods.form.type': 'Tipo de pago',
+  'paymentMethods.form.cardBrand': 'Marca (ej. VISA)',
+  'paymentMethods.form.lastFour': 'Últimos 4 dígitos',
+  'paymentMethods.form.expMonth': 'Mes (MM)',
+  'paymentMethods.form.expYear': 'Año (AAAA)',
+  'paymentMethods.form.cardholderName': 'Nombre del titular',
+  'paymentMethods.form.walletProvider': 'Billetera',
+  'paymentMethods.form.walletAlias': 'Alias / CVU',
+  'paymentMethods.form.cancel': 'Cancelar',
 } as const
 
 export type I18nKey = keyof typeof es

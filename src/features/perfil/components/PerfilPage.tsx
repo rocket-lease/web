@@ -11,6 +11,7 @@ import {
   Pencil,
   UserCheck,
   UserCircle,
+  CreditCard,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar } from '@/ui/avatar'
@@ -24,7 +25,7 @@ import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
-import { t } from '@/i18n/es'
+import { t, type I18nKey } from '@/i18n/es'
 
 const levelColors: Record<string, string> = {
   bronze: 'text-amber-600',
@@ -249,6 +250,16 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           >
             <Settings className="h-5 w-5 shrink-0" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/medios-de-pago' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+          >
+            <CreditCard className="h-5 w-5 shrink-0" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('paymentMethods.title' as I18nKey)}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
 
