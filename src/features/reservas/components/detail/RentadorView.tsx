@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX } from '@phosphor-icons/react'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, MessageSquare, User, X } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -190,6 +190,18 @@ export function RentadorView({ reservation }: RentadorViewProps) {
 
       {reservation.status === RESERVATION_STATUS.in_progress && reservation.returnQrToken && (
         <ReturnQrDisplay returnQrToken={reservation.returnQrToken} />
+      )}
+
+      {(reservation.status === RESERVATION_STATUS.confirmed ||
+        reservation.status === RESERVATION_STATUS.in_progress) && (
+        <Link
+          to="/reservas/$id/chat"
+          params={{ id: reservation.id }}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm font-medium text-brand-400 hover:bg-brand-500/20 active:scale-[0.99] transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" />
+          {t('reservas.detail.actions.chat')}
+        </Link>
       )}
     </div>
   )

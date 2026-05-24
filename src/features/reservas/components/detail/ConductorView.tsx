@@ -12,6 +12,7 @@ import {
   FileText,
   Inbox,
   LifeBuoy,
+  MessageSquare,
   QrCode,
   ShieldCheck,
   XCircle,
@@ -324,6 +325,14 @@ function PostPaymentActions({
             {t('reservas.detail.cancel.cta')}
           </Button>
         )}
+        <Link
+          to="/reservas/$id/chat"
+          params={{ id: reservation.id }}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" />
+          {t('reservas.detail.actions.chat')}
+        </Link>
         <Link
           to="/soporte"
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
