@@ -40,7 +40,6 @@ export const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
             'disabled:cursor-not-allowed disabled:opacity-50',
             '[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:bg-transparent',
             '[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-brand-500 [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md',
-            '[&::-webkit-slider-thumb]:mt-[-7px]',
             '[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-brand-500 [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:border-none',
             '[&::-moz-range-track]:h-1.5 [&::-moz-range-track]:bg-transparent',
           )}
