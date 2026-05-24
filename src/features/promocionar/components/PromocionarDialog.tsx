@@ -6,7 +6,7 @@ import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { useVehiclePromotion, useVehiclePromotionPolling, usePromotionDurations, usePromoteVehicle } from '../hooks/usePromocionar'
 import type { I18nKey } from '@/i18n/es'
-import type { PaymentMethod } from '@rocket-lease/contracts'
+import type { PaymentMethod, PromoteVehicleResponse } from '@rocket-lease/contracts'
 
 type Step = 'form' | 'transfer_pending'
 
@@ -37,7 +37,7 @@ export function PromocionarDialog({ open, onOpenChange, vehicleId }: Promocionar
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null)
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('form')
-  const [promoteResult, setPromoteResult] = useState<any>(null)
+  const [promoteResult, setPromoteResult] = useState<PromoteVehicleResponse | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
   const isPolling = step === 'transfer_pending'
@@ -96,32 +96,35 @@ export function PromocionarDialog({ open, onOpenChange, vehicleId }: Promocionar
 
   if (!open) return null
 
-  const renderActive = () => (
-    <div className="flex flex-col items-center gap-4 py-6 text-center">
-      <Sparkles className="h-10 w-10 text-owner" />
-      <Badge variant="warning" className="text-sm px-4 py-1">
-        {t('promocionar.active')}
-      </Badge>
-      <p className="text-sm text-text-secondary">
-        {t('promocionar.expiresAt').replace('{date}', fmt.dateShort(activePromotion!.endsAt))}
-      </p>
-      {activePromotion!.status === 'active' && (
-        <>
-          <p className="text-xs text-text-muted">
-            {t('promocionar.paidAt').replace('{date}', fmt.dateShort((activePromotion! as any).paidAt))}
-          </p>
-          <p className="text-xs text-text-muted font-mono">
-            {t('promocionar.transactionId').replace('{id}', (activePromotion! as any).transactionId)}
-          </p>
-        </>
-      )}
-    </div>
-  )
+  const renderActive = () => {
+    if (!activePromotion || activePromotion.status !== 'active') return null
+
+    return (
+      <div className="flex flex-col items-center gap-4 py-6 text-center">
+        <Sparkles className="h-10 w-10 text-owner" />
+        <Badge variant="warning" className="text-sm px-4 py-1">
+          {t('promocionar.active')}
+        </Badge>
+        <p className="text-sm text-text-secondary">
+          {t('promocionar.expiresAt').replace('{date}', fmt.dateShort(activePromotion.endsAt))}
+        </p>
+        <p className="text-xs text-text-muted">
+          {t('promocionar.paidAt').replace('{date}', fmt.dateShort(activePromotion.paidAt))}
+        </p>
+        <p className="text-xs text-text-muted font-mono">
+          {t('promocionar.transactionId').replace('{id}', activePromotion.transactionId)}
+        </p>
+      </div>
+    )
+  }
 
   const renderTransferPending = () => {
-    const p = polledPromotion?.promotion && polledPromotion.promotion.status === 'pending_approval'
-      ? polledPromotion.promotion as any
-      : promoteResult as any
+    const p: { transferCode: string; transferAlias: string } | null =
+      polledPromotion?.promotion?.status === 'pending_approval'
+        ? polledPromotion.promotion
+        : promoteResult?.status === 'pending_approval'
+          ? promoteResult
+          : null
 
     const isNowActive = polledPromotion?.promotion?.status === 'active'
 
@@ -145,7 +148,7 @@ export function PromocionarDialog({ open, onOpenChange, vehicleId }: Promocionar
         <Clock className="h-10 w-10 text-brand-400 animate-pulse" />
         <p className="text-sm font-semibold text-text-primary">{t('promocionar.transfer.pending')}</p>
 
-        {p && (
+        {p && p.transferAlias && (
           <div className="w-full space-y-3 text-left">
             <div className="rounded-xl bg-surface-2 border border-white/8 p-4 space-y-3">
               <div>
