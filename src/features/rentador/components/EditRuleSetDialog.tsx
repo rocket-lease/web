@@ -198,6 +198,7 @@ export function EditRuleSetDialog({ ruleSet, open, onOpenChange }: EditRuleSetDi
                   step={5}
                   disabled={updateMutation.isPending}
                   aria-label={t('reservationRules.deposit.label')}
+                  showInput
                 />
                 <p className="text-xs text-text-muted">{t('reservationRules.deposit.sliderHint')}</p>
               </div>
