@@ -77,7 +77,8 @@ export const vehiclesApi = {
     return apiClient.patch<BulkPriceUpdateResponse>('/vehicle/bulk-prices', body)
   },
 
-  async getActiveReservationsCount(body: ActiveReservationsCountRequest): Promise<ActiveReservationsCountResponse> {
-    return apiClient.post<ActiveReservationsCountResponse>('/vehicle/active-reservations-count', body)
+  async getActiveReservationsCount({ vehicleIds }: ActiveReservationsCountRequest): Promise<ActiveReservationsCountResponse> {
+    const qs = new URLSearchParams({ vehicleIds: vehicleIds.join(',') }).toString()
+    return apiClient.get<ActiveReservationsCountResponse>(`/vehicle/active-reservations-count?${qs}`)
   },
 }

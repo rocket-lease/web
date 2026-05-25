@@ -30,6 +30,11 @@ interface BulkPriceDialogProps {
   selectedIds: Set<string>
 }
 
+/**
+ * Calcula el precio nuevo que tendría un vehículo al aplicarle la operación
+ * elegida. Usado en el preview del wizard para mostrar la tabla `actual → nuevo`
+ * sin esperar la respuesta del backend.
+ */
 function computeNewPrice(basePriceCents: number, operation: BulkPriceOperation): number {
   if (operation.type === 'SET') {
     return operation.valueCents
@@ -37,6 +42,12 @@ function computeNewPrice(basePriceCents: number, operation: BulkPriceOperation):
   return Math.round(basePriceCents * (1 + operation.delta / 100))
 }
 
+/**
+ * Construye la operación a enviar al backend a partir del input crudo del form.
+ * Devuelve `null` para inputs inválidos (vacío, no entero, SET no positivo,
+ * PERCENTAGE fuera de `[-99, 1000]`). El piso `-99` es UX: `-100` haría precio
+ * cero y el backend lo rechazaría con `BULK_PRICE_RESULT_INVALID`.
+ */
 function buildOperation(type: OperationType, rawValue: string): BulkPriceOperation | null {
   if (rawValue.trim() === '') return null
   const num = Number(rawValue)
@@ -51,7 +62,6 @@ function buildOperation(type: OperationType, rawValue: string): BulkPriceOperati
 
 const ERROR_CODE_I18N_KEY: Record<string, I18nKey> = {
   BULK_PRICE_VEHICLE_NOT_OWNED: 'bulkPrice.errors.notOwned',
-  BULK_PRICE_VEHICLE_UNAVAILABLE: 'bulkPrice.errors.unavailable',
   BULK_PRICE_RESULT_INVALID: 'bulkPrice.errors.resultInvalid',
 }
 

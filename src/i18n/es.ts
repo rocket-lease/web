@@ -763,7 +763,6 @@ export const es = {  // --- App ---
   'bulkPrice.viewPreview': 'Ver vista previa',
   'bulkPrice.successToast': '{count} vehículos actualizados',
   'bulkPrice.errors.notOwned': 'Uno de los vehículos seleccionados ya no te pertenece.',
-  'bulkPrice.errors.unavailable': 'Uno de los vehículos ya no está disponible. Volvé a seleccionar.',
   'bulkPrice.errors.resultInvalid': 'El ajuste daría precio cero o negativo en algún vehículo.',
 
   // --- Generales ---
