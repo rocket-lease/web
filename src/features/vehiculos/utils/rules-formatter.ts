@@ -44,8 +44,6 @@ export function getCancellationPolicyDescription(policy: CancellationPolicy): st
  *
  * - `null` → "Sin seña"
  * - número → "{n}%"
- *
- * Reemplaza la versión basada en enum `Deposit` (US-49).
  */
 export function getDepositLabel(depositPercentage: DepositPercentage): string {
   if (depositPercentage === null) {

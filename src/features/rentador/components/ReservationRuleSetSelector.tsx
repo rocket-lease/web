@@ -22,7 +22,7 @@ interface ReservationRuleSetSelectorProps {
   disabled?: boolean
   /**
    * Vehículo al que pertenece este selector. Si está presente, la opción
-   * "+ Crear nuevo set" abre el diálogo con la opción de privado/compartido (US-49).
+   * "+ Crear nuevo set" abre el diálogo con la opción de privado/compartido.
    */
   vehicleId?: string
   vehicleName?: string

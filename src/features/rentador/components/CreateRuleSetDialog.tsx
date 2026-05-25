@@ -33,8 +33,8 @@ interface CreateRuleSetDialogProps {
   onOpenChange: (open: boolean) => void
   /**
    * Si está seteado, al guardar se ofrece elegir entre crear el set como
-   * privado de este vehículo o como compartido (US-49). Si no se setea,
-   * el set se crea siempre como compartido (`vehicleId: null`).
+   * privado de este vehículo o como compartido. Si no se setea, el set se
+   * crea siempre como compartido (`vehicleId: null`).
    */
   vehicleIdForPrivateOption?: string
   /**
@@ -215,7 +215,7 @@ export function CreateRuleSetDialog({
             </Select>
           </div>
 
-          {/* Sección de seña (US-49): switch + slider */}
+          {/* Sección de seña: switch + slider */}
           <div className="space-y-3 rounded-xl border border-white/8 bg-surface-2 p-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
