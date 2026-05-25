@@ -64,7 +64,7 @@ describe('EditRuleSetDialog', () => {
     expect(screen.queryByTestId('deposit-percentage-display')).not.toBeInTheDocument()
   })
 
-  it('muestra el aviso "Set privado del vehículo" cuando vehicleId no es null', () => {
+  it('muestra el aviso "Reglas particulares" cuando vehicleId no es null', () => {
     render(
       <EditRuleSetDialog
         ruleSet={makeRuleSet({ vehicleId: '33333333-3333-3333-3333-333333333333' })}
@@ -74,16 +74,16 @@ describe('EditRuleSetDialog', () => {
       { wrapper: createWrapper() },
     )
 
-    expect(screen.getByText(/Set privado del vehículo/i)).toBeInTheDocument()
+    expect(screen.getByText(/Reglas particulares de este vehículo/i)).toBeInTheDocument()
   })
 
-  it('no muestra el aviso de set privado cuando vehicleId es null', () => {
+  it('no muestra el aviso de reglas particulares cuando vehicleId es null', () => {
     render(
       <EditRuleSetDialog ruleSet={makeRuleSet({ vehicleId: null })} open onOpenChange={vi.fn()} />,
       { wrapper: createWrapper() },
     )
 
-    expect(screen.queryByText(/Set privado del vehículo/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Reglas particulares de este vehículo/i)).not.toBeInTheDocument()
   })
 
   it('al apagar el switch de seña, envía depositPercentage: null en el payload', async () => {

@@ -98,7 +98,7 @@ export function ReservationRuleSetSelector({
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    if (window.confirm('¿Eliminar el set privado de este vehículo?')) {
+                    if (window.confirm('¿Eliminar las reglas particulares de este vehículo?')) {
                       deleteMutation.mutate(privateRuleSet.id)
                     }
                   }}

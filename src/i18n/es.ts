@@ -628,7 +628,7 @@ export const es = {  // --- App ---
   'reservationRules.scope.privateTitle': 'Solo para este vehículo',
   'reservationRules.scope.privateDescription': 'No aparece en tu lista de sets compartidos.',
   'reservationRules.scope.rememberChoice': 'No volver a preguntar',
-  'reservationRules.scope.privateNote': 'Set privado del vehículo',
+  'reservationRules.scope.privateNote': 'Reglas particulares de este vehículo',
   'reservationRules.selector.createNew': '+ Crear nuevo set',
   'reservationRules.selector.none': 'Sin reglas asignadas',
   'reservationRules.maxKilometrage': 'Kilometraje máximo',
