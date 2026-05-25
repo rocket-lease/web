@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/ui/card'
+import { ConfirmDialog } from '@/ui/confirm-dialog'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
@@ -32,6 +33,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [openSheet, setOpenSheet] = useState<SheetKey | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const vehicleQuery = useQuery({
     queryKey: vehicleQueryKey(vehicleId),
@@ -211,11 +213,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
               type="button"
               variant="destructive"
               className="w-full"
-              onClick={() => {
-                if (window.confirm(t('editVehiculo.deleteConfirm'))) {
-                  deleteMutation.mutate()
-                }
-              }}
+              onClick={() => setConfirmDelete(true)}
               disabled={isDeleting}
             >
               {t('editVehiculo.deleteVehicle')}
@@ -228,6 +226,18 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       <DisponibilidadSheet open={openSheet === 'disponibilidad'} onOpenChange={(o) => setOpenSheet(o ? 'disponibilidad' : null)} vehicle={vehicle} />
       <FotosSheet open={openSheet === 'fotos'} onOpenChange={(o) => setOpenSheet(o ? 'fotos' : null)} vehicle={vehicle} />
       <ReglasSheet open={openSheet === 'reglas'} onOpenChange={(o) => setOpenSheet(o ? 'reglas' : null)} vehicle={vehicle} />
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        title={t('editVehiculo.deleteVehicle')}
+        description={`${vehicle.brand} ${vehicle.model} ${vehicle.year}`}
+        consequences={t('editVehiculo.deleteConfirm')}
+        confirmLabel="Eliminar vehículo"
+        confirmWord="ELIMINAR"
+        loading={isDeleting}
+      />
     </div>
   )
 }

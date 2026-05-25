@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/ui/select'
 import { Button } from '@/ui/button'
+import { ConfirmDialog } from '@/ui/confirm-dialog'
 import { t } from '@/i18n/es'
 import {
   useReservationRuleSets,
@@ -48,6 +49,8 @@ export function ReservationRuleSetSelector({
 }: ReservationRuleSetSelectorProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editPrivateOpen, setEditPrivateOpen] = useState(false)
+  const [confirmDeletePrivate, setConfirmDeletePrivate] = useState(false)
+  const [pendingSharedSwitch, setPendingSharedSwitch] = useState<string | undefined | null>(null)
   const ruleSetsQuery = useReservationRuleSets()
   const ruleSets = ruleSetsQuery.data ?? []
   const privateRuleSetQuery = usePrivateRuleSetForVehicle(vehicleId)
@@ -64,16 +67,22 @@ export function ReservationRuleSetSelector({
 
   const applyShared = (sharedId: string | undefined) => {
     if (privateRuleSet) {
-      const ok = window.confirm(
-        'Las reglas particulares de este vehículo van a eliminarse para aplicar el set compartido. ¿Continuar?',
-      )
-      if (!ok) return
-      deleteMutation.mutate(privateRuleSet.id, {
-        onSuccess: () => onSelect(sharedId),
-      })
+      setPendingSharedSwitch(sharedId ?? null)
       return
     }
     onSelect(sharedId)
+  }
+
+  const confirmPendingShared = () => {
+    if (!privateRuleSet) return
+    const target = pendingSharedSwitch
+    deleteMutation.mutate(privateRuleSet.id, {
+      onSuccess: () => {
+        onSelect(target ?? undefined)
+        setPendingSharedSwitch(null)
+      },
+      onError: () => setPendingSharedSwitch(null),
+    })
   }
 
   const handleValueChange = (value: string) => {
@@ -189,11 +198,7 @@ export function ReservationRuleSetSelector({
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => {
-                  if (window.confirm('¿Eliminar las reglas particulares de este vehículo?')) {
-                    deleteMutation.mutate(privateRuleSet.id)
-                  }
-                }}
+                onClick={() => setConfirmDeletePrivate(true)}
                 disabled={disabled || deleteMutation.isPending}
               >
                 <Trash2 className="h-3 w-3" /> Eliminar
@@ -223,6 +228,34 @@ export function ReservationRuleSetSelector({
           onOpenChange={setEditPrivateOpen}
         />
       )}
+
+      {privateRuleSet && (
+        <ConfirmDialog
+          open={confirmDeletePrivate}
+          onClose={() => setConfirmDeletePrivate(false)}
+          onConfirm={() =>
+            deleteMutation.mutate(privateRuleSet.id, {
+              onSuccess: () => setConfirmDeletePrivate(false),
+            })
+          }
+          title="Eliminar reglas particulares"
+          description={`Las reglas particulares de ${vehicleName ?? 'este vehículo'} se van a eliminar.`}
+          consequences="Las reservas confirmadas no se afectan: ya tienen sus condiciones congeladas. Sólo cambia el comportamiento para reservas nuevas."
+          confirmLabel="Eliminar"
+          loading={deleteMutation.isPending}
+        />
+      )}
+
+      <ConfirmDialog
+        open={pendingSharedSwitch !== null}
+        onClose={() => setPendingSharedSwitch(null)}
+        onConfirm={confirmPendingShared}
+        title="Cambiar a set compartido"
+        description="Para usar un set compartido, las reglas particulares del vehículo se van a eliminar."
+        consequences="Esto sólo afecta a reservas nuevas. Las confirmadas conservan sus condiciones originales."
+        confirmLabel="Eliminar y cambiar"
+        loading={deleteMutation.isPending}
+      />
     </div>
   )
 }
