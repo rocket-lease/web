@@ -341,8 +341,9 @@ function PostPaymentActions({
           <MessageSquare className="h-4 w-4" />
           {t('reservas.detail.actions.chat')}
           {unreadCount > 0 && (
-            <span className="absolute -top-1.5 right-4 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
+            <span className="absolute -top-2.5 right-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-danger-500 px-1.5 text-[11px] font-bold text-white ring-2 ring-surface-1 shadow-lg">
+              <span className="absolute inset-0 rounded-full bg-danger-500 animate-ping opacity-60" />
+              <span className="relative">{unreadCount > 9 ? '9+' : unreadCount}</span>
             </span>
           )}
         </Link>

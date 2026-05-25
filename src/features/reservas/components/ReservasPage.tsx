@@ -331,19 +331,23 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
       search={role === 'owner' ? { role: 'owner' } : {}}
       className="card p-2 flex gap-3 active:opacity-80"
     >
-      <div className="relative h-20 w-20 shrink-0 rounded overflow-hidden bg-surface-2 flex items-center justify-center">
-        {photo ? (
-          <img
-            src={photo}
-            alt={`${reserva.vehicle.brand} ${reserva.vehicle.model}`}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <CalendarDays className="h-6 w-6 text-text-muted" />
-        )}
+      {/* Wrapper relativo para que el badge quede FUERA del overflow-hidden */}
+      <div className="relative h-20 w-20 shrink-0">
+        <div className="h-full w-full rounded overflow-hidden bg-surface-2 flex items-center justify-center">
+          {photo ? (
+            <img
+              src={photo}
+              alt={`${reserva.vehicle.brand} ${reserva.vehicle.model}`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <CalendarDays className="h-6 w-6 text-text-muted" />
+          )}
+        </div>
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-bold text-white shadow">
-            {unreadCount > 9 ? '9+' : unreadCount}
+          <span className="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-danger-500 px-1.5 text-[11px] font-bold text-white ring-2 ring-surface-0 shadow-lg">
+            <span className="absolute inset-0 rounded-full bg-danger-500 animate-ping opacity-60" />
+            <span className="relative">{unreadCount > 9 ? '9+' : unreadCount}</span>
           </span>
         )}
       </div>

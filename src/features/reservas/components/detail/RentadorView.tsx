@@ -203,13 +203,14 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         <Link
           to="/reservas/$id/chat"
           params={{ id: reservation.id }}
-          className="relative flex w-full items-center justify-center gap-2 rounded-full border border-brand-500/40 bg-brand-500/10 px-4 py-3 text-sm font-medium text-brand-400 hover:bg-brand-500/20 active:scale-[0.99] transition-colors"
+          className="relative flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
         >
           <MessageSquare className="h-4 w-4" />
           {t('reservas.detail.actions.chat')}
           {unreadCount > 0 && (
-            <span className="absolute -top-1.5 right-4 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
+            <span className="absolute -top-2.5 right-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-danger-500 px-1.5 text-[11px] font-bold text-white ring-2 ring-surface-1 shadow-lg">
+              <span className="absolute inset-0 rounded-full bg-danger-500 animate-ping opacity-60" />
+              <span className="relative">{unreadCount > 9 ? '9+' : unreadCount}</span>
             </span>
           )}
         </Link>
