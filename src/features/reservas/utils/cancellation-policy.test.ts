@@ -76,6 +76,7 @@ describe('getCancellationRefundSummary', () => {
 
   it('calcula moderada vencida cuando ya pasó el límite de 48h', () => {
     const reservation = makeReservation({
+      cancellationPolicySnapshot: 'MODERATE',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -95,6 +96,7 @@ describe('getCancellationRefundSummary', () => {
 
   it('calcula estricta vigente cuando está dentro de 7 días y faltan más de 48h', () => {
     const reservation = makeReservation({
+      cancellationPolicySnapshot: 'STRICT',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -115,6 +117,7 @@ describe('getCancellationRefundSummary', () => {
   it('calcula estricta con deadline en startAt - 48h cuando ese límite es anterior', () => {
     const reservation = makeReservation({
       paidAt: '2026-06-10T12:00:00.000Z',
+      cancellationPolicySnapshot: 'STRICT',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -133,6 +136,7 @@ describe('getCancellationRefundSummary', () => {
 
   it('calcula estricta vencida cuando pasó paidAt + 7 días', () => {
     const reservation = makeReservation({
+      cancellationPolicySnapshot: 'STRICT',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -150,6 +154,7 @@ describe('getCancellationRefundSummary', () => {
 
   it('calcula estricta vencida cuando faltan 48h o menos para el inicio', () => {
     const reservation = makeReservation({
+      cancellationPolicySnapshot: 'STRICT',
       vehicle: {
         ...makeReservation().vehicle,
         reservationRuleSet: {
@@ -182,6 +187,7 @@ describe('getCancellationRefundSummary', () => {
   })
 
   it('reporta invalid_dates cuando strict no tiene paidAt', () => {
+    // paidAt es null → la política viene del set live, no del snapshot
     const reservation = makeReservation({
       paidAt: null,
       vehicle: {
