@@ -21,10 +21,11 @@ async function forceLogout() {
 }
 
 async function doFetch(path: string, init?: RequestInit) {
+  const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData
   return fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(await authHeaders()),
       ...init?.headers,
     },
@@ -59,6 +60,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const apiClient = {
   post: <T>(path: string, data: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(data) }),
+
+  postFormData: <T>(path: string, data: FormData) =>
+    request<T>(path, { method: 'POST', body: data }),
 
   get: <T>(path: string) =>
     request<T>(path, { method: 'GET' }),

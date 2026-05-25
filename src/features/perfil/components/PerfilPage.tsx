@@ -9,7 +9,6 @@ import {
   Rocket,
   Save,
   Pencil,
-  UserCheck,
   UserCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -19,12 +18,12 @@ import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t } from '@/i18n/es'
+import { WarningCircle, IdentificationCard } from '@phosphor-icons/react'
 
 const levelColors: Record<string, string> = {
   bronze: 'text-amber-600',
@@ -54,8 +53,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     uploadAvatar,
     isUploadingAvatar,
   } = useMyProfile(profileId)
-  const { status: verificationStatus, loading: verificationLoading } = useVerificationStatus()
-  const isFullyVerified = !!verificationStatus?.email
+  const identityVerification = profile?.identityVerification
 
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -150,6 +148,21 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </Button>
         )}
 
+        {/* Level + reputation */}
+        <div className="flex items-center gap-4 mt-1">
+          <div className="flex items-center gap-1.5">
+            <Award className={`h-4 w-4 ${levelColors[profile.level]}`} />
+            <span className="text-sm font-semibold text-text-primary">{levelLabels[profile.level]}</span>
+          </div>
+          <div className="h-4 w-px bg-white/10" />
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-warning text-warning" />
+            <span className="text-sm font-semibold text-text-primary">{profile.reputationScore}</span>
+            <span className="text-xs text-text-muted">({reviewCount})</span>
+          </div>
+        </div>
+
+        {/* Balance */}
         {canEdit && (
           <div className="w-full rounded-xl border border-info/20 bg-info/10 p-4 text-left">
             <p className="text-xs font-semibold uppercase tracking-wider text-info">
@@ -169,32 +182,61 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         )}
 
-        {/* Level + reputation */}
-        <div className="flex items-center gap-4 mt-1">
-          <div className="flex items-center gap-1.5">
-            <Award className={`h-4 w-4 ${levelColors[profile.level]}`} />
-            <span className="text-sm font-semibold text-text-primary">{levelLabels[profile.level]}</span>
-          </div>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-warning text-warning" />
-            <span className="text-sm font-semibold text-text-primary">{profile.reputationScore}</span>
-            <span className="text-xs text-text-muted">({reviewCount})</span>
-          </div>
-        </div>
+        {canEdit && identityVerification ? (
+          <div className="w-full rounded-2xl border border-white/8 bg-surface-1 p-4 text-left">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${identityVerification.status === 'verified' ? 'bg-success-bg text-success' : identityVerification.status === 'rejected' ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'}`}>
+                <IdentificationCard size={22} weight="duotone" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  {t('perfil.identity.title')}
+                </p>
+                <p className="text-sm font-semibold text-text-primary">
+                  {t(`identidad.status.${identityVerification.status}` as const)}
+                </p>
+              </div>
+              <Badge
+                variant={
+                  identityVerification.status === 'verified'
+                    ? 'success'
+                    : identityVerification.status === 'rejected'
+                      ? 'danger'
+                      : 'warning'
+                }
+              >
+                {t(`identidad.status.${identityVerification.status}` as const)}
+              </Badge>
+            </div>
 
-        {canEdit ? (
-          !verificationLoading && (
-            <Badge variant={isFullyVerified ? 'success' : 'warning'}>
-              <UserCheck className="h-3 w-3" />
-              {isFullyVerified ? t('perfil.verified') : t('perfil.pendingVerification')}
-            </Badge>
-          )
-        ) : profile.verificationStatus === 'verified' ? (
-          <Badge variant="success">
-            <UserCheck className="h-3 w-3" />
-            {t('perfil.verified')}
-          </Badge>
+            {identityVerification.status === 'pending' && (
+              <p className="mt-3 text-sm text-text-secondary">
+                {t('perfil.identity.pending')}
+              </p>
+            )}
+
+            {identityVerification.status === 'rejected' && identityVerification.rejectionReason && (
+              <div className="mt-3 rounded-xl border border-danger/20 bg-danger-bg p-3 text-sm text-danger">
+                <div className="flex items-center gap-2 font-semibold">
+                  <WarningCircle size={16} weight="duotone" />
+                  {t('perfil.identity.rejectedReason')}
+                </div>
+                <p className="mt-1 text-text-primary">{identityVerification.rejectionReason}</p>
+              </div>
+            )}
+
+            {identityVerification.status !== 'verified' && (
+              <Button
+                variant="secondary"
+                className="mt-4 w-full"
+                onClick={() => navigate({ to: '/identidad' })}
+              >
+                {identityVerification.status === 'rejected'
+                  ? t('perfil.identity.retry')
+                  : t('perfil.identity.cta')}
+              </Button>
+            )}
+          </div>
         ) : null}
 
       </div>
