@@ -17,6 +17,7 @@ import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
+import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { RoleSegmentedControl } from './RoleSegmentedControl'
 
@@ -317,6 +318,12 @@ interface ReservaCardProps {
 function ReservaCard({ reserva, role }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
   const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
+
+  const canHaveChat =
+    reserva.status === RESERVATION_STATUS.confirmed ||
+    reserva.status === RESERVATION_STATUS.in_progress
+  const { data: unreadCount = 0 } = useUnreadCount(reserva.id, canHaveChat)
+
   return (
     <Link
       to="/reservas/$id"
@@ -324,7 +331,7 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
       search={role === 'owner' ? { role: 'owner' } : {}}
       className="card p-2 flex gap-3 active:opacity-80"
     >
-      <div className="h-20 w-20 shrink-0 rounded overflow-hidden bg-surface-2 flex items-center justify-center">
+      <div className="relative h-20 w-20 shrink-0 rounded overflow-hidden bg-surface-2 flex items-center justify-center">
         {photo ? (
           <img
             src={photo}
@@ -333,6 +340,11 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
           />
         ) : (
           <CalendarDays className="h-6 w-6 text-text-muted" />
+        )}
+        {unreadCount > 0 && (
+          <span className="absolute top-1 right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-bold text-white shadow">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </div>
       <div className="flex-1 flex flex-col gap-1.5 min-w-0">

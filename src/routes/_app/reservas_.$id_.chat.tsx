@@ -44,7 +44,7 @@ function ChatPage() {
       reservation.status === RESERVATION_STATUS.in_progress)
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-surface-1">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-surface-1">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-white/8 px-4 py-3">
         <Link
@@ -103,6 +103,6 @@ function ChatRoute() {
   )
 }
 
-export const Route = createFileRoute('/_app/reservas/$id/chat')({
+export const Route = createFileRoute('/_app/reservas_/$id_/chat')({
   component: ChatRoute,
 })

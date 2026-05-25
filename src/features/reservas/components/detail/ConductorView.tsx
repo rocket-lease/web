@@ -32,6 +32,7 @@ import { t } from '@/i18n/es'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
+import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -298,6 +299,9 @@ function PostPaymentActions({
   const cancelMutation = useCancelReservation()
 
   const canCancel = status === RESERVATION_STATUS.confirmed
+  const canChat =
+    status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
+  const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
   const refundPreview = getCancellationRefundPreview(reservation)
 
   const handleCancel = async () => {
@@ -332,10 +336,15 @@ function PostPaymentActions({
         <Link
           to="/reservas/$id/chat"
           params={{ id: reservation.id }}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
+          className="relative flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
         >
           <MessageSquare className="h-4 w-4" />
           {t('reservas.detail.actions.chat')}
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 right-4 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-danger-500 px-1 text-[10px] font-bold text-white">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </Link>
         <Link
           to="/soporte"

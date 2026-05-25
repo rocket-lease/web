@@ -4,6 +4,7 @@ import { ChatCircleDots } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { useMessages } from '../hooks/useMessages'
 import { useSendMessage } from '../hooks/useSendMessage'
+import { markAsRead } from '../hooks/useUnreadCount'
 import { MessageBubble } from './MessageBubble'
 import { MessageInput } from './MessageInput'
 
@@ -25,6 +26,12 @@ export function ChatWindow({
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const messages = messagesQuery.data?.items ?? []
+
+  // Marcar como leídos al entrar y al salir
+  useEffect(() => {
+    markAsRead(reservationId)
+    return () => { markAsRead(reservationId) }
+  }, [reservationId])
 
   // Auto-scroll al llegar nuevos mensajes
   useEffect(() => {
