@@ -476,6 +476,39 @@ export const es = {  // --- App ---
   'perfil.autoAccept.label': 'Auto-aceptar reservas en todos mis vehículos',
   'perfil.autoAccept.descripcion': 'Las nuevas reservas se confirman automáticamente sin tu revisión. Podés sobrescribir esta config por vehículo.',
 
+  // --- Bank accounts ---
+  'bankAccount.title': 'Cuentas bancarias',
+  'bankAccount.add': 'Nueva',
+  'bankAccount.empty': 'No tenés cuentas bancarias vinculadas.',
+  'bankAccount.identifierName': 'Nombre identificador',
+  'bankAccount.cbu': 'CBU / CVU',
+  'bankAccount.modal.title': 'Agregar cuenta bancaria',
+  'bankAccount.modal.description': 'Completá los datos para vincular tu cuenta y poder publicar vehículos.',
+  'bankAccount.form.identifierPlaceholder': 'Cuenta principal',
+  'bankAccount.form.cbuPlaceholder': '1234567890123456789012',
+  'bankAccount.form.identifierLengthError': 'Usá un nombre entre 3 y 50 caracteres para identificar esta cuenta.',
+  'bankAccount.form.cbuError': 'El CBU o CVU debe tener exactamente 22 números.',
+  'bankAccount.form.identifierRequired': 'Ingresá un nombre identificador.',
+  'bankAccount.form.cbuRequired': 'Ingresá el CBU o CVU de la cuenta.',
+  'bankAccount.form.submitError': 'No pudimos guardar la cuenta. Revisá los datos e intentá de nuevo.',
+  'bankAccount.back': 'Volver',
+  'bankAccount.deleteConfirm': '¿Eliminar cuenta bancaria?',
+  'bankAccount.deleteConfirmPrompt': 'Esta acción es irreversible.',
+  'bankAccount.emptyState.title': 'No tenés cuentas asociadas',
+  'bankAccount.emptyState.description': 'Agregá una cuenta bancaria para poder recibir pagos de tus reservas.',
+  'bankAccount.lastDeleted.title': 'Te quedaste sin cuentas bancarias',
+  'bankAccount.lastDeleted.description': 'No vas a poder recibir pagos hasta agregar una nueva cuenta.',
+  'bankAccount.detail.title': 'Detalle de cuenta',
+  'bankAccount.detail.fullCbu': 'CBU completo',
+  'bankAccount.detail.identifier': 'Nombre identificador',
+  'bankAccount.goToAccounts': 'Ir a cuentas bancarias',
+  'bankAccount.addSuccess': 'Cuenta agregada correctamente.',
+  'bankAccount.deleteSuccess': 'Cuenta eliminada.',
+
+  'nuevoVehiculo.noBankAccountAfterPublish.title': 'Vehículo publicado sin cuenta bancaria',
+  'nuevoVehiculo.noBankAccountAfterPublish.description': 'Tu vehículo ya está publicado, pero no podrás recibir pagos hasta agregar una cuenta bancaria.',
+  'nuevoVehiculo.noBankAccountAfterPublish.goHome': 'Ir al inicio',
+
   // --- Configuración ---
   'configuracion.title': 'Configuración',
   'configuracion.section.seguridad': 'Seguridad',
@@ -577,6 +610,8 @@ export const es = {  // --- App ---
   'nuevoVehiculo.step.disponibilidad': 'Disponibilidad',
   'nuevoVehiculo.step.tarifas': 'Tarifas',
   'nuevoVehiculo.step.publicar': 'Publicar',
+  'nuevoVehiculo.publishing.title': 'Publicando vehículo',
+  'nuevoVehiculo.publishing.description': 'Estamos subiendo las fotos y creando tu publicación. No cierres esta pantalla.',
 
   // --- Favoritos ---
   'favoritos.loginHint': 'Guarda tus autos favoritos para reservar con tu cuenta',

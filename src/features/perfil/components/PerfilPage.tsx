@@ -214,7 +214,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         <button
           type="button"
           onClick={() => navigate({ to: '/mis-vehiculos' })}
-          className="mx-4 mt-4 rounded-2xl bg-gradient-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
+          className="mx-4 mt-4 rounded-2xl bg-linear-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600">
             <Rocket className="h-5 w-5 text-white" />
@@ -222,6 +222,23 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-text-primary">Mis vehículos</p>
             <p className="text-xs text-text-muted mt-0.5">Gestioná tu flota o publicá uno nuevo</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
+        </button>
+      )}
+
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => navigate({ to: '/perfil/cuentas' })}
+          className="mx-4 mt-4 rounded-2xl bg-linear-to-r from-slate-700 to-slate-600 border border-surface-6 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-600">
+            <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 10h18M3 14h18M7 6h10v2H7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary">{t('bankAccount.title')}</p>
+            <p className="text-xs text-text-muted mt-0.5">{t('bankAccount.empty')}</p>
           </div>
           <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
         </button>
