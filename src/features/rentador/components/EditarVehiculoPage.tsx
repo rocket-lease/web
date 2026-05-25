@@ -1,119 +1,35 @@
-﻿import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import type { ReservationRuleSet } from '@rocket-lease/contracts'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { Input } from '@/ui/input'
+import { Card, CardContent, CardDescription, CardTitle } from '@/ui/card'
+import { ConfirmDialog } from '@/ui/confirm-dialog'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
-import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
-import type { UpdateVehicleRequest } from '@/features/vehiculos/api/vehiculos.api'
-import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
-import { ReservationRuleSetSelector } from './ReservationRuleSetSelector'
-import { LocationPicker } from './LocationPicker'
+import { SectionCard } from './EditarVehiculo/SectionCard'
+import { DetallesSheet } from './EditarVehiculo/DetallesSheet'
+import { DisponibilidadSheet } from './EditarVehiculo/DisponibilidadSheet'
+import { FotosSheet } from './EditarVehiculo/FotosSheet'
+import { ReglasSheet } from './EditarVehiculo/ReglasSheet'
+import { useUpdateVehicleSection } from './EditarVehiculo/useUpdateVehicleSection'
+import {
+  useDeleteReservationRuleSet,
+  usePrivateRuleSetForVehicle,
+  useReservationRuleSets,
+} from '../hooks/useReservationRules'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
-const MAX_PHOTOS = 10
 const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80'
 
 const vehicleQueryKey = (vehicleId: string) => ['vehicles', vehicleId] as const
 
-type EditablePhoto = {
-  id: string
-  kind: 'existing' | 'new'
-  url: string
-  file?: File
-  previewUrl?: string
-}
-
-type VehicleDraft = {
-  basePrice: string
-  color: string
-  mileage: string
-  availableFrom: string
-  province: string
-  city: string
-  address: string
-  latitude: number | null
-  longitude: number | null
-  locationApproximate: boolean
-  description: string
-  enabled: boolean
-  isAccessible: boolean
-  photos: EditablePhoto[]
-  characteristics: Characteristic[]
-  reservationRuleSetId?: string
-  autoAccept: boolean | null
-}
-
-function buildDraft(vehicle: GetVehicleResponse): VehicleDraft {
-  return {
-    basePrice: String((vehicle.basePriceCents ?? 0) / 100),
-    color: vehicle.color ?? '',
-    mileage: String(vehicle.mileage ?? ''),
-    availableFrom: vehicle.availableFrom ?? '',
-    province: vehicle.province ?? '',
-    city: vehicle.city ?? '',
-    address: vehicle.address ?? '',
-    latitude: vehicle.latitude ?? null,
-    longitude: vehicle.longitude ?? null,
-    locationApproximate: Boolean(vehicle.locationApproximate),
-    description: vehicle.description ?? '',
-    enabled: Boolean(vehicle.enabled),
-    isAccessible: Boolean(vehicle.isAccessible),
-    photos: vehicle.photos.map((url: string) => ({
-      id: url,
-      kind: 'existing',
-      url,
-    })),
-    characteristics: vehicle.characteristics ?? [],
-    reservationRuleSetId: (vehicle as GetVehicleResponse & { reservationRuleSetId?: string }).reservationRuleSetId,
-    autoAccept: vehicle.autoAccept ?? null,
-  }
-}
-
-type AutoAcceptOption = 'inherit' | 'on' | 'off'
-
-const AUTO_ACCEPT_OPTIONS: ReadonlyArray<{ key: AutoAcceptOption; labelKey: string }> = [
-  { key: 'inherit', labelKey: 'vehiculo.autoAccept.opcion.heredar' },
-  { key: 'on', labelKey: 'vehiculo.autoAccept.opcion.si' },
-  { key: 'off', labelKey: 'vehiculo.autoAccept.opcion.no' },
-]
-
-/**
- * Convierte el valor crudo del campo `autoAccept` (boolean | null) al
- * identificador de opción que renderiza el selector tri-state.
- */
-function toAutoAcceptOption(value: boolean | null | undefined): AutoAcceptOption {
-  if (value === true) return 'on'
-  if (value === false) return 'off'
-  return 'inherit'
-}
-
-/**
- * Convierte la opción elegida en el selector tri-state al valor que se
- * persiste en la entidad: `null` = hereda del perfil del rentador.
- */
-function fromAutoAcceptOption(option: AutoAcceptOption): boolean | null {
-  if (option === 'on') return true
-  if (option === 'off') return false
-  return null
-}
-
-function isNewPhoto(photo: EditablePhoto): photo is EditablePhoto & { kind: 'new'; file: File; previewUrl: string } {
-  return photo.kind === 'new'
-}
-
-function revokePhotoPreviews(photos: EditablePhoto[]) {
-  photos.filter(isNewPhoto).forEach(photo => {
-    URL.revokeObjectURL(photo.previewUrl)
-  })
-}
+type SheetKey = 'detalles' | 'disponibilidad' | 'fotos' | 'reglas'
 
 interface EditarVehiculoPageProps {
   vehicleId: string
@@ -122,251 +38,61 @@ interface EditarVehiculoPageProps {
 export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const draftRef = useRef<VehicleDraft | null>(null)
+  const [openSheet, setOpenSheet] = useState<SheetKey | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pendingRules, setPendingRules] = useState<
+    | { kind: 'delete-private'; ruleSet: ReservationRuleSet }
+    | { kind: 'switch-to-shared'; sharedId: string | undefined; ruleSet: ReservationRuleSet }
+    | null
+  >(null)
 
-  const vehiclesQuery = useQuery({
+  const vehicleQuery = useQuery({
     queryKey: vehicleQueryKey(vehicleId),
     queryFn: () => vehiclesApi.getVehicleById(vehicleId),
   })
+  const vehicle = vehicleQuery.data
 
-  const vehicle = vehiclesQuery.data
-  const [draft, setDraft] = useState<VehicleDraft | null>(null)
+  const ruleSetsQuery = useReservationRuleSets()
+  const privateRuleSetQuery = usePrivateRuleSetForVehicle(vehicleId)
 
-  useEffect(() => {
-    draftRef.current = draft
-  }, [draft])
+  const deletePrivateRuleMutation = useDeleteReservationRuleSet()
+  const updateVehicleMutation = useUpdateVehicleSection({ vehicleId })
 
-  useEffect(() => {
-    if (vehicle && !draft) {
-      setDraft(buildDraft(vehicle))
-    }
-  }, [vehicle, draft])
-
-  useEffect(() => {
-    return () => {
-      if (draftRef.current) {
-        revokePhotoPreviews(draftRef.current.photos)
-      }
-    }
-  }, [])
-
-  const mainPhotoUrl = useMemo(() => {
-    if (draft?.photos[0]) {
-      return draft.photos[0].url
-    }
-    return vehicle?.photos[0] ?? FALLBACK_PHOTO
-  }, [draft?.photos, vehicle?.photos])
-
-  const handleFieldChange = <K extends keyof VehicleDraft>(field: K, value: VehicleDraft[K]) => {
-    setDraft(current => (current ? { ...current, [field]: value } : current))
-  }
-
-  const toggleCharacteristic = (characteristic: Characteristic) => {
-    setDraft(current => {
-      if (!current) return null
-      const characteristics = current.characteristics.includes(characteristic)
-        ? current.characteristics.filter(c => c !== characteristic)
-        : [...current.characteristics, characteristic]
-      return { ...current, characteristics }
+  const handleConfirmRulesAction = () => {
+    if (!pendingRules) return
+    const action = pendingRules
+    deletePrivateRuleMutation.mutate(action.ruleSet.id, {
+      onSuccess: () => {
+        if (action.kind === 'switch-to-shared') {
+          updateVehicleMutation.mutate(
+            { reservationRuleSetId: action.sharedId ?? null },
+            { onSuccess: () => setPendingRules(null) },
+          )
+        } else {
+          setPendingRules(null)
+        }
+      },
     })
   }
 
-  const handlePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? [])
-
-    if (files.length === 0) {
-      return
-    }
-
-    event.target.value = ''
-
-    setDraft(current => {
-      if (!current) {
-        return current
-      }
-
-      const remainingSlots = MAX_PHOTOS - current.photos.length
-      if (remainingSlots <= 0) {
-        toast.error(t('editVehiculo.photoLimit'))
-        return current
-      }
-
-      const acceptedFiles = files.slice(0, remainingSlots)
-      if (acceptedFiles.length < files.length) {
-        toast.error(t('editVehiculo.photoLimit'))
-      }
-
-      const newPhotos: EditablePhoto[] = acceptedFiles.map(file => {
-        const previewUrl = URL.createObjectURL(file)
-        return {
-          id: crypto.randomUUID(),
-          kind: 'new',
-          url: previewUrl,
-          file,
-          previewUrl,
-        }
-      })
-
-      return {
-        ...current,
-        photos: [...current.photos, ...newPhotos],
-      }
-    })
-  }
-
-  const handleRemovePhoto = (photoId: string) => {
-    setDraft(current => {
-      if (!current) {
-        return current
-      }
-
-      const target = current.photos.find(photo => photo.id === photoId)
-      if (target?.kind === 'new' && target.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl)
-      }
-
-      return {
-        ...current,
-        photos: current.photos.filter(photo => photo.id !== photoId),
-      }
-    })
-  }
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!vehicle || !draft) {
-        throw new Error('Vehicle draft not ready')
-      }
-
-      if (draft.photos.length < 3) {
-        throw new Error('Vehicle must have at least 3 photos')
-      }
-
-      const basePrice = Number(draft.basePrice)
-      const mileage = Number(draft.mileage)
-
-      if (!Number.isFinite(basePrice) || basePrice <= 0) {
-        throw new Error('Invalid base price')
-      }
-
-      if (!Number.isFinite(mileage) || mileage < 0) {
-        throw new Error('Invalid mileage')
-      }
-
-      const newPhotos = draft.photos.filter(isNewPhoto)
-      const uploadedPhotos: Array<{ url: string; publicId: string }> = []
-
-      try {
-        for (const photo of newPhotos) {
-          uploadedPhotos.push(await photosApi.uploadVehicleImage(photo.file))
-        }
-      } catch (error) {
-        await Promise.allSettled(uploadedPhotos.map(photo => photosApi.deleteVehicleImage(photo.publicId)))
-        throw error
-      }
-
-      const uploadedUrls = uploadedPhotos.map(photo => photo.url)
-      let uploadedIndex = 0
-      const finalPhotoUrls = draft.photos.map(photo => {
-        if (photo.kind === 'existing') {
-          return photo.url
-        }
-
-        const nextUrl = uploadedUrls[uploadedIndex]
-        uploadedIndex += 1
-        return nextUrl
-      })
-
-      const payload: UpdateVehicleRequest = {
-        basePriceCents: Math.round(basePrice * 100),
-        color: draft.color.trim(),
-        mileage,
-        availableFrom: draft.availableFrom,
-        province: draft.province.trim(),
-        city: draft.city.trim(),
-        ...(draft.latitude !== null && draft.longitude !== null
-          ? {
-              address: draft.address.trim(),
-              latitude: draft.latitude,
-              longitude: draft.longitude,
-            }
-          : {}),
-        description: draft.description.trim() ? draft.description.trim() : null,
-        enabled: draft.enabled,
-        isAccessible: draft.isAccessible,
-        photos: finalPhotoUrls,
-        characteristics: draft.characteristics,
-        reservationRuleSetId: draft.reservationRuleSetId ?? null,
-        autoAccept: draft.autoAccept,
-      }
-
-      await vehiclesApi.updateVehicle(vehicleId, payload)
-
-      const removedPhotoUrls = vehicle.photos.filter((url: string) => !draft.photos.some(photo => photo.url === url))
-      await Promise.allSettled(removedPhotoUrls.map((url: string) => photosApi.deleteVehicleImage(url)))
-
-      return finalPhotoUrls
-    },
-    onSuccess: finalPhotoUrls => {
-      if (draftRef.current) {
-        revokePhotoPreviews(draftRef.current.photos)
-      }
-
-      setDraft(current => {
-        if (!current) {
-          return current
-        }
-
-        return {
-          ...current,
-          photos: finalPhotoUrls.map((url: string) => ({
-            id: url,
-            kind: 'existing',
-            url,
-          })),
-        }
-      })
-
-      queryClient.invalidateQueries({ queryKey: myVehiclesQueryKey })
-      queryClient.invalidateQueries({ queryKey: vehicleQueryKey(vehicleId) })
-      toast.success(t('editVehiculo.saveSuccess'))
-      navigate({ to: '/mis-vehiculos' })
-    },
-    onError: (error: Error) => {
-      if (error.message === 'Vehicle must have at least 3 photos') {
-        toast.error(t('editVehiculo.photoMinimum'))
-      } else {
-        toast.error(t('editVehiculo.saveError'))
-      }
-    },
-  })
+  const rulesActionLoading = deletePrivateRuleMutation.isPending || updateVehicleMutation.isPending
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      if (!vehicle) {
-        throw new Error('Vehicle not ready')
-      }
-
+      if (!vehicle) throw new Error('Vehicle not ready')
       await vehiclesApi.deleteVehicle(vehicle.id)
       await Promise.allSettled(vehicle.photos.map((url: string) => photosApi.deleteVehicleImage(url)))
     },
     onSuccess: () => {
-      if (draftRef.current) {
-        revokePhotoPreviews(draftRef.current.photos)
-      }
-
       queryClient.invalidateQueries({ queryKey: myVehiclesQueryKey })
       queryClient.removeQueries({ queryKey: vehicleQueryKey(vehicleId) })
       toast.success(t('editVehiculo.deleteSuccess'))
       navigate({ to: '/mis-vehiculos' })
     },
-    onError: () => {
-      toast.error(t('error.default'))
-    },
+    onError: () => toast.error(t('error.default')),
   })
 
-  if (vehiclesQuery.isLoading) {
+  if (vehicleQuery.isLoading) {
     return (
       <div className="flex min-h-full flex-col">
         <PageHeader title={t('editVehiculo.title')} showBack />
@@ -377,13 +103,13 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     )
   }
 
-  if (vehiclesQuery.isError) {
+  if (vehicleQuery.isError) {
     return (
       <div className="flex min-h-full flex-col">
         <PageHeader title={t('editVehiculo.title')} showBack />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">
           <p className="text-text-secondary">{t('error.default')}</p>
-          <Button variant="secondary" onClick={() => vehiclesQuery.refetch()}>
+          <Button variant="secondary" onClick={() => vehicleQuery.refetch()}>
             {t('general.retry')}
           </Button>
         </div>
@@ -405,378 +131,184 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     )
   }
 
-  if (!draft) {
-    return null
-  }
-
-  const isSaving = saveMutation.isPending
+  const mainPhoto = vehicle.photos[0] ?? FALLBACK_PHOTO
   const isDeleting = deleteMutation.isPending
-  const hasNewPhotos = draft.photos.some(isNewPhoto)
-  const canSave = draft.photos.length >= 3 && !isSaving && !isDeleting
+
+  const detallesParts = [
+    vehicle.color,
+    vehicle.mileage ? `${vehicle.mileage.toLocaleString()} km` : null,
+    vehicle.isAccessible ? t('editVehiculo.field.isAccessible') : null,
+    vehicle.city || vehicle.province
+      ? `${vehicle.city ?? ''}${vehicle.city && vehicle.province ? ', ' : ''}${vehicle.province ?? ''}`
+      : null,
+    vehicle.characteristics && vehicle.characteristics.length > 0
+      ? `${vehicle.characteristics.length} ${vehicle.characteristics.length === 1 ? 'característica' : 'características'}`
+      : null,
+  ].filter(Boolean)
+  const detallesSummary = detallesParts.length
+    ? detallesParts.join(' · ')
+    : t('editVehiculo.section.details.summary.empty')
+
+  const disponibilidadSummary = [
+    vehicle.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive'),
+    vehicle.basePriceCents ? `${fmt.currency(vehicle.basePriceCents)}/día` : null,
+    vehicle.availableFrom ? `Desde ${vehicle.availableFrom}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  const fotosSummary =
+    vehicle.photos.length > 0 ? (
+      <div className="mt-1 flex items-center gap-1.5">
+        {vehicle.photos.slice(0, 4).map((url, idx) => (
+          <img
+            key={url}
+            src={url}
+            alt={`${vehicle.brand} ${vehicle.model} ${idx + 1}`}
+            className="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-white/10"
+          />
+        ))}
+        {vehicle.photos.length > 4 && (
+          <span className="ml-1 text-xs font-medium text-text-muted">
+            +{vehicle.photos.length - 4}
+          </span>
+        )}
+      </div>
+    ) : (
+      t('editVehiculo.noPhotos')
+    )
+
+  const sharedRuleSet = ruleSetsQuery.data?.find(
+    (s) => s.id === (vehicle as typeof vehicle & { reservationRuleSetId?: string }).reservationRuleSetId,
+  )
+  const privateRuleSet = privateRuleSetQuery.data
+  const reglasSummary = privateRuleSet
+    ? t('editVehiculo.section.rules.summary.private')
+    : sharedRuleSet
+    ? t('editVehiculo.section.rules.summary.shared').replace('{name}', sharedRuleSet.name)
+    : t('editVehiculo.section.rules.summary.none')
 
   return (
     <div className="flex min-h-full flex-col">
       <PageHeader title={t('editVehiculo.title')} subtitle={t('editVehiculo.subtitle')} showBack />
 
-      <div className="space-y-4 px-4 py-4">
+      <div className="space-y-3 px-4 py-4">
         <Card className="overflow-hidden">
           <div className="aspect-16/10 overflow-hidden bg-surface-2">
-            <img src={mainPhotoUrl} alt={`${vehicle.brand} ${vehicle.model}`} className="h-full w-full object-cover" />
+            <img src={mainPhoto} alt={`${vehicle.brand} ${vehicle.model}`} className="h-full w-full object-cover" />
           </div>
-          <CardContent className="space-y-4 pt-5">
+          <CardContent className="space-y-1 pt-4 pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <CardTitle className="truncate">
                   {vehicle.brand} {vehicle.model} {vehicle.year}
                 </CardTitle>
-                <CardDescription className="mt-1">
-                  {vehicle.city || vehicle.province
-                    ? `${vehicle.city}${vehicle.city && vehicle.province ? ' · ' : ''}${vehicle.province}`
-                    : t('editVehiculo.noLocation')}
-                </CardDescription>
-                <p className="mt-2 text-xs text-text-muted">{vehicle.plate}</p>
+                <CardDescription className="mt-1">{vehicle.plate}</CardDescription>
               </div>
-              <Badge variant={draft.enabled ? 'success' : 'secondary'}>
-                {draft.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
+              <Badge variant={vehicle.enabled ? 'success' : 'secondary'}>
+                {vehicle.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
               </Badge>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.currentPrice')}</p>
-                <p className="text-lg font-bold text-text-primary">{fmt.currency(Number(draft.basePrice || 0) * 100)}</p>
-              </div>
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.field.availableFrom')}</p>
-                <p className="text-lg font-bold text-text-primary">{draft.availableFrom}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.field.color')}</p>
-                <p className="font-semibold text-text-primary">{draft.color || '—'}</p>
-              </div>
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.field.mileage')}</p>
-                <p className="font-semibold text-text-primary">{draft.mileage || '—'}</p>
-              </div>
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.field.isAccessible')}</p>
-                <p className="font-semibold text-text-primary">{draft.isAccessible ? t('general.yes') : t('general.no')}</p>
-              </div>
-              <div className="rounded-xl bg-surface-2 px-4 py-3">
-                <p className="text-xs text-text-muted">{t('editVehiculo.field.enabled')}</p>
-                <p className="font-semibold text-text-primary">{draft.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('editVehiculo.photosTitle')}</CardTitle>
-            <CardDescription>{t('editVehiculo.photosDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {draft.photos.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {draft.photos.map(photo => (
-                  <div key={photo.id} className="group relative overflow-hidden rounded-xl border border-white/8 bg-surface-2">
-                    <div className="aspect-4/3 overflow-hidden">
-                      <img
-                        src={photo.url}
-                        alt={`${vehicle.brand} ${vehicle.model}`}
-                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                      />
-                    </div>
-                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-linear-to-t from-black/70 to-transparent p-3">
-                      <span className="text-xs font-semibold text-white">
-                        {photo.kind === 'existing' ? t('editVehiculo.photoStored') : t('editVehiculo.photoNew')}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemovePhoto(photo.id)}
-                        disabled={isSaving || isDeleting}
-                      >
-                        {t('editVehiculo.removePhoto')}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-xl border border-dashed border-white/10 bg-surface-2 px-4 py-6 text-sm text-text-secondary">
-                {t('editVehiculo.noPhotos')}
-              </p>
-            )}
+        <SectionCard
+          title={t('editVehiculo.photosTitle')}
+          summary={fotosSummary}
+          onEdit={() => setOpenSheet('fotos')}
+          disabled={isDeleting}
+        />
+        <SectionCard
+          title={t('editVehiculo.section.details.title')}
+          summary={detallesSummary}
+          onEdit={() => setOpenSheet('detalles')}
+          disabled={isDeleting}
+        />
+        <SectionCard
+          title={t('editVehiculo.section.availability.title')}
+          summary={disponibilidadSummary}
+          onEdit={() => setOpenSheet('disponibilidad')}
+          disabled={isDeleting}
+        />
+        <SectionCard
+          title={t('editVehiculo.section.rules.title')}
+          summary={reglasSummary}
+          onEdit={() => setOpenSheet('reglas')}
+          disabled={isDeleting}
+        />
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={handlePhotoSelect}
-            />
-            {draft.photos.length < 3 && (
-              <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
-                {t('editVehiculo.photoMinimumHint')} ({draft.photos.length}/3)
-              </p>
-            )}
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isSaving || isDeleting}
-            >
-              {t('editVehiculo.addPhotos')}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('editVehiculo.formTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.color')}</label>
-                <Input
-                  value={draft.color}
-                  onChange={e => handleFieldChange('color', e.target.value)}
-                  placeholder={t('editVehiculo.field.color')}
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.mileage')}</label>
-                <Input
-                  value={draft.mileage}
-                  onChange={e => handleFieldChange('mileage', e.target.value)}
-                  placeholder={t('editVehiculo.field.mileage')}
-                  inputMode="numeric"
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.basePrice')}</label>
-                <Input
-                  value={draft.basePrice}
-                  onChange={e => handleFieldChange('basePrice', e.target.value)}
-                  placeholder={t('editVehiculo.field.basePrice')}
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.availableFrom')}</label>
-                <Input
-                  value={draft.availableFrom}
-                  onChange={e => handleFieldChange('availableFrom', e.target.value)}
-                  placeholder={t('editVehiculo.field.availableFrom')}
-                  type="date"
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.enabled')}</label>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="w-full justify-between"
-                  onClick={() => handleFieldChange('enabled', !draft.enabled)}
-                  disabled={isSaving || isDeleting}
-                >
-                  <span>{draft.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}</span>
-                  <span>{t('general.edit')}</span>
-                </Button>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.isAccessible')}</label>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="w-full justify-between"
-                  onClick={() => handleFieldChange('isAccessible', !draft.isAccessible)}
-                  disabled={isSaving || isDeleting}
-                >
-                  <span>{draft.isAccessible ? t('general.yes') : t('general.no')}</span>
-                  <span>{t('general.edit')}</span>
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-text-secondary">
-                {t('vehiculo.autoAccept.label')}
-              </label>
-              <p className="mb-3 text-xs text-text-muted">
-                {t('vehiculo.autoAccept.descripcion')}
-              </p>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {AUTO_ACCEPT_OPTIONS.map((option) => {
-                  const selected = toAutoAcceptOption(draft.autoAccept) === option.key
-                  return (
-                    <button
-                      key={option.key}
-                      type="button"
-                      onClick={() =>
-                        handleFieldChange('autoAccept', fromAutoAcceptOption(option.key))
-                      }
-                      disabled={isSaving || isDeleting}
-                      className={`flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
-                        selected
-                          ? 'border-brand-500 bg-brand-500/15 text-brand-400'
-                          : 'border-white/8 bg-surface-2 text-text-secondary hover:border-brand-600/50 hover:text-brand-400'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {t(option.labelKey as Parameters<typeof t>[0])}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.city')}</label>
-                <Input
-                  value={draft.city}
-                  onChange={e => handleFieldChange('city', e.target.value)}
-                  placeholder={t('editVehiculo.field.city')}
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.province')}</label>
-                <Input
-                  value={draft.province}
-                  onChange={e => handleFieldChange('province', e.target.value)}
-                  placeholder={t('editVehiculo.field.province')}
-                  disabled={isSaving || isDeleting}
-                />
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <LocationPicker
-                approximate={draft.locationApproximate}
-                value={
-                  draft.latitude !== null && draft.longitude !== null
-                    ? {
-                        latitude: draft.latitude,
-                        longitude: draft.longitude,
-                        address: draft.address,
-                        province: draft.province,
-                        city: draft.city,
-                      }
-                    : null
-                }
-                onChange={loc => {
-                  setDraft(current =>
-                    current
-                      ? {
-                          ...current,
-                          latitude: loc.latitude,
-                          longitude: loc.longitude,
-                          address: loc.address,
-                          province: loc.province,
-                          city: loc.city,
-                          locationApproximate: false,
-                        }
-                      : current,
-                  )
-                }}
-              />
-            </div>
-
-            <div>
-              <label className="mb-3 block text-sm font-medium text-text-secondary">{t('vehiculo.features')}</label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_CHARACTERISTICS.map(char => {
-                  const isSelected = draft.characteristics.includes(char)
-                  return (
-                    <button
-                      key={char}
-                      type="button"
-                      onClick={() => toggleCharacteristic(char)}
-                      disabled={isSaving || isDeleting}
-                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                        isSelected
-                          ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20'
-                          : 'bg-surface-2 text-text-secondary hover:bg-surface-3 border border-white/5'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {getCharacteristicLabel(char)}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <ReservationRuleSetSelector
-              selectedId={draft.reservationRuleSetId}
-              onSelect={(id) => handleFieldChange('reservationRuleSetId', id)}
-              disabled={isSaving || isDeleting}
-              vehicleId={vehicleId}
-              vehicleName={vehicle ? `${vehicle.brand} ${vehicle.model}` : undefined}
-            />
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-text-secondary">{t('editVehiculo.field.description')}</label>
-              <textarea
-                value={draft.description}
-                onChange={e => handleFieldChange('description', e.target.value)}
-                placeholder={t('editVehiculo.field.description')}
-                rows={5}
-                disabled={isSaving || isDeleting}
-                className="min-h-32 w-full rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="sticky bottom-0 border-t border-white/6 bg-surface-0/95 px-4 py-4 backdrop-blur-xl">
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/mis-vehiculos">
-              <Button variant="secondary" className="w-full" disabled={isSaving || isDeleting}>
-                {t('general.back')}
-              </Button>
-            </Link>
-            <Button
-              className="w-full"
-              onClick={() => saveMutation.mutate()}
-              disabled={!canSave}
-            >
-              {isSaving ? (hasNewPhotos ? t('editVehiculo.uploadingPhotos') : t('editVehiculo.saving')) : t('general.save')}
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <p className="text-center text-xs text-text-muted sm:col-span-2">{t('editVehiculo.saveHint')}</p>
+        <Card className="mt-6 border-destructive/30 bg-destructive/5">
+          <CardContent className="space-y-3 pt-4 pb-4">
+            <CardTitle className="text-base text-destructive">
+              {t('editVehiculo.danger.title')}
+            </CardTitle>
             <Button
               type="button"
               variant="destructive"
-              className="w-full sm:col-span-2"
-              onClick={() => {
-                const confirmed = window.confirm(t('editVehiculo.deleteConfirm'))
-                if (confirmed) {
-                  deleteMutation.mutate()
-                }
-              }}
-              disabled={isSaving || isDeleting}
+              className="w-full"
+              onClick={() => setConfirmDelete(true)}
+              disabled={isDeleting}
             >
               {t('editVehiculo.deleteVehicle')}
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <DetallesSheet open={openSheet === 'detalles'} onOpenChange={(o) => setOpenSheet(o ? 'detalles' : null)} vehicle={vehicle} />
+      <DisponibilidadSheet open={openSheet === 'disponibilidad'} onOpenChange={(o) => setOpenSheet(o ? 'disponibilidad' : null)} vehicle={vehicle} />
+      <FotosSheet open={openSheet === 'fotos'} onOpenChange={(o) => setOpenSheet(o ? 'fotos' : null)} vehicle={vehicle} />
+      <ReglasSheet
+        open={openSheet === 'reglas'}
+        onOpenChange={(o) => setOpenSheet(o ? 'reglas' : null)}
+        vehicle={vehicle}
+        onRequestDeletePrivate={(rs) => {
+          setOpenSheet(null)
+          setPendingRules({ kind: 'delete-private', ruleSet: rs })
+        }}
+        onRequestSwitchToShared={(sharedId, rs) => {
+          setOpenSheet(null)
+          setPendingRules({ kind: 'switch-to-shared', sharedId, ruleSet: rs })
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        title={t('editVehiculo.deleteVehicle')}
+        description={`${vehicle.brand} ${vehicle.model} ${vehicle.year}`}
+        consequences={t('editVehiculo.deleteConfirm')}
+        confirmLabel="Eliminar vehículo"
+        confirmWord="ELIMINAR"
+        loading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={pendingRules?.kind === 'delete-private'}
+        onClose={() => setPendingRules(null)}
+        onConfirm={handleConfirmRulesAction}
+        title="Eliminar reglas particulares"
+        description={
+          pendingRules?.kind === 'delete-private'
+            ? `Las reglas particulares de ${vehicle.brand} ${vehicle.model} se van a eliminar.`
+            : undefined
+        }
+        consequences="Las reservas confirmadas conservan sus condiciones (snapshot). Sólo cambia el comportamiento para reservas nuevas."
+        confirmLabel="Eliminar"
+        loading={rulesActionLoading}
+      />
+
+      <ConfirmDialog
+        open={pendingRules?.kind === 'switch-to-shared'}
+        onClose={() => setPendingRules(null)}
+        onConfirm={handleConfirmRulesAction}
+        title="Cambiar a set compartido"
+        description="Para aplicar un set compartido, las reglas particulares del vehículo se van a eliminar."
+        consequences="Las reservas confirmadas conservan sus condiciones (snapshot). Sólo cambia el comportamiento para reservas nuevas."
+        confirmLabel="Eliminar y cambiar"
+        loading={rulesActionLoading}
+      />
     </div>
   )
 }

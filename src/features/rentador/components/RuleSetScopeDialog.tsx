@@ -13,7 +13,7 @@ interface RuleSetScopeDialogProps {
 
 /**
  * Modal que pregunta al rentador si el set recién creado debe guardarse como
- * compartido (reutilizable) o privado de un vehículo específico (US-49).
+ * compartido (reutilizable) o privado de un vehículo específico.
  *
  * Incluye checkbox "No volver a preguntar" que persiste la preferencia en
  * localStorage vía `useRuleSetScopePreference`.

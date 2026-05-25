@@ -69,8 +69,7 @@ export const rulesApi = {
   },
 
   /**
-   * Obtener el set privado asociado a un vehículo (si existe).
-   * Devuelve `null` cuando el vehículo no tiene set privado.
+   * Obtener el set privado asignado a un vehículo, o `null` si no tiene.
    */
   async getPrivateRuleSetForVehicle(vehicleId: string): Promise<ReservationRuleSet | null> {
     const response = await apiClient.get<unknown>(
