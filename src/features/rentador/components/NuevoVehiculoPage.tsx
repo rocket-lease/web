@@ -3,9 +3,11 @@ import { useNavigate } from '@tanstack/react-router'
 import { Camera } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { bankAccountsApi } from '@/features/perfil/api/bankAccounts.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { Button } from '@/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/ui/dialog'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
 import type { Characteristic, CreateVehicleRequest } from '@rocket-lease/contracts'
@@ -104,6 +106,8 @@ export function NuevoVehiculoPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<VehicleFormData>(initialFormData)
   const [photoMessage, setPhotoMessage] = useState<string | null>(null)
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [showNoBankAccountWarning, setShowNoBankAccountWarning] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photosRef = useRef(formData.photos)
 
@@ -236,6 +240,8 @@ export function NuevoVehiculoPage() {
   }
 
   const handleNext = async () => {
+    if (isPublishing) return
+
     if (currentStep === 0 && !canContinueFromStep0) return
 
     if (currentStep === 1 && !canContinueFromPhotos) {
@@ -254,6 +260,7 @@ export function NuevoVehiculoPage() {
 
     // Subir fotos a Cloudinary y publicar vehículo
     try {
+      setIsPublishing(true)
       const files = formData.photos.map(p => p.file)
       const uploadedPhotos = await Promise.all(files.map(f => photosApi.uploadVehicleImage(f)))
 
@@ -272,10 +279,20 @@ export function NuevoVehiculoPage() {
 
       await vehiclesApi.publishVehicle(payload)
 
+      const bankAccounts = await bankAccountsApi.listMine()
+      const hasBankAccount = bankAccounts.length > 0
+
       toast.success('Vehículo publicado')
+      setIsPublishing(false)
+      if (!hasBankAccount) {
+        setShowNoBankAccountWarning(true)
+        return
+      }
+
       navigate({ to: '/' })
     } catch (err) {
       console.error(err)
+      setIsPublishing(false)
       toast.error('Error al publicar el vehículo')
     }
   }
@@ -624,6 +641,36 @@ export function NuevoVehiculoPage() {
           {currentStep === steps.length - 1 ? 'Confirmar y publicar' : t('general.next')}
         </Button>
       </div>
+
+      <Dialog open={showNoBankAccountWarning} onOpenChange={setShowNoBankAccountWarning}>
+        <DialogContent className="w-[calc(100vw-1rem)]! max-w-[calc(100vw-1rem)]! bg-surface-1 border-white/10 p-4! sm:w-full! sm:max-w-md! sm:p-6!">
+          <DialogHeader>
+            <DialogTitle>{t('nuevoVehiculo.noBankAccountAfterPublish.title')}</DialogTitle>
+            <DialogDescription>{t('nuevoVehiculo.noBankAccountAfterPublish.description')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => navigate({ to: '/' })}>
+              {t('nuevoVehiculo.noBankAccountAfterPublish.goHome')}
+            </Button>
+            <Button onClick={() => navigate({ to: '/perfil/cuentas' })}>
+              {t('bankAccount.goToAccounts')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isPublishing} onOpenChange={() => {}}>
+        <DialogContent className="w-[calc(100vw-1rem)]! max-w-[calc(100vw-1rem)]! bg-surface-1 border-white/10 p-4! sm:w-full! sm:max-w-md! sm:p-6!">
+          <DialogHeader>
+            <DialogTitle>{t('nuevoVehiculo.publishing.title')}</DialogTitle>
+            <DialogDescription>{t('nuevoVehiculo.publishing.description')}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/8 bg-surface-2 px-4 py-3">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+            <p className="text-sm text-text-secondary">{t('general.loading')}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
