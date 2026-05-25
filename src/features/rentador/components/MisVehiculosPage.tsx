@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { Plus, Car, Pencil, Sparkles } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -81,6 +81,23 @@ export function MisVehiculosPage() {
                   {t('bulkPrice.enterSelectionMode')}
                 </Button>
               )}
+              {selectionMode && vehicles.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    if (selectedIds.size === vehicles.length) {
+                      setSelectedIds(new Set())
+                    } else {
+                      setSelectedIds(new Set(vehicles.map(v => v.id)))
+                    }
+                  }}
+                >
+                  {selectedIds.size === vehicles.length
+                    ? t('bulkPrice.deselectAll')
+                    : t('bulkPrice.selectAll')}
+                </Button>
+              )}
               {!selectionMode && (
                 <Link to="/mis-vehiculos/nuevo">
                   <Button size="sm">
@@ -125,129 +142,100 @@ export function MisVehiculosPage() {
               </Link>
             </div>
           ) : (
-            <div className={`px-4 py-4 space-y-3 ${selectionMode ? 'pb-24' : ''}`}>
-              {selectionMode && (
-                <div className="flex items-center justify-between">
-                  <button
-                    className="text-sm text-primary underline"
-                    onClick={() => {
-                      if (selectedIds.size === vehicles.length) {
-                        setSelectedIds(new Set())
-                      } else {
-                        setSelectedIds(new Set(vehicles.map(v => v.id)))
-                      }
-                    }}
-                  >
-                    {selectedIds.size === vehicles.length
-                      ? t('bulkPrice.exitSelectionMode')
-                      : t('bulkPrice.selectAll')}
-                  </button>
-                </div>
-              )}
+            <div className={`px-4 py-4 space-y-3 ${selectionMode ? 'pb-40' : ''}`}>
               {vehicles.map(v => {
                 const priceCents = v.basePriceCents ?? 0
                 const isSelected = selectedIds.has(v.id)
-                return (
-                  <div key={v.id} className="relative">
-                    {selectionMode && (
-                      <button
-                        className="absolute inset-0 z-10 w-full h-full"
-                        aria-label={`${isSelected ? 'Deseleccionar' : 'Seleccionar'} ${v.brand} ${v.model}`}
-                        onClick={() => toggleVehicleSelected(v.id)}
-                      />
-                    )}
-                    {selectionMode ? (
-                      <article
-                        className={`card flex gap-4 p-4 transition-all duration-150 ${
-                          isSelected
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : 'opacity-70'
-                        }`}
-                      >
-                        <div className="flex items-center shrink-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            readOnly
-                            className="h-5 w-5 accent-primary pointer-events-none"
-                            aria-hidden
-                          />
-                        </div>
-                        <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                          <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-bold text-text-primary">
-                              {v.brand} {v.model} {v.year}
-                            </p>
-                            <Badge variant={v.enabled ? 'success' : 'secondary'}>
-                              {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
+                const cardClass = `card flex gap-4 p-4 transition-all duration-150 ${
+                  selectionMode ? '' : 'active:scale-[0.99]'
+                }`
+                const selectedStyle: CSSProperties | undefined = selectionMode
+                  ? isSelected
+                    ? {
+                        borderColor: 'var(--color-brand-500)',
+                        borderWidth: '2px',
+                        boxShadow:
+                          '0 0 0 4px rgba(124, 58, 237, 0.25), 0 10px 30px rgba(124, 58, 237, 0.45)',
+                      }
+                    : { opacity: 0.55 }
+                  : undefined
+                const cardBody = (
+                  <article className={cardClass} style={selectedStyle}>
+                    <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
+                      <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-text-primary">
+                          {v.brand} {v.model} {v.year}
+                        </p>
+                        <div className="flex gap-1.5 shrink-0">
+                          {v.isPromoted && (
+                            <Badge variant="warning">
+                              <Sparkles className="h-3 w-3" />
+                              {t('promocionar.active')}
                             </Badge>
-                          </div>
-                          <p className="mt-1 text-sm text-text-secondary">
-                            {fmt.currency(priceCents)} {t('vehiculo.perDay')}
-                          </p>
+                          )}
+                          <Badge variant={v.enabled ? 'success' : 'secondary'}>
+                            {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
+                          </Badge>
                         </div>
-                      </article>
-                    ) : (
-                      <Link to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
-                        <article className="card flex gap-4 p-4 transition-transform duration-150 active:scale-[0.99]">
-                          <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
-                            <img src={getVehiclePhotoUrl(v.photos)} alt={`${v.brand} ${v.model}`} className="h-full w-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="font-bold text-text-primary">
-                                {v.brand} {v.model} {v.year}
-                              </p>
-                              <div className="flex gap-1.5 shrink-0">
-                                {v.isPromoted && (
-                                  <Badge variant="warning">
-                                    <Sparkles className="h-3 w-3" />
-                                    {t('promocionar.active')}
-                                  </Badge>
-                                )}
-                                <Badge variant={v.enabled ? 'success' : 'secondary'}>
-                                  {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
-                                </Badge>
-                              </div>
-                            </div>
-                            <p className="mt-1 text-sm text-text-secondary">
-                              {fmt.currency(priceCents)} {t('vehiculo.perDay')}
-                            </p>
-                            {v.characteristics?.length ? (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {v.characteristics.map((item) => (
-                                  <Badge key={item} variant="secondary" className="text-[10px] px-2 py-0.5">
-                                    {getCharacteristicLabel(item)}
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : null}
-                            {v.city || v.province ? (
-                              <p className="mt-2 text-xs text-text-muted">
-                                {v.city}
-                                {v.city && v.province ? ' · ' : ''}
-                                {v.province}
-                              </p>
-                            ) : null}
+                      </div>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        {fmt.currency(priceCents)} {t('vehiculo.perDay')}
+                      </p>
+                      {v.characteristics?.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {v.characteristics.map((item) => (
+                            <Badge key={item} variant="secondary" className="text-[10px] px-2 py-0.5">
+                              {getCharacteristicLabel(item)}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : null}
+                      {v.city || v.province ? (
+                        <p className="mt-2 text-xs text-text-muted">
+                          {v.city}
+                          {v.city && v.province ? ' · ' : ''}
+                          {v.province}
+                        </p>
+                      ) : null}
 
-                            <div className="mt-3 flex gap-2">
-                              <Button size="sm" variant="ghost" onClick={(e) => { e.preventDefault(); setPromotingVehicleId(v.id) }}>
-                                <Sparkles className="h-4 w-4 text-owner" />
-                                Promocionar
-                              </Button>
-                              <Button size="sm" variant="ghost">
-                                <Pencil className="h-4 w-4" />
-                                Editar vehiculo
-                              </Button>
-                            </div>
-                          </div>
-                        </article>
-                      </Link>
-                    )}
-                  </div>
+                      {!selectionMode && (
+                        <div className="mt-3 flex gap-2">
+                          <Button size="sm" variant="ghost" onClick={(e) => { e.preventDefault(); setPromotingVehicleId(v.id) }}>
+                            <Sparkles className="h-4 w-4 text-owner" />
+                            Promocionar
+                          </Button>
+                          <Button size="sm" variant="ghost">
+                            <Pencil className="h-4 w-4" />
+                            Editar vehiculo
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                )
+
+                if (selectionMode) {
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => toggleVehicleSelected(v.id)}
+                      aria-pressed={isSelected}
+                      aria-label={`${isSelected ? 'Deseleccionar' : 'Seleccionar'} ${v.brand} ${v.model}`}
+                      className="block w-full text-left"
+                    >
+                      {cardBody}
+                    </button>
+                  )
+                }
+
+                return (
+                  <Link key={v.id} to="/mis-vehiculos/$id" params={{ id: v.id }} className="block">
+                    {cardBody}
+                  </Link>
                 )
               })}
             </div>

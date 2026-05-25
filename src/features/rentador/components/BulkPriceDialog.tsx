@@ -43,7 +43,7 @@ function buildOperation(type: OperationType, rawValue: string): BulkPriceOperati
     if (num <= 0) return null
     return { type: 'SET', valueCents: num * 100 }
   }
-  if (num < -90 || num > 1000) return null
+  if (num < -99 || num > 1000) return null
   return { type: 'PERCENTAGE', delta: num }
 }
 
@@ -149,34 +149,42 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
                 <legend className="text-sm font-medium text-text-primary mb-2">
                   {t('bulkPrice.dialogTitle')}
                 </legend>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="operationType"
-                    value="SET"
-                    checked={operationType === 'SET'}
-                    onChange={() => {
-                      setOperationType('SET')
-                      setRawValue('')
-                    }}
-                    className="accent-primary"
-                  />
-                  <span className="text-sm text-text-primary">{t('bulkPrice.operationSet')}</span>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="operationType"
-                    value="PERCENTAGE"
-                    checked={operationType === 'PERCENTAGE'}
-                    onChange={() => {
-                      setOperationType('PERCENTAGE')
-                      setRawValue('')
-                    }}
-                    className="accent-primary"
-                  />
-                  <span className="text-sm text-text-primary">{t('bulkPrice.operationPercentage')}</span>
-                </label>
+                <div className="grid grid-cols-2 gap-2" role="radiogroup">
+                  {(['SET', 'PERCENTAGE'] as const).map((opt) => {
+                    const selected = operationType === opt
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => {
+                          setOperationType(opt)
+                          setRawValue('')
+                        }}
+                        className={`rounded-xl px-3 py-3 text-sm text-left transition-all ${
+                          selected
+                            ? 'bg-brand-500/15 text-text-primary'
+                            : 'bg-surface-2 text-text-secondary hover:bg-surface-2/70'
+                        }`}
+                        style={
+                          selected
+                            ? {
+                                borderWidth: '2px',
+                                borderColor: 'var(--color-brand-500)',
+                                boxShadow:
+                                  '0 0 0 3px rgba(124,58,237,0.2), 0 6px 18px rgba(124,58,237,0.35)',
+                              }
+                            : { borderWidth: '2px', borderColor: 'transparent' }
+                        }
+                      >
+                        {opt === 'SET'
+                          ? t('bulkPrice.operationSet')
+                          : t('bulkPrice.operationPercentage')}
+                      </button>
+                    )
+                  })}
+                </div>
               </fieldset>
 
               <div className="space-y-2">
@@ -219,16 +227,23 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
             <>
               <p className="text-sm font-medium text-text-primary">{t('bulkPrice.previewTitle')}</p>
 
-              {totalActiveReservations > 0 && (
-                <div className="flex items-start gap-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-3 text-sm text-yellow-600">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>
-                    {t('bulkPrice.activeReservationsWarning').replace(
-                      '{count}',
-                      String(totalActiveReservations),
-                    )}
-                  </span>
+              {reservationsQuery.isPending ? (
+                <div className="flex items-center gap-2 rounded-lg bg-surface-2 border border-white/8 p-3 text-sm text-text-secondary">
+                  <span className="inline-block h-3 w-3 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
+                  <span>{t('bulkPrice.checkingReservations')}</span>
                 </div>
+              ) : (
+                totalActiveReservations > 0 && (
+                  <div className="flex items-start gap-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-3 text-sm text-yellow-600">
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      {t('bulkPrice.activeReservationsWarning').replace(
+                        '{count}',
+                        String(totalActiveReservations),
+                      )}
+                    </span>
+                  </div>
+                )
               )}
 
               <div className="space-y-2">
@@ -277,7 +292,7 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
                 </Button>
                 <Button
                   type="button"
-                  disabled={hasInvalid || mutation.isPending}
+                  disabled={hasInvalid || mutation.isPending || reservationsQuery.isPending}
                   onClick={handleConfirm}
                   className="flex-1"
                 >

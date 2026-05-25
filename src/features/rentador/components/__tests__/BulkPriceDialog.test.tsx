@@ -115,7 +115,8 @@ describe('BulkPriceDialog', () => {
       expect(screen.getByText(/vista previa del ajuste/i)).toBeInTheDocument()
     })
 
-    const confirmBtn = screen.getByRole('button', { name: /confirmar/i })
-    expect(confirmBtn).not.toBeDisabled()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /confirmar/i })).not.toBeDisabled()
+    })
   })
 })

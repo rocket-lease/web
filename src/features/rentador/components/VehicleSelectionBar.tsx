@@ -23,7 +23,10 @@ export function VehicleSelectionBar({
     .replace('{total}', String(totalCount))
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-surface-2 bg-surface-1 p-4 flex items-center justify-between gap-3">
+    <div
+      className="fixed left-0 right-0 z-[60] border-t border-surface-2 bg-surface-1 p-4 flex items-center justify-between gap-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)]"
+      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 64px)' }}
+    >
       <p className="text-sm text-text-secondary">{label}</p>
       <div className="flex gap-2">
         <Button variant="secondary" size="sm" onClick={onCancel}>
