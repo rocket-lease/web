@@ -750,6 +750,7 @@ export const es = {  // --- App ---
   'bulkPrice.deselectAll': 'Deseleccionar todos',
   'bulkPrice.continue': 'Continuar',
   'bulkPrice.dialogTitle': 'Ajustar precio en lote',
+  'bulkPrice.operationLegend': 'Tipo de operación',
   'bulkPrice.operationSet': 'Establecer precio fijo',
   'bulkPrice.operationPercentage': 'Ajustar por porcentaje',
   'bulkPrice.inputAmountLabel': 'Nuevo precio (pesos)',

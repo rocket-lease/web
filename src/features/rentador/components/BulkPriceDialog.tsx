@@ -8,6 +8,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useBulkUpdatePrices } from '@/features/rentador/hooks/useBulkUpdatePrices'
 import { useActiveReservationsCount } from '@/features/rentador/hooks/useActiveReservationsCount'
+import type { I18nKey } from '@/i18n/es'
 import type { BulkPriceOperation } from '@rocket-lease/contracts'
 import type { ProblemDetails } from '@rocket-lease/contracts'
 
@@ -37,8 +38,9 @@ function computeNewPrice(basePriceCents: number, operation: BulkPriceOperation):
 }
 
 function buildOperation(type: OperationType, rawValue: string): BulkPriceOperation | null {
+  if (rawValue.trim() === '') return null
   const num = Number(rawValue)
-  if (!Number.isInteger(num) || isNaN(num)) return null
+  if (!Number.isInteger(num)) return null
   if (type === 'SET') {
     if (num <= 0) return null
     return { type: 'SET', valueCents: num * 100 }
@@ -47,10 +49,10 @@ function buildOperation(type: OperationType, rawValue: string): BulkPriceOperati
   return { type: 'PERCENTAGE', delta: num }
 }
 
-const ERROR_CODE_MAP: Record<string, string> = {
-  BULK_PRICE_VEHICLE_NOT_OWNED: t('bulkPrice.errors.notOwned'),
-  BULK_PRICE_VEHICLE_UNAVAILABLE: t('bulkPrice.errors.unavailable'),
-  BULK_PRICE_RESULT_INVALID: t('bulkPrice.errors.resultInvalid'),
+const ERROR_CODE_I18N_KEY: Record<string, I18nKey> = {
+  BULK_PRICE_VEHICLE_NOT_OWNED: 'bulkPrice.errors.notOwned',
+  BULK_PRICE_VEHICLE_UNAVAILABLE: 'bulkPrice.errors.unavailable',
+  BULK_PRICE_RESULT_INVALID: 'bulkPrice.errors.resultInvalid',
 }
 
 /**
@@ -104,8 +106,8 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
         },
         onError: (err) => {
           const pd = err as unknown as ProblemDetails
-          const message = ERROR_CODE_MAP[pd.code ?? ''] ?? t('error.default')
-          toast.error(message)
+          const key = ERROR_CODE_I18N_KEY[pd.code ?? '']
+          toast.error(key ? t(key) : t('error.default'))
         },
       },
     )
@@ -120,11 +122,16 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
 
   if (!open) return null
 
+  const tryClose = () => {
+    if (mutation.isPending) return
+    handleClose()
+  }
+
   return (
     <>
       <div
         className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm animate-overlay-in"
-        onClick={handleClose}
+        onClick={tryClose}
       />
       <div
         role="dialog"
@@ -135,8 +142,9 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 shrink-0">
           <p id="bulk-price-dialog-title" className="font-semibold text-text-primary">{t('bulkPrice.dialogTitle')}</p>
           <button
-            onClick={handleClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary"
+            onClick={tryClose}
+            disabled={mutation.isPending}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-muted hover:text-text-primary disabled:opacity-40"
           >
             <X className="h-4 w-4" />
           </button>
@@ -147,7 +155,7 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
             <>
               <fieldset className="space-y-2">
                 <legend className="text-sm font-medium text-text-primary mb-2">
-                  {t('bulkPrice.dialogTitle')}
+                  {t('bulkPrice.operationLegend')}
                 </legend>
                 <div className="grid grid-cols-2 gap-2" role="radiogroup">
                   {(['SET', 'PERCENTAGE'] as const).map((opt) => {
@@ -173,7 +181,7 @@ export function BulkPriceDialog({ open, onClose, vehicles, selectedIds }: BulkPr
                                 borderWidth: '2px',
                                 borderColor: 'var(--color-brand-500)',
                                 boxShadow:
-                                  '0 0 0 3px rgba(124,58,237,0.2), 0 6px 18px rgba(124,58,237,0.35)',
+                                  '0 0 0 3px rgba(var(--color-brand-500-rgb), 0.2), 0 6px 18px rgba(var(--color-brand-500-rgb), 0.35)',
                               }
                             : { borderWidth: '2px', borderColor: 'transparent' }
                         }

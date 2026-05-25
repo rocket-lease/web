@@ -155,7 +155,7 @@ export function MisVehiculosPage() {
                         borderColor: 'var(--color-brand-500)',
                         borderWidth: '2px',
                         boxShadow:
-                          '0 0 0 4px rgba(124, 58, 237, 0.25), 0 10px 30px rgba(124, 58, 237, 0.45)',
+                          '0 0 0 4px rgba(var(--color-brand-500-rgb), 0.25), 0 10px 30px rgba(var(--color-brand-500-rgb), 0.45)',
                       }
                     : { opacity: 0.55 }
                   : undefined

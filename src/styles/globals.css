@@ -8,6 +8,8 @@
   --color-brand-300: #b898f8;
   --color-brand-400: #9b6bf4;
   --color-brand-500: #7C3AED;
+  /* RGB triple del brand-500 — usalo para componer rgba() con alpha custom (glows, rings) sin hardcodear el hex en componentes. */
+  --color-brand-500-rgb: 124, 58, 237;
   --color-brand-600: #6D28D9;
   --color-brand-700: #5521b5;
   --color-brand-800: #3d1a8a;
