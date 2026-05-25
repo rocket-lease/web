@@ -23,6 +23,7 @@ function ChatPage() {
   const reservationQuery = useQuery({
     queryKey: ['reservation', reservationId],
     queryFn: () => reservarApi.getById(reservationId),
+    enabled: !!reservationId,
     staleTime: 30_000,
   })
 
@@ -78,6 +79,12 @@ function ChatPage() {
           </p>
         )}
 
+        {reservationQuery.isError && (
+          <p className="py-12 text-center text-sm text-danger-400">
+            {t('chat.error.load')}
+          </p>
+        )}
+
         {reservation !== undefined && user !== null && chatAllowed && (
           <ChatWindow
             reservationId={reservationId}
@@ -86,8 +93,8 @@ function ChatPage() {
         )}
 
         {reservation !== undefined && !chatAllowed && (
-          <p className="py-12 text-center text-sm text-danger-400">
-            {t('chat.error.load')}
+          <p className="py-12 text-center text-sm text-text-muted">
+            {t('chat.error.notAllowed')}
           </p>
         )}
       </div>

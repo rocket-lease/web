@@ -720,6 +720,7 @@ export const es = {  // --- App ---
   'chat.input.send': 'Enviar',
   'chat.error.load': 'No pudimos cargar los mensajes. Intentá de nuevo.',
   'chat.error.send': 'No se pudo enviar el mensaje. Intentá de nuevo.',
+  'chat.error.notAllowed': 'El chat está disponible solo para reservas confirmadas o en curso.',
   'chat.whatsapp.cta': 'Contactar a {name} por WhatsApp',
   'chat.whatsapp.ariaLabel': 'Abrir chat de WhatsApp con {name}',
   'reservas.detail.actions.chat': 'Abrir chat',

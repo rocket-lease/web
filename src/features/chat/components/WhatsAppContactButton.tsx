@@ -21,7 +21,7 @@ export function WhatsAppContactButton({ phone, name }: WhatsAppContactButtonProp
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t('chat.whatsapp.ariaLabel').replace('{name}', name)}
-      className="flex items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-4 py-3 text-sm font-medium text-[#25D366] hover:bg-[#25D366]/20 active:scale-[0.99] transition-colors w-full"
+      className="flex items-center justify-center gap-2 rounded-full border border-success/40 bg-success-bg px-4 py-3 text-sm font-medium text-success hover:bg-success/20 active:scale-[0.99] transition-colors w-full"
     >
       <WhatsappLogo weight="fill" className="h-5 w-5" />
       {t('chat.whatsapp.cta').replace('{name}', name)}

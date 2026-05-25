@@ -345,9 +345,8 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
           )}
         </div>
         {unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-danger-500 px-1.5 text-[11px] font-bold text-white ring-2 ring-surface-0 shadow-lg">
-            <span className="absolute inset-0 rounded-full bg-danger-500 animate-ping opacity-60" />
-            <span className="relative">{unreadCount > 9 ? '9+' : unreadCount}</span>
+          <span className="absolute -top-2 -right-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-black text-white ring-2 ring-white shadow-[0_0_10px_rgba(239,68,68,0.75)]">
+            {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </div>

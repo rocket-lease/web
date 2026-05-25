@@ -46,8 +46,7 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
           rows={1}
           maxLength={MAX_CHARS}
           disabled={disabled}
-          className="w-full resize-none rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500 disabled:opacity-50 max-h-32 overflow-y-auto"
-          style={{ lineHeight: '1.5' }}
+          className="w-full resize-none rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm leading-[1.5] text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500 disabled:opacity-50 max-h-32 overflow-y-auto"
         />
         {value.length > 800 && (
           <p
