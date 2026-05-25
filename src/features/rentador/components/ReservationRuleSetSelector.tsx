@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Lock, Pencil, Trash2 } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -6,8 +7,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/ui/select'
+import { Button } from '@/ui/button'
 import { t } from '@/i18n/es'
-import { useReservationRuleSets } from '@/features/rentador/hooks/useReservationRules'
+import {
+  useReservationRuleSets,
+  usePrivateRuleSetForVehicle,
+  useDeleteReservationRuleSet,
+} from '@/features/rentador/hooks/useReservationRules'
 import {
   getCancellationPolicyLabel,
   getDepositLabel,
@@ -15,6 +21,7 @@ import {
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { CreateRuleSetDialog } from './CreateRuleSetDialog'
+import { EditRuleSetDialog } from './EditRuleSetDialog'
 
 interface ReservationRuleSetSelectorProps {
   selectedId?: string
@@ -38,9 +45,13 @@ export function ReservationRuleSetSelector({
   vehicleName,
 }: ReservationRuleSetSelectorProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editPrivateOpen, setEditPrivateOpen] = useState(false)
   const ruleSetsQuery = useReservationRuleSets()
   const ruleSets = ruleSetsQuery.data ?? []
   const selectedRuleSet = ruleSets.find((set) => set.id === selectedId)
+  const privateRuleSetQuery = usePrivateRuleSetForVehicle(vehicleId)
+  const privateRuleSet = privateRuleSetQuery.data ?? null
+  const deleteMutation = useDeleteReservationRuleSet()
 
   const handleValueChange = (value: string) => {
     if (value === CREATE_NEW_VALUE) {
@@ -55,6 +66,52 @@ export function ReservationRuleSetSelector({
       <label className="block text-sm font-medium text-text-secondary">
         {t('reservationRules.title')}
       </label>
+
+      {privateRuleSet && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100">
+          <div className="flex items-start gap-2">
+            <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-text-primary">
+                {t('reservationRules.scope.privateNote')}: {privateRuleSet.name}
+              </p>
+              <p className="mt-1 text-text-secondary">
+                Cancelación: <span className="font-medium">{getCancellationPolicyLabel(privateRuleSet.cancellationPolicy)}</span>
+                {' · '}
+                Seña: <span className="font-medium">{getDepositLabel(privateRuleSet.depositPercentage)}</span>
+              </p>
+              <p className="text-text-secondary">
+                Kilometraje: <span className="font-medium">{formatMaxKilometrage(privateRuleSet.maxKilometrage)}</span>
+                {' · '}
+                Tiempo: <span className="font-medium">{formatRentalTimeConstraints(privateRuleSet.rentalTimeConstraints)}</span>
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditPrivateOpen(true)}
+                  disabled={disabled}
+                >
+                  <Pencil className="h-3 w-3" /> Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    if (window.confirm('¿Eliminar el set privado de este vehículo?')) {
+                      deleteMutation.mutate(privateRuleSet.id)
+                    }
+                  }}
+                  disabled={disabled || deleteMutation.isPending}
+                >
+                  <Trash2 className="h-3 w-3" /> Eliminar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Select
         value={selectedId ?? 'none'}
         onValueChange={handleValueChange}
@@ -105,7 +162,7 @@ export function ReservationRuleSetSelector({
       <CreateRuleSetDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        vehicleIdForPrivateOption={vehicleId}
+        vehicleIdForPrivateOption={privateRuleSet ? undefined : vehicleId}
         vehicleNameForScopeDialog={vehicleName}
         onCreated={(response, scope) => {
           // Si el set fue creado como compartido, se autoselecciona.
@@ -116,6 +173,14 @@ export function ReservationRuleSetSelector({
           void scope
         }}
       />
+
+      {privateRuleSet && (
+        <EditRuleSetDialog
+          ruleSet={privateRuleSet}
+          open={editPrivateOpen}
+          onOpenChange={setEditPrivateOpen}
+        />
+      )}
     </div>
   )
 }
