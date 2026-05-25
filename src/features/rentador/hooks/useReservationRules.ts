@@ -10,6 +10,8 @@ import { t } from '@/i18n/es'
 
 const ruleSetQueryKey = (id: string) => ['reservation-rules', id] as const
 const ruleSetListQueryKey = () => ['reservation-rules', 'list'] as const
+const privateRuleSetQueryKey = (vehicleId: string) =>
+  ['reservation-rules', 'private', vehicleId] as const
 
 /**
  * Hook para obtener lista de sets de reglas del rentador
@@ -35,6 +37,24 @@ export function useReservationRuleSet(id: string | undefined): UseQueryResult<Re
 }
 
 /**
+ * Devuelve el set privado de un vehículo. `null` si todavía no tiene uno
+ * (estado válido: el vehículo usa un set compartido o ninguno).
+ */
+export function usePrivateRuleSetForVehicle(
+  vehicleId: string | undefined,
+): UseQueryResult<ReservationRuleSet | null, Error> {
+  return useQuery({
+    queryKey: vehicleId
+      ? privateRuleSetQueryKey(vehicleId)
+      : ['reservation-rules', 'private', 'disabled'],
+    queryFn: () =>
+      vehicleId ? rulesApi.getPrivateRuleSetForVehicle(vehicleId) : Promise.resolve(null),
+    enabled: Boolean(vehicleId),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+/**
  * Hook para crear un nuevo set de reglas
  */
 export function useCreateReservationRuleSet() {
@@ -42,8 +62,13 @@ export function useCreateReservationRuleSet() {
 
   return useMutation({
     mutationFn: (data: CreateReservationRuleSetRequest) => rulesApi.createRuleSet(data),
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ruleSetListQueryKey() })
+      if (variables.vehicleId) {
+        queryClient.invalidateQueries({
+          queryKey: privateRuleSetQueryKey(variables.vehicleId),
+        })
+      }
       toast.success(t('reservationRules.created'))
       return response
     },
@@ -64,8 +89,7 @@ export function useUpdateReservationRuleSet(id: string) {
     mutationFn: (data: UpdateReservationRuleSetRequest) =>
       rulesApi.updateRuleSet(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ruleSetQueryKey(id) })
-      queryClient.invalidateQueries({ queryKey: ruleSetListQueryKey() })
+      queryClient.invalidateQueries({ queryKey: ['reservation-rules'] })
       toast.success(t('reservationRules.updated'))
     },
     onError: (error) => {
@@ -84,7 +108,7 @@ export function useDeleteReservationRuleSet() {
   return useMutation({
     mutationFn: (id: string) => rulesApi.deleteRuleSet(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ruleSetListQueryKey() })
+      queryClient.invalidateQueries({ queryKey: ['reservation-rules'] })
       toast.success(t('reservationRules.deleted'))
     },
     onError: (error) => {

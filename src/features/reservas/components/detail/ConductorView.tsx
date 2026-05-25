@@ -38,7 +38,11 @@ import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
-import { getCancellationRefundSummary } from '../../utils/cancellation-policy'
+import {
+  getCancellationRefundSummary,
+  getEffectiveReservationRules,
+  type EffectiveReservationRules,
+} from '../../utils/cancellation-policy'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 
 interface ConductorViewProps {
@@ -347,7 +351,7 @@ function PostPaymentActions({
 
 function CancellationPolicyCard({ reservation }: { reservation: GetReservationResponse }) {
   const summary = getCancellationRefundSummary(reservation)
-  const ruleSet = reservation.vehicle.reservationRuleSet ?? getDefaultCancellationRuleSet(reservation.rentador.id)
+  const effectiveRules = getEffectiveReservationRules(reservation)
 
   const deadline = summary.deadlineAt ? fmt.dateTime(summary.deadlineAt) : null
   let refundMessage: string
@@ -378,7 +382,7 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
       refundMessage = t('reservas.detail.cancellation.refund.flexible.expired')
   }
 
-  const rules = getRuleHighlights(ruleSet, summary.policy)
+  const rules = getRuleHighlights(effectiveRules, summary.policy)
 
   return (
     <div className="rounded-xl border border-info/20 bg-info/10 p-4 space-y-3">
@@ -410,23 +414,21 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
 }
 
 function getRuleHighlights(
-  ruleSet: ReservationRuleSetPublic | null | undefined,
+  rules: EffectiveReservationRules,
   policy: CancellationPolicy | null,
 ): string[] {
-  const effectiveRuleSet = ruleSet ?? getDefaultCancellationRuleSet()
-
-  const rules = [
+  const lines = [
     t('reservas.detail.cancellation.rules.policy').replace('{value}', getPolicyLabel(policy)),
-    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(effectiveRuleSet.deposit)),
-    t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(effectiveRuleSet)),
+    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(rules.depositPercentage)),
+    t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(rules)),
   ]
 
-  const rentalTime = getRentalTimeLabel(effectiveRuleSet)
+  const rentalTime = getRentalTimeLabel(rules)
   if (rentalTime) {
-    rules.push(t('reservas.detail.cancellation.rules.rentalTime').replace('{value}', rentalTime))
+    lines.push(t('reservas.detail.cancellation.rules.rentalTime').replace('{value}', rentalTime))
   }
 
-  return rules
+  return lines
 }
 
 function getPolicyLabel(policy: ReservationRuleSetPublic['cancellationPolicy'] | null): string {
@@ -436,25 +438,24 @@ function getPolicyLabel(policy: ReservationRuleSetPublic['cancellationPolicy'] |
   return t('reservas.detail.cancellation.policy.unknown')
 }
 
-function getDepositLabel(deposit: ReservationRuleSetPublic['deposit']): string {
-  if (deposit === 'NONE') return t('reservas.detail.cancellation.deposit.none')
-  if (deposit === 'TEN_PERCENT') return t('reservas.detail.cancellation.deposit.ten')
-  return t('reservas.detail.cancellation.deposit.fifty')
+function getDepositLabel(depositPercentage: number | null): string {
+  if (depositPercentage === null) return t('reservas.detail.cancellation.deposit.none')
+  return `${depositPercentage}% de seña`
 }
 
-function getKilometrageLabel(ruleSet: ReservationRuleSetPublic): string {
-  if (ruleSet.maxKilometrage.type === 'UNLIMITED') {
+function getKilometrageLabel(rules: EffectiveReservationRules): string {
+  if (rules.maxKilometrage.type === 'UNLIMITED') {
     return t('reservas.detail.cancellation.kilometrage.unlimited')
   }
   return t('reservas.detail.cancellation.kilometrage.limited').replace(
     '{value}',
-    String(ruleSet.maxKilometrage.value),
+    String(rules.maxKilometrage.value),
   )
 }
 
-function getRentalTimeLabel(ruleSet: ReservationRuleSetPublic): string | null {
-  const minDays = ruleSet.rentalTimeConstraints.minDays
-  const maxDays = ruleSet.rentalTimeConstraints.maxDays
+function getRentalTimeLabel(rules: EffectiveReservationRules): string | null {
+  const minDays = rules.rentalTimeConstraints.minDays
+  const maxDays = rules.rentalTimeConstraints.maxDays
 
   if (minDays && maxDays) {
     return t('reservas.detail.cancellation.rentalTime.between')
@@ -789,17 +790,6 @@ function getCancellationRefundPreview(reservation: GetReservationResponse): stri
   }
 
   return t('reservas.detail.cancel.noRefund.preview')
-}
-
-function getDefaultCancellationRuleSet(rentalorId = '00000000-0000-0000-0000-000000000000'): ReservationRuleSetPublic {
-  return {
-    id: '00000000-0000-0000-0000-000000000000',
-    rentalorId,
-    cancellationPolicy: 'FLEXIBLE',
-    deposit: 'NONE',
-    maxKilometrage: { type: 'UNLIMITED' },
-    rentalTimeConstraints: {},
-  }
 }
 
 function ReturnAction({ reservationId }: { reservationId: string }) {
