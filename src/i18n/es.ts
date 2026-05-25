@@ -626,7 +626,8 @@ export const es = {  // --- App ---
   'reservationRules.scope.sharedDescription':
     'Va a tu lista de sets y podés aplicarlo a otros vehículos.',
   'reservationRules.scope.privateTitle': 'Solo para este vehículo',
-  'reservationRules.scope.privateDescription': 'No aparece en tu lista de sets compartidos.',
+  'reservationRules.scope.privateDescription':
+    'Sólo aplica a este vehículo y no se mezcla con tus sets reutilizables.',
   'reservationRules.scope.rememberChoice': 'No volver a preguntar',
   'reservationRules.scope.privateNote': 'Reglas particulares de este vehículo',
   'reservationRules.selector.createNew': '+ Crear nuevo set',
