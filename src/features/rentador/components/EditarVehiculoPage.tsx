@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import type { ReservationRuleSet } from '@rocket-lease/contracts'
 import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/ui/card'
@@ -16,7 +17,12 @@ import { DetallesSheet } from './EditarVehiculo/DetallesSheet'
 import { DisponibilidadSheet } from './EditarVehiculo/DisponibilidadSheet'
 import { FotosSheet } from './EditarVehiculo/FotosSheet'
 import { ReglasSheet } from './EditarVehiculo/ReglasSheet'
-import { usePrivateRuleSetForVehicle, useReservationRuleSets } from '../hooks/useReservationRules'
+import { useUpdateVehicleSection } from './EditarVehiculo/useUpdateVehicleSection'
+import {
+  useDeleteReservationRuleSet,
+  usePrivateRuleSetForVehicle,
+  useReservationRuleSets,
+} from '../hooks/useReservationRules'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80'
@@ -34,6 +40,11 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
   const navigate = useNavigate()
   const [openSheet, setOpenSheet] = useState<SheetKey | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pendingRules, setPendingRules] = useState<
+    | { kind: 'delete-private'; ruleSet: ReservationRuleSet }
+    | { kind: 'switch-to-shared'; sharedId: string | undefined; ruleSet: ReservationRuleSet }
+    | null
+  >(null)
 
   const vehicleQuery = useQuery({
     queryKey: vehicleQueryKey(vehicleId),
@@ -43,6 +54,28 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
   const ruleSetsQuery = useReservationRuleSets()
   const privateRuleSetQuery = usePrivateRuleSetForVehicle(vehicleId)
+
+  const deletePrivateRuleMutation = useDeleteReservationRuleSet()
+  const updateVehicleMutation = useUpdateVehicleSection({ vehicleId })
+
+  const handleConfirmRulesAction = () => {
+    if (!pendingRules) return
+    const action = pendingRules
+    deletePrivateRuleMutation.mutate(action.ruleSet.id, {
+      onSuccess: () => {
+        if (action.kind === 'switch-to-shared') {
+          updateVehicleMutation.mutate(
+            { reservationRuleSetId: action.sharedId ?? null },
+            { onSuccess: () => setPendingRules(null) },
+          )
+        } else {
+          setPendingRules(null)
+        }
+      },
+    })
+  }
+
+  const rulesActionLoading = deletePrivateRuleMutation.isPending || updateVehicleMutation.isPending
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -225,7 +258,19 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       <DetallesSheet open={openSheet === 'detalles'} onOpenChange={(o) => setOpenSheet(o ? 'detalles' : null)} vehicle={vehicle} />
       <DisponibilidadSheet open={openSheet === 'disponibilidad'} onOpenChange={(o) => setOpenSheet(o ? 'disponibilidad' : null)} vehicle={vehicle} />
       <FotosSheet open={openSheet === 'fotos'} onOpenChange={(o) => setOpenSheet(o ? 'fotos' : null)} vehicle={vehicle} />
-      <ReglasSheet open={openSheet === 'reglas'} onOpenChange={(o) => setOpenSheet(o ? 'reglas' : null)} vehicle={vehicle} />
+      <ReglasSheet
+        open={openSheet === 'reglas'}
+        onOpenChange={(o) => setOpenSheet(o ? 'reglas' : null)}
+        vehicle={vehicle}
+        onRequestDeletePrivate={(rs) => {
+          setOpenSheet(null)
+          setPendingRules({ kind: 'delete-private', ruleSet: rs })
+        }}
+        onRequestSwitchToShared={(sharedId, rs) => {
+          setOpenSheet(null)
+          setPendingRules({ kind: 'switch-to-shared', sharedId, ruleSet: rs })
+        }}
+      />
 
       <ConfirmDialog
         open={confirmDelete}
@@ -237,6 +282,32 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         confirmLabel="Eliminar vehículo"
         confirmWord="ELIMINAR"
         loading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={pendingRules?.kind === 'delete-private'}
+        onClose={() => setPendingRules(null)}
+        onConfirm={handleConfirmRulesAction}
+        title="Eliminar reglas particulares"
+        description={
+          pendingRules?.kind === 'delete-private'
+            ? `Las reglas particulares de ${vehicle.brand} ${vehicle.model} se van a eliminar.`
+            : undefined
+        }
+        consequences="Las reservas confirmadas conservan sus condiciones (snapshot). Sólo cambia el comportamiento para reservas nuevas."
+        confirmLabel="Eliminar"
+        loading={rulesActionLoading}
+      />
+
+      <ConfirmDialog
+        open={pendingRules?.kind === 'switch-to-shared'}
+        onClose={() => setPendingRules(null)}
+        onConfirm={handleConfirmRulesAction}
+        title="Cambiar a set compartido"
+        description="Para aplicar un set compartido, las reglas particulares del vehículo se van a eliminar."
+        consequences="Las reservas confirmadas conservan sus condiciones (snapshot). Sólo cambia el comportamiento para reservas nuevas."
+        confirmLabel="Eliminar y cambiar"
+        loading={rulesActionLoading}
       />
     </div>
   )

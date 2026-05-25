@@ -30,11 +30,7 @@ export function SectionSheet({
   children,
 }: SectionSheetProps) {
   return (
-    <Drawer
-      open={open}
-      onOpenChange={(next) => { if (!isSaving) onOpenChange(next) }}
-      modal={false}
-    >
+    <Drawer open={open} onOpenChange={(next) => { if (!isSaving) onOpenChange(next) }}>
       <DrawerContent>
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <div className="min-w-0">

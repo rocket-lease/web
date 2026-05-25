@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { GetVehicleResponse } from '@rocket-lease/contracts'
+import type { GetVehicleResponse, ReservationRuleSet } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 import { SectionSheet } from './SectionSheet'
 import { useUpdateVehicleSection } from './useUpdateVehicleSection'
@@ -9,9 +9,17 @@ interface ReglasSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   vehicle: GetVehicleResponse
+  onRequestDeletePrivate: (privateRuleSet: ReservationRuleSet) => void
+  onRequestSwitchToShared: (sharedId: string | undefined, privateRuleSet: ReservationRuleSet) => void
 }
 
-export function ReglasSheet({ open, onOpenChange, vehicle }: ReglasSheetProps) {
+export function ReglasSheet({
+  open,
+  onOpenChange,
+  vehicle,
+  onRequestDeletePrivate,
+  onRequestSwitchToShared,
+}: ReglasSheetProps) {
   const initialId =
     (vehicle as GetVehicleResponse & { reservationRuleSetId?: string }).reservationRuleSetId
   const [ruleSetId, setRuleSetId] = useState<string | undefined>(initialId)
@@ -39,6 +47,8 @@ export function ReglasSheet({ open, onOpenChange, vehicle }: ReglasSheetProps) {
         disabled={mutation.isPending}
         vehicleId={vehicle.id}
         vehicleName={`${vehicle.brand} ${vehicle.model}`}
+        onRequestDeletePrivate={onRequestDeletePrivate}
+        onRequestSwitchToShared={onRequestSwitchToShared}
       />
     </SectionSheet>
   )
