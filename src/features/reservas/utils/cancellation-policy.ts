@@ -1,4 +1,9 @@
-import type { CancellationPolicy, GetReservationResponse } from '@rocket-lease/contracts'
+import type {
+  CancellationPolicy,
+  GetReservationResponse,
+  MaxKilometrage,
+  RentalTimeConstraints,
+} from '@rocket-lease/contracts'
 
 export type CancellationRefundState =
   | 'invalid_dates'
@@ -25,11 +30,44 @@ const STRICT_PAID_DEADLINE_DAYS = 7 // Días después del pago para cancelación
 const STRICT_MIN_HOURS_BEFORE_START = 48
 const DEFAULT_CANCELLATION_POLICY: CancellationPolicy = 'FLEXIBLE'
 
+export interface EffectiveReservationRules {
+  cancellationPolicy: CancellationPolicy
+  depositPercentage: number | null
+  maxKilometrage: MaxKilometrage
+  rentalTimeConstraints: RentalTimeConstraints
+}
+
+/**
+ * Devuelve las reglas que rigen una reserva. Para reservas con pago confirmado
+ * usa el snapshot inmutable capturado al confirmar; para reservas previas al
+ * pago usa el set vigente del vehículo. Cualquier consumidor que muestre o
+ * calcule sobre las reglas debe consumir este helper, no leer los campos sueltos.
+ */
+export function getEffectiveReservationRules(
+  reservation: GetReservationResponse,
+): EffectiveReservationRules {
+  if (reservation.paidAt !== null) {
+    return {
+      cancellationPolicy: reservation.cancellationPolicySnapshot,
+      depositPercentage: reservation.depositPercentageSnapshot,
+      maxKilometrage: reservation.maxKilometrageSnapshot,
+      rentalTimeConstraints: reservation.rentalTimeConstraintsSnapshot,
+    }
+  }
+  const live = reservation.vehicle.reservationRuleSet
+  return {
+    cancellationPolicy: live?.cancellationPolicy ?? DEFAULT_CANCELLATION_POLICY,
+    depositPercentage: live?.depositPercentage ?? null,
+    maxKilometrage: live?.maxKilometrage ?? { type: 'UNLIMITED' },
+    rentalTimeConstraints: live?.rentalTimeConstraints ?? {},
+  }
+}
+
 export function getCancellationRefundSummary(
   reservation: GetReservationResponse,
   nowMs = Date.now(),
 ): CancellationRefundSummary {
-  const policy = reservation.vehicle.reservationRuleSet?.cancellationPolicy ?? DEFAULT_CANCELLATION_POLICY
+  const policy = getEffectiveReservationRules(reservation).cancellationPolicy
   const startAt = parseIsoDate(reservation.startAt)
   if (!startAt) {
     return {

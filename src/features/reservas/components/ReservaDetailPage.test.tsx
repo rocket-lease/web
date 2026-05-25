@@ -88,6 +88,18 @@ interface MakeOpts {
 }
 
 function makeReservation(opts: MakeOpts = {}) {
+  const policy = opts.cancellationPolicy === undefined ? 'FLEXIBLE' : opts.cancellationPolicy
+  const reservationRuleSet =
+    policy === null
+      ? null
+      : {
+          id: '55555555-5555-5555-5555-555555555555',
+          rentalorId: RENT,
+          cancellationPolicy: policy,
+          depositPercentage: null,
+          maxKilometrage: { type: 'UNLIMITED' as const },
+          rentalTimeConstraints: {},
+        }
   return {
     id: RES,
     vehicleId: VEH,
@@ -109,24 +121,12 @@ function makeReservation(opts: MakeOpts = {}) {
     transferExpiresAt: null,
     createdAt: '2026-05-16T10:00:00.000Z',
     updatedAt: '2026-05-16T10:00:00.000Z',
-    vehicle: {
-      id: VEH,
-      brand: 'Toyota',
-      model: 'Etios',
-      year: 2020,
-      photo: null,
-      reservationRuleSet:
-        opts.cancellationPolicy === null
-          ? null
-          : {
-              id: '55555555-5555-5555-5555-555555555555',
-              rentalorId: RENT,
-              cancellationPolicy: opts.cancellationPolicy ?? 'FLEXIBLE',
-              deposit: 'TEN_PERCENT' as const,
-              maxKilometrage: { type: 'UNLIMITED' as const },
-              rentalTimeConstraints: {},
-            },
-    },
+    depositPercentageSnapshot: null,
+    basePriceCentsSnapshot: 50000,
+    cancellationPolicySnapshot: (policy ?? 'FLEXIBLE') as 'FLEXIBLE' | 'MODERATE' | 'STRICT',
+    maxKilometrageSnapshot: { type: 'UNLIMITED' as const },
+    rentalTimeConstraintsSnapshot: {},
+    vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
 }

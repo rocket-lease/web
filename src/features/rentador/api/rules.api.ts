@@ -14,6 +14,8 @@ const parseRuleSet = (input: unknown): ReservationRuleSet => ReservationRuleSetS
 const parseRuleSets = (input: unknown): ReservationRuleSet[] => ReservationRuleSetSchema.array().parse(input)
 const parseCreateResponse = (input: unknown): CreateReservationRuleSetResponse =>
   CreateReservationRuleSetResponseSchema.parse(input)
+const parseRuleSetNullable = (input: unknown): ReservationRuleSet | null =>
+  input === null ? null : ReservationRuleSetSchema.parse(input)
 export const rulesApi = {
   /**
    * Obtener lista de sets de reglas del rentador (con todos los campos)
@@ -64,5 +66,15 @@ export const rulesApi = {
    */
   async assignRuleSetToVehicle(vehicleId: string, ruleSetId: string | null): Promise<void> {
     await vehiclesApi.updateVehicle(vehicleId, { reservationRuleSetId: ruleSetId })
+  },
+
+  /**
+   * Obtener el set privado asignado a un vehículo, o `null` si no tiene.
+   */
+  async getPrivateRuleSetForVehicle(vehicleId: string): Promise<ReservationRuleSet | null> {
+    const response = await apiClient.get<unknown>(
+      ReservationRuleSetEndpoints.getPrivateByVehicle(vehicleId),
+    )
+    return parseRuleSetNullable(response)
   },
 }
