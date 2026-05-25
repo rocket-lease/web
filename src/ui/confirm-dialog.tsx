@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertTriangle, X } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -59,9 +60,9 @@ export function ConfirmDialog({
     ? confirmText.trim().toUpperCase() === confirmWord.toUpperCase()
     : true
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
       style={{ minHeight: '100dvh' }}
       onClick={loading ? undefined : onClose}
     >
@@ -128,6 +129,7 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
