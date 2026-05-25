@@ -122,10 +122,26 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     .filter(Boolean)
     .join(' · ')
 
-  const fotosSummary = t('editVehiculo.section.photos.summary').replace(
-    '{count}',
-    String(vehicle.photos.length),
-  )
+  const fotosSummary =
+    vehicle.photos.length > 0 ? (
+      <div className="mt-1 flex items-center gap-1.5">
+        {vehicle.photos.slice(0, 4).map((url, idx) => (
+          <img
+            key={url}
+            src={url}
+            alt={`${vehicle.brand} ${vehicle.model} ${idx + 1}`}
+            className="h-12 w-12 shrink-0 rounded-lg object-cover ring-1 ring-white/10"
+          />
+        ))}
+        {vehicle.photos.length > 4 && (
+          <span className="ml-1 text-xs font-medium text-text-muted">
+            +{vehicle.photos.length - 4}
+          </span>
+        )}
+      </div>
+    ) : (
+      t('editVehiculo.noPhotos')
+    )
 
   const sharedRuleSet = ruleSetsQuery.data?.find(
     (s) => s.id === (vehicle as typeof vehicle & { reservationRuleSetId?: string }).reservationRuleSetId,
@@ -162,6 +178,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
         </Card>
 
         <SectionCard
+          title={t('editVehiculo.photosTitle')}
+          summary={fotosSummary}
+          onEdit={() => setOpenSheet('fotos')}
+          disabled={isDeleting}
+        />
+        <SectionCard
           title={t('editVehiculo.section.details.title')}
           summary={detallesSummary}
           onEdit={() => setOpenSheet('detalles')}
@@ -171,12 +193,6 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
           title={t('editVehiculo.section.availability.title')}
           summary={disponibilidadSummary}
           onEdit={() => setOpenSheet('disponibilidad')}
-          disabled={isDeleting}
-        />
-        <SectionCard
-          title={t('editVehiculo.photosTitle')}
-          summary={fotosSummary}
-          onEdit={() => setOpenSheet('fotos')}
           disabled={isDeleting}
         />
         <SectionCard
