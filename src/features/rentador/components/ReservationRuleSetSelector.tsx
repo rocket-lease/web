@@ -64,7 +64,7 @@ export function ReservationRuleSetSelector({
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-text-secondary">
-        {t('reservationRules.title')}
+        {t('reservationRules.selector.sharedLabel')}
       </label>
 
       {privateRuleSet && (
