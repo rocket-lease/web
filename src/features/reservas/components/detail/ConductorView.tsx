@@ -417,7 +417,7 @@ function getRuleHighlights(
 
   const rules = [
     t('reservas.detail.cancellation.rules.policy').replace('{value}', getPolicyLabel(policy)),
-    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(effectiveRuleSet.deposit)),
+    t('reservas.detail.cancellation.rules.deposit').replace('{value}', getDepositLabel(effectiveRuleSet.depositPercentage)),
     t('reservas.detail.cancellation.rules.kilometrage').replace('{value}', getKilometrageLabel(effectiveRuleSet)),
   ]
 
@@ -436,10 +436,9 @@ function getPolicyLabel(policy: ReservationRuleSetPublic['cancellationPolicy'] |
   return t('reservas.detail.cancellation.policy.unknown')
 }
 
-function getDepositLabel(deposit: ReservationRuleSetPublic['deposit']): string {
-  if (deposit === 'NONE') return t('reservas.detail.cancellation.deposit.none')
-  if (deposit === 'TEN_PERCENT') return t('reservas.detail.cancellation.deposit.ten')
-  return t('reservas.detail.cancellation.deposit.fifty')
+function getDepositLabel(depositPercentage: number | null): string {
+  if (!depositPercentage) return t('reservas.detail.cancellation.deposit.none')
+  return `${depositPercentage}% de seña`
 }
 
 function getKilometrageLabel(ruleSet: ReservationRuleSetPublic): string {
@@ -796,7 +795,7 @@ function getDefaultCancellationRuleSet(rentalorId = '00000000-0000-0000-0000-000
     id: '00000000-0000-0000-0000-000000000000',
     rentalorId,
     cancellationPolicy: 'FLEXIBLE',
-    deposit: 'NONE',
+    depositPercentage: null,
     maxKilometrage: { type: 'UNLIMITED' },
     rentalTimeConstraints: {},
   }
