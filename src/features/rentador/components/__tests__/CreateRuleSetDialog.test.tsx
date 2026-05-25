@@ -57,7 +57,9 @@ describe('CreateRuleSetDialog — seña con slider (US-49)', () => {
     })
 
     fireEvent.click(screen.getByRole('switch', { name: /Requerir seña/i }))
-    expect(screen.getByTestId('deposit-percentage-display')).toHaveTextContent('30%')
+    expect(
+      screen.getByTestId('deposit-percentage-display').querySelector('input'),
+    ).toHaveValue(30)
 
     fireEvent.click(screen.getByRole('button', { name: /^Crear set$/i }))
 
@@ -84,7 +86,9 @@ describe('CreateRuleSetDialog — seña con slider (US-49)', () => {
     const slider = screen.getByRole('slider', { name: /Seña/i })
     fireEvent.change(slider, { target: { value: '50' } })
 
-    expect(screen.getByTestId('deposit-percentage-display')).toHaveTextContent('50%')
+    expect(
+      screen.getByTestId('deposit-percentage-display').querySelector('input'),
+    ).toHaveValue(50)
 
     fireEvent.click(screen.getByRole('button', { name: /^Crear set$/i }))
 
