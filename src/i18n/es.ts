@@ -614,7 +614,7 @@ export const es = {  // --- App ---
   'reservationRules.cancellation.moderate': 'Moderada',
   'reservationRules.cancellation.moderateDesc': '50% de reembolso hasta 48 horas antes',
   'reservationRules.cancellation.strict': 'Estricta',
-  'reservationRules.cancellation.strictDesc': 'Sin reembolso si se cancela dentro de 7 días',
+  'reservationRules.cancellation.strictDesc': 'Sin posibilidad de reembolso',
   'reservationRules.deposit': 'Seña',
   'reservationRules.deposit.label': 'Seña',
   'reservationRules.deposit.enable': 'Requerir seña',
