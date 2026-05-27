@@ -32,6 +32,7 @@ import { Route as VoucherReturnTokenRouteImport } from './routes/voucher.return.
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
 import { Route as AppReservasIdRouteImport } from './routes/_app/reservas_.$id'
 import { Route as AppReservasTransferenciaIdRouteImport } from './routes/_app/reservas-transferencia.$id'
+import { Route as AppPerfilMediosDePagoRouteImport } from './routes/_app/perfil_.medios-de-pago'
 import { Route as AppPerfilDatosRouteImport } from './routes/_app/perfil_.datos'
 import { Route as AppPerfilCuentasRouteImport } from './routes/_app/perfil_.cuentas'
 import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
@@ -155,6 +156,11 @@ const AppReservasTransferenciaIdRoute =
     path: '/reservas-transferencia/$id',
     getParentRoute: () => AppRoute,
   } as any)
+const AppPerfilMediosDePagoRoute = AppPerfilMediosDePagoRouteImport.update({
+  id: '/perfil_/medios-de-pago',
+  path: '/perfil/medios-de-pago',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPerfilDatosRoute = AppPerfilDatosRouteImport.update({
   id: '/perfil_/datos',
   path: '/perfil/datos',
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/perfil/$id': typeof AppPerfilIdRoute
   '/perfil/cuentas': typeof AppPerfilCuentasRoute
   '/perfil/datos': typeof AppPerfilDatosRoute
+  '/perfil/medios-de-pago': typeof AppPerfilMediosDePagoRoute
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/perfil/$id': typeof AppPerfilIdRoute
   '/perfil/cuentas': typeof AppPerfilCuentasRoute
   '/perfil/datos': typeof AppPerfilDatosRoute
+  '/perfil/medios-de-pago': typeof AppPerfilMediosDePagoRoute
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/_app/perfil_/$id': typeof AppPerfilIdRoute
   '/_app/perfil_/cuentas': typeof AppPerfilCuentasRoute
   '/_app/perfil_/datos': typeof AppPerfilDatosRoute
+  '/_app/perfil_/medios-de-pago': typeof AppPerfilMediosDePagoRoute
   '/_app/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/_app/reservas_/$id': typeof AppReservasIdRoute
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/perfil/$id'
     | '/perfil/cuentas'
     | '/perfil/datos'
+    | '/perfil/medios-de-pago'
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
     | '/vehiculos/$id'
@@ -342,6 +352,7 @@ export interface FileRouteTypes {
     | '/perfil/$id'
     | '/perfil/cuentas'
     | '/perfil/datos'
+    | '/perfil/medios-de-pago'
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
     | '/vehiculos/$id'
@@ -374,6 +385,7 @@ export interface FileRouteTypes {
     | '/_app/perfil_/$id'
     | '/_app/perfil_/cuentas'
     | '/_app/perfil_/datos'
+    | '/_app/perfil_/medios-de-pago'
     | '/_app/reservas-transferencia/$id'
     | '/_app/reservas_/$id'
     | '/_app/vehiculos/$id'
@@ -557,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReservasTransferenciaIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/perfil_/medios-de-pago': {
+      id: '/_app/perfil_/medios-de-pago'
+      path: '/perfil/medios-de-pago'
+      fullPath: '/perfil/medios-de-pago'
+      preLoaderRoute: typeof AppPerfilMediosDePagoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/perfil_/datos': {
       id: '/_app/perfil_/datos'
       path: '/perfil/datos'
@@ -651,6 +670,7 @@ interface AppRouteChildren {
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCuentasRoute: typeof AppPerfilCuentasRoute
   AppPerfilDatosRoute: typeof AppPerfilDatosRoute
+  AppPerfilMediosDePagoRoute: typeof AppPerfilMediosDePagoRoute
   AppReservasTransferenciaIdRoute: typeof AppReservasTransferenciaIdRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
@@ -673,6 +693,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCuentasRoute: AppPerfilCuentasRoute,
   AppPerfilDatosRoute: AppPerfilDatosRoute,
+  AppPerfilMediosDePagoRoute: AppPerfilMediosDePagoRoute,
   AppReservasTransferenciaIdRoute: AppReservasTransferenciaIdRoute,
   AppReservasIdRoute: AppReservasIdRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
