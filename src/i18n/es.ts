@@ -813,6 +813,18 @@ export const es = {  // --- App ---
   'reservationRules.vehicles': 'vehículos',
   'reservationRules.nameRequired': 'El nombre del set es requerido',
 
+  // --- Chat interno ---
+  'chat.title': 'Chat',
+  'chat.empty': 'No hay mensajes todavía. ¡Mandá el primero!',
+  'chat.input.placeholder': 'Escribí un mensaje...',
+  'chat.input.send': 'Enviar',
+  'chat.error.load': 'No pudimos cargar los mensajes. Intentá de nuevo.',
+  'chat.error.send': 'No se pudo enviar el mensaje. Intentá de nuevo.',
+  'chat.error.notAllowed': 'El chat está disponible solo para reservas confirmadas o en curso.',
+  'chat.whatsapp.cta': 'Contactar a {name} por WhatsApp',
+  'chat.whatsapp.ariaLabel': 'Abrir chat de WhatsApp con {name}',
+  'reservas.detail.actions.chat': 'Abrir chat',
+
   // --- Documentación del vehículo ---
   'documentosVehiculo.title': 'Documentación del vehículo',
   'documentosVehiculo.status.none': 'Sin documentación',

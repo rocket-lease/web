@@ -39,6 +39,7 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
+import { Route as AppReservasIdChatRouteImport } from './routes/_app/reservas_.$id_.chat'
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas.$id.pago'
 import { Route as AppMisVehiculosIdDocumentosRouteImport } from './routes/_app/mis-vehiculos.$id_.documentos'
 
@@ -192,6 +193,11 @@ const AppVehiculosIdReservarRoute = AppVehiculosIdReservarRouteImport.update({
   path: '/vehiculos/$id/reservar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReservasIdChatRoute = AppReservasIdChatRouteImport.update({
+  id: '/reservas_/$id_/chat',
+  path: '/reservas/$id/chat',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppReservasIdPagoRoute = AppReservasIdPagoRouteImport.update({
   id: '/$id/pago',
   path: '/$id/pago',
@@ -235,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
+  '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesByTo {
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
+  '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesById {
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
   '/_app/mis-vehiculos/$id_/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/_app/reservas/$id/pago': typeof AppReservasIdPagoRoute
+  '/_app/reservas_/$id_/chat': typeof AppReservasIdChatRoute
   '/_app/vehiculos/$id_/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRouteTypes {
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/voucher/verify/$token'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/pago'
+    | '/reservas/$id/chat'
     | '/vehiculos/$id/reservar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/voucher/verify/$token'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/pago'
+    | '/reservas/$id/chat'
     | '/vehiculos/$id/reservar'
   id:
     | '__root__'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/voucher/verify/$token'
     | '/_app/mis-vehiculos/$id_/documentos'
     | '/_app/reservas/$id/pago'
+    | '/_app/reservas_/$id_/chat'
     | '/_app/vehiculos/$id_/reservar'
   fileRoutesById: FileRoutesById
 }
@@ -631,6 +643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppVehiculosIdReservarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reservas_/$id_/chat': {
+      id: '/_app/reservas_/$id_/chat'
+      path: '/reservas/$id/chat'
+      fullPath: '/reservas/$id/chat'
+      preLoaderRoute: typeof AppReservasIdChatRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/reservas/$id/pago': {
       id: '/_app/reservas/$id/pago'
       path: '/$id/pago'
@@ -696,6 +715,7 @@ interface AppRouteChildren {
   AppReservasTransferenciaIdRoute: typeof AppReservasTransferenciaIdRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
+  AppReservasIdChatRoute: typeof AppReservasIdChatRoute
   AppVehiculosIdReservarRoute: typeof AppVehiculosIdReservarRoute
 }
 
@@ -719,6 +739,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasTransferenciaIdRoute: AppReservasTransferenciaIdRoute,
   AppReservasIdRoute: AppReservasIdRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
+  AppReservasIdChatRoute: AppReservasIdChatRoute,
   AppVehiculosIdReservarRoute: AppVehiculosIdReservarRoute,
 }
 

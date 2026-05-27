@@ -12,6 +12,7 @@ import {
   FileText,
   Inbox,
   LifeBuoy,
+  MessageSquare,
   QrCode,
   ShieldCheck,
   XCircle,
@@ -31,6 +32,7 @@ import { t } from '@/i18n/es'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
+import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -297,6 +299,9 @@ function PostPaymentActions({
   const cancelMutation = useCancelReservation()
 
   const canCancel = status === RESERVATION_STATUS.confirmed
+  const canChat =
+    status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
+  const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
   const refundPreview = getCancellationRefundPreview(reservation)
 
   const handleCancel = async () => {
@@ -328,6 +333,19 @@ function PostPaymentActions({
             {t('reservas.detail.cancel.cta')}
           </Button>
         )}
+        <Link
+          to="/reservas/$id/chat"
+          params={{ id: reservation.id }}
+          className="relative flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" />
+          {t('reservas.detail.actions.chat')}
+          {unreadCount > 0 && (
+            <span className="absolute -top-2.5 right-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-black text-white ring-2 ring-white shadow-[0_0_10px_rgba(239,68,68,0.75)]">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Link>
         <Link
           to="/soporte"
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
