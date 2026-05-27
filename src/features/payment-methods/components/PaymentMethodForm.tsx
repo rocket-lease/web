@@ -1,4 +1,5 @@
 import { useForm } from 'react-hook-form'
+import type { FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/ui/button'
@@ -6,7 +7,7 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { t, type I18nKey } from '@/i18n/es'
 import type { SavedPaymentMethod, CreateSavedPaymentMethod, UpdateSavedPaymentMethod } from '@rocket-lease/contracts'
-import { CardDetailsSchema, WalletDetailsSchema } from '@rocket-lease/contracts'
+import { WalletDetailsSchema } from '@rocket-lease/contracts'
 
 const WALLET_PROVIDERS = [
   'Mercado Pago', 'Ualá', 'Naranja X', 'Personal Pay', 
@@ -43,16 +44,17 @@ const CombinedSchema = z.discriminatedUnion('type', [
 ])
 
 type FormData = z.infer<typeof CombinedSchema>
+type CardFieldErrors = FieldErrors<z.infer<typeof LenientCardDetailsSchema>>
+type WalletFieldErrors = FieldErrors<z.infer<typeof WalletDetailsSchema>>
 
 export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }: PaymentMethodFormProps) {
   const isEditing = !!initialData
-  
+
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(CombinedSchema),
     defaultValues: {
       type: initialData?.type ?? 'card',
       cardDetails: initialData?.type === 'card' ? {
-        lastFour: initialData.details.lastFour,
         brand: initialData.details.brand,
         expMonth: initialData.details.expMonth,
         expYear: initialData.details.expYear,
@@ -64,6 +66,9 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
       } : undefined,
     }
   })
+
+  const cardErrors = errors.cardDetails as CardFieldErrors | undefined
+  const walletErrors = errors.walletDetails as WalletFieldErrors | undefined
 
   const type = watch('type')
 
@@ -134,7 +139,7 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
               placeholder="VISA, MasterCard..." 
               disabled={isEditing}
             />
-            {errors.cardDetails?.brand && <span className="text-xs text-danger">{errors.cardDetails.brand.message}</span>}
+            {cardErrors?.brand && <span className="text-xs text-danger">{cardErrors.brand.message}</span>}
           </div>
           
           {!isEditing && (
@@ -145,7 +150,7 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
                 placeholder="1234123412341234" 
                 maxLength={16}
               />
-              {errors.cardDetails?.cardNumber && <span className="text-xs text-danger">{errors.cardDetails.cardNumber.message}</span>}
+              {cardErrors?.cardNumber && <span className="text-xs text-danger">{cardErrors.cardNumber.message}</span>}
             </div>
           )}
 
@@ -158,7 +163,7 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
                 placeholder="12" 
                 min={1} max={12}
               />
-              {errors.cardDetails?.expMonth && <span className="text-xs text-danger">{errors.cardDetails.expMonth.message}</span>}
+              {cardErrors?.expMonth && <span className="text-xs text-danger">{cardErrors.expMonth.message}</span>}
             </div>
             <div className="space-y-2">
               <Label>{t('paymentMethods.form.expYear' as I18nKey)}</Label>
@@ -167,14 +172,14 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
                 {...register('cardDetails.expYear', { valueAsNumber: true })} 
                 placeholder="2030" 
               />
-              {errors.cardDetails?.expYear && <span className="text-xs text-danger">{errors.cardDetails.expYear.message}</span>}
+              {cardErrors?.expYear && <span className="text-xs text-danger">{cardErrors.expYear.message}</span>}
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>{t('paymentMethods.form.cardholderName' as I18nKey)}</Label>
             <Input {...register('cardDetails.cardholderName')} placeholder="Juan Pérez" />
-            {errors.cardDetails?.cardholderName && <span className="text-xs text-danger">{errors.cardDetails.cardholderName.message}</span>}
+            {cardErrors?.cardholderName && <span className="text-xs text-danger">{cardErrors.cardholderName.message}</span>}
           </div>
         </>
       )}
@@ -196,13 +201,13 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
                 ))}
               </select>
             )}
-            {errors.walletDetails?.provider && <span className="text-xs text-danger">{errors.walletDetails.provider.message}</span>}
+            {walletErrors?.provider && <span className="text-xs text-danger">{walletErrors.provider.message}</span>}
           </div>
           
           <div className="space-y-2">
             <Label>{t('paymentMethods.form.walletAlias' as I18nKey)}</Label>
             <Input {...register('walletDetails.alias')} placeholder="mi.alias.mp" />
-            {errors.walletDetails?.alias && <span className="text-xs text-danger">{errors.walletDetails.alias.message}</span>}
+            {walletErrors?.alias && <span className="text-xs text-danger">{walletErrors.alias.message}</span>}
           </div>
         </>
       )}

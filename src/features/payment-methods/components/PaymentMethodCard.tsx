@@ -20,7 +20,7 @@ export function PaymentMethodCard({ method, isLastMethod, onEdit, onDelete, isDe
   const title = isCard ? t('paymentMethods.card' as I18nKey) : t('paymentMethods.wallet' as I18nKey)
   
   const subtitle = isCard 
-    ? t('paymentMethods.lastFour' as I18nKey).replace('{lastFour}', method.details.lastFour)
+    ? t('paymentMethods.lastFour' as I18nKey).replace('{lastFour}', method.details.lastFour ?? '????')
     : method.details.provider
 
   const additionalInfo = isCard
