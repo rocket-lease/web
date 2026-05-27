@@ -7,7 +7,7 @@ import { t, type I18nKey } from '@/i18n/es'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
 import { PaymentMethodCard } from './PaymentMethodCard'
 import { PaymentMethodForm } from './PaymentMethodForm'
-import type { SavedPaymentMethod } from '@rocket-lease/contracts'
+import type { CreateSavedPaymentMethod, SavedPaymentMethod, UpdateSavedPaymentMethod } from '@rocket-lease/contracts'
 
 export function PaymentMethodsPage() {
   const { 
@@ -39,16 +39,16 @@ export function PaymentMethodsPage() {
     setTimeout(() => setEditingMethod(null), 300) // Clear after animation
   }
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: CreateSavedPaymentMethod | UpdateSavedPaymentMethod) => {
     try {
       if (editingMethod) {
-        await updatePaymentMethod({ id: editingMethod.id, data })
+        await updatePaymentMethod({ id: editingMethod.id, data: data as UpdateSavedPaymentMethod })
       } else {
-        await createPaymentMethod(data)
+        await createPaymentMethod(data as CreateSavedPaymentMethod)
       }
       handleCloseDrawer()
-    } catch (error) {
-      // Error is handled by hook
+    } catch (_error) {
+      // handled by hook
     }
   }
 
