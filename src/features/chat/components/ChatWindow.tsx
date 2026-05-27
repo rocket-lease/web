@@ -22,18 +22,16 @@ export function ChatWindow({
   currentUserId,
 }: ChatWindowProps) {
   const messagesQuery = useMessages(reservationId)
-  const sendMessage = useSendMessage(reservationId)
+  const sendMessage = useSendMessage(reservationId, currentUserId)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const messages = messagesQuery.data?.items ?? []
 
-  // Marcar como leídos al entrar y al salir
   useEffect(() => {
     markAsRead(reservationId)
     return () => { markAsRead(reservationId) }
   }, [reservationId])
 
-  // Auto-scroll al llegar nuevos mensajes
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length])
@@ -48,7 +46,6 @@ export function ChatWindow({
 
   return (
     <div className="flex h-full flex-col">
-      {/* Lista de mensajes */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messagesQuery.isPending && (
           <p className="text-center text-sm text-text-muted py-8">
@@ -79,7 +76,6 @@ export function ChatWindow({
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <MessageInput
         onSend={handleSend}
         disabled={sendMessage.isPending}
