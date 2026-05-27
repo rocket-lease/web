@@ -1,6 +1,6 @@
 import type {
   CancellationPolicy,
-  Deposit,
+  DepositPercentage,
   MaxKilometrage,
   RentalTimeConstraints,
   ReservationRuleSet,
@@ -14,15 +14,6 @@ const CANCELLATION_POLICY_LABELS: Record<CancellationPolicy, string> = {
   FLEXIBLE: t('reservationRules.cancellation.flexible'),
   MODERATE: t('reservationRules.cancellation.moderate'),
   STRICT: t('reservationRules.cancellation.strict'),
-}
-
-/**
- * Mapeo de opciones de seña a labels legibles
- */
-const DEPOSIT_LABELS: Record<Deposit, string> = {
-  NONE: t('reservationRules.deposit.none'),
-  TEN_PERCENT: t('reservationRules.deposit.tenPercent'),
-  FIFTY_PERCENT: t('reservationRules.deposit.fiftyPercent'),
 }
 
 /**
@@ -49,10 +40,19 @@ export function getCancellationPolicyDescription(policy: CancellationPolicy): st
 }
 
 /**
- * Obtener label de opción de seña
+ * Obtener label de seña a partir del porcentaje (10-50) o null.
+ *
+ * - `null` → "Sin seña"
+ * - número → "{n}%"
  */
-export function getDepositLabel(deposit: Deposit): string {
-  return DEPOSIT_LABELS[deposit] ?? deposit
+export function getDepositLabel(depositPercentage: DepositPercentage): string {
+  if (depositPercentage === null) {
+    return t('reservationRules.deposit.none')
+  }
+  return t('reservationRules.deposit.formatted').replace(
+    '{percentage}',
+    String(depositPercentage),
+  )
 }
 
 /**
@@ -93,7 +93,7 @@ export function generateRuleSetSummary(ruleSet: ReservationRuleSet): string[] {
   const lines: string[] = []
 
   lines.push(`📋 ${getCancellationPolicyLabel(ruleSet.cancellationPolicy)}`)
-  lines.push(`💰 ${getDepositLabel(ruleSet.deposit)}`)
+  lines.push(`💰 ${getDepositLabel(ruleSet.depositPercentage)}`)
   lines.push(`🗺️ ${formatMaxKilometrage(ruleSet.maxKilometrage)}`)
   lines.push(`📅 ${formatRentalTimeConstraints(ruleSet.rentalTimeConstraints)}`)
 
@@ -106,7 +106,7 @@ export function generateRuleSetSummary(ruleSet: ReservationRuleSet): string[] {
 export function generateRuleSetCompactSummary(ruleSet: ReservationRuleSet): string {
   const parts: string[] = [
     getCancellationPolicyLabel(ruleSet.cancellationPolicy),
-    getDepositLabel(ruleSet.deposit),
+    getDepositLabel(ruleSet.depositPercentage),
   ]
 
   if (ruleSet.maxKilometrage.type === 'LIMITED') {

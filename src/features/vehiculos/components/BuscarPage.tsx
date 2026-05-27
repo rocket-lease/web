@@ -64,6 +64,8 @@ export function BuscarPage() {
   })
 
   const sorted = [...filtered].sort((a, b) => {
+    if (a.isPromoted && !b.isPromoted) return -1
+    if (!a.isPromoted && b.isPromoted) return 1
     if (sortBy === 'price_asc')  return a.basePriceCents - b.basePriceCents
     if (sortBy === 'price_desc') return b.basePriceCents - a.basePriceCents
     return 0

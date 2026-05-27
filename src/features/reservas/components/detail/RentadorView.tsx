@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX } from '@phosphor-icons/react'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, User, X } from 'lucide-react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, MessageSquare, User, X } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -20,6 +20,7 @@ import { ReservaUbicacion } from './ReservaUbicacion'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
+import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 
 interface RentadorViewProps {
   reservation: GetReservationResponse
@@ -40,6 +41,11 @@ export function RentadorView({ reservation }: RentadorViewProps) {
     staleTime: 60_000,
   })
   const conductor = conductorQuery.data
+
+  const canChat =
+    reservation.status === RESERVATION_STATUS.confirmed ||
+    reservation.status === RESERVATION_STATUS.in_progress
+  const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
 
   const photo = reservation.vehicle.photo
 
@@ -190,6 +196,23 @@ export function RentadorView({ reservation }: RentadorViewProps) {
 
       {reservation.status === RESERVATION_STATUS.in_progress && reservation.returnQrToken && (
         <ReturnQrDisplay returnQrToken={reservation.returnQrToken} />
+      )}
+
+      {(reservation.status === RESERVATION_STATUS.confirmed ||
+        reservation.status === RESERVATION_STATUS.in_progress) && (
+        <Link
+          to="/reservas/$id/chat"
+          params={{ id: reservation.id }}
+          className="relative flex w-full items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-medium text-white hover:bg-brand-600 active:scale-[0.99] transition-colors"
+        >
+          <MessageSquare className="h-4 w-4" />
+          {t('reservas.detail.actions.chat')}
+          {unreadCount > 0 && (
+            <span className="absolute -top-2.5 right-3 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-black text-white ring-2 ring-white shadow-[0_0_10px_rgba(239,68,68,0.75)]">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Link>
       )}
     </div>
   )
