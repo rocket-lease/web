@@ -188,6 +188,16 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     ? t('editVehiculo.section.rules.summary.shared').replace('{name}', sharedRuleSet.name)
     : t('editVehiculo.section.rules.summary.none')
 
+  const docStatus = (vehicle as { documentStatus?: string }).documentStatus
+  const docBadgeVariant = docStatus === 'verified' ? 'success' : docStatus === 'rejected' ? 'danger' : docStatus === 'pending' ? 'warning' : 'secondary'
+  const docSummaryKey = docStatus === 'verified'
+    ? 'documentosVehiculo.section.summary.verified'
+    : docStatus === 'pending'
+      ? 'documentosVehiculo.section.summary.pending'
+      : docStatus === 'rejected'
+        ? 'documentosVehiculo.section.summary.rejected'
+        : 'documentosVehiculo.section.summary.none'
+
   return (
     <div className="flex min-h-full flex-col">
       <PageHeader title={t('editVehiculo.title')} subtitle={t('editVehiculo.subtitle')} showBack />
@@ -216,6 +226,18 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
           title={t('editVehiculo.photosTitle')}
           summary={fotosSummary}
           onEdit={() => setOpenSheet('fotos')}
+          disabled={isDeleting}
+        />
+        <SectionCard
+          title={t('documentosVehiculo.title')}
+          summary={
+            <Badge variant={docBadgeVariant} className="text-xs">
+              {t(docSummaryKey as Parameters<typeof t>[0])}
+            </Badge>
+          }
+          onEdit={() =>
+            navigate({ to: '/mis-vehiculos/$id/documentos', params: { id: vehicleId } })
+          }
           disabled={isDeleting}
         />
         <SectionCard

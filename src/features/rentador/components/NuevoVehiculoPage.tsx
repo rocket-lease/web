@@ -277,19 +277,20 @@ export function NuevoVehiculoPage() {
         autoAccept: formData.autoAccept,
       } as CreateVehicleRequest
 
-      await vehiclesApi.publishVehicle(payload)
+      const created = await vehiclesApi.publishVehicle(payload)
+
+      setIsPublishing(false)
+      toast.success('Vehículo publicado')
 
       const bankAccounts = await bankAccountsApi.listMine()
       const hasBankAccount = bankAccounts.length > 0
 
-      toast.success('Vehículo publicado')
-      setIsPublishing(false)
       if (!hasBankAccount) {
         setShowNoBankAccountWarning(true)
         return
       }
 
-      navigate({ to: '/' })
+      navigate({ to: '/mis-vehiculos/$id/documentos', params: { id: created.id } })
     } catch (err) {
       console.error(err)
       setIsPublishing(false)

@@ -5,6 +5,8 @@ const Drawer = VaulDrawer.Root
 const DrawerTrigger = VaulDrawer.Trigger
 const DrawerClose = VaulDrawer.Close
 const DrawerPortal = VaulDrawer.Portal
+const DrawerTitle = VaulDrawer.Title
+const DrawerDescription = VaulDrawer.Description
 
 function DrawerOverlay({ className, ...props }: React.ComponentProps<typeof VaulDrawer.Overlay>) {
   return (
@@ -45,4 +47,6 @@ export {
   DrawerPortal,
   DrawerOverlay,
   DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
 }
