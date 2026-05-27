@@ -1,14 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { NuevoVehiculoPage } from '@/features/rentador/components/NuevoVehiculoPage'
 import { AuthGate } from '@/features/auth/components/AuthGate'
-import { IdentityGate } from '@/features/identity/components/IdentityGate'
+import { VerificationGate } from '@/features/verification/components/VerificationGate'
 
 function NuevoVehiculoRoute() {
   return (
     <AuthGate>
-      <IdentityGate flow="publish">
+      <VerificationGate flow="publish">
         <NuevoVehiculoPage />
-      </IdentityGate>
+      </VerificationGate>
     </AuthGate>
   )
 }

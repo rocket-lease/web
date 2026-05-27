@@ -54,6 +54,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     isUploadingAvatar,
   } = useMyProfile(profileId)
   const identityVerification = profile?.identityVerification
+  const driverLicenseVerification = profile?.driverLicenseVerification
 
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -182,62 +183,35 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         )}
 
-        {canEdit && identityVerification ? (
-          <div className="w-full rounded-2xl border border-white/8 bg-surface-1 p-4 text-left">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${identityVerification.status === 'verified' ? 'bg-success-bg text-success' : identityVerification.status === 'rejected' ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'}`}>
-                <IdentificationCard size={22} weight="duotone" />
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  {t('perfil.identity.title')}
-                </p>
-                <p className="text-sm font-semibold text-text-primary">
-                  {t(`identidad.status.${identityVerification.status}` as const)}
-                </p>
-              </div>
-              <Badge
-                variant={
-                  identityVerification.status === 'verified'
-                    ? 'success'
-                    : identityVerification.status === 'rejected'
-                      ? 'danger'
-                      : 'warning'
-                }
-              >
-                {t(`identidad.status.${identityVerification.status}` as const)}
-              </Badge>
-            </div>
-
-            {identityVerification.status === 'pending' && (
-              <p className="mt-3 text-sm text-text-secondary">
-                {t('perfil.identity.pending')}
-              </p>
+        {canEdit && (
+          <div className="w-full space-y-3 text-left">
+            {identityVerification && (
+              <VerificationCard
+                title={t('perfil.identity.title')}
+                statusLabel={t(`identidad.status.${identityVerification.status}` as const)}
+                status={identityVerification.status}
+                pendingCopy={t('perfil.identity.pending')}
+                rejectedReasonLabel={t('perfil.identity.rejectedReason')}
+                rejectedReason={identityVerification.rejectionReason}
+                cta={identityVerification.status === 'rejected' ? t('perfil.identity.retry') : t('perfil.identity.cta')}
+                onCta={() => navigate({ to: '/identidad' })}
+              />
             )}
 
-            {identityVerification.status === 'rejected' && identityVerification.rejectionReason && (
-              <div className="mt-3 rounded-xl border border-danger/20 bg-danger-bg p-3 text-sm text-danger">
-                <div className="flex items-center gap-2 font-semibold">
-                  <WarningCircle size={16} weight="duotone" />
-                  {t('perfil.identity.rejectedReason')}
-                </div>
-                <p className="mt-1 text-text-primary">{identityVerification.rejectionReason}</p>
-              </div>
-            )}
-
-            {identityVerification.status !== 'verified' && (
-              <Button
-                variant="secondary"
-                className="mt-4 w-full"
-                onClick={() => navigate({ to: '/identidad' })}
-              >
-                {identityVerification.status === 'rejected'
-                  ? t('perfil.identity.retry')
-                  : t('perfil.identity.cta')}
-              </Button>
+            {driverLicenseVerification && (
+              <VerificationCard
+                title={t('perfil.driverLicense.title')}
+                statusLabel={t(`licencia.status.${driverLicenseVerification.status}` as const)}
+                status={driverLicenseVerification.status}
+                pendingCopy={t('perfil.driverLicense.pending')}
+                rejectedReasonLabel={t('perfil.driverLicense.rejectedReason')}
+                rejectedReason={driverLicenseVerification.rejectionReason}
+                cta={driverLicenseVerification.status === 'rejected' ? t('perfil.driverLicense.retry') : t('perfil.driverLicense.cta')}
+                onCta={() => navigate({ to: '/licencia' })}
+              />
             )}
           </div>
-        ) : null}
+        )}
 
       </div>
 
@@ -322,6 +296,81 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
       )}
 
+    </div>
+  )
+}
+
+interface VerificationCardProps {
+  title: string
+  statusLabel: string
+  status: 'not_started' | 'pending' | 'verified' | 'rejected'
+  pendingCopy: string
+  rejectedReasonLabel: string
+  rejectedReason: string | null | undefined
+  cta: string
+  onCta: () => void
+}
+
+function VerificationCard({
+  title,
+  statusLabel,
+  status,
+  pendingCopy,
+  rejectedReasonLabel,
+  rejectedReason,
+  cta,
+  onCta,
+}: VerificationCardProps) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 text-left">
+      <div className="flex items-center gap-3">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${status === 'verified' ? 'bg-success-bg text-success' : status === 'rejected' ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'}`}>
+          <IdentificationCard size={22} weight="duotone" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+            {title}
+          </p>
+          <p className="text-sm font-semibold text-text-primary">{statusLabel}</p>
+        </div>
+        <Badge
+          variant={
+            status === 'verified'
+              ? 'success'
+              : status === 'rejected'
+                ? 'danger'
+                : 'warning'
+          }
+        >
+          {statusLabel}
+        </Badge>
+      </div>
+
+      {status === 'pending' && (
+        <p className="mt-3 text-sm text-text-secondary">
+          {pendingCopy}
+        </p>
+      )}
+
+      {status === 'rejected' && rejectedReason && (
+        <div className="mt-3 rounded-xl border border-danger/20 bg-danger-bg p-3 text-sm text-danger">
+          <div className="flex items-center gap-2 font-semibold">
+            <WarningCircle size={16} weight="duotone" />
+            {rejectedReasonLabel}
+          </div>
+          <p className="mt-1 text-text-primary">{rejectedReason}</p>
+        </div>
+      )}
+
+      {status !== 'verified' && (
+        <Button
+          variant="secondary"
+          className="mt-4 w-full"
+          onClick={onCta}
+        >
+          {cta}
+        </Button>
+      )}
     </div>
   )
 }
