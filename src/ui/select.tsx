@@ -141,5 +141,26 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
 )
 SelectItem.displayName = 'SelectItem'
 
-export { Select, SelectValue, SelectTrigger, SelectContent, SelectItem }
+const SelectGroup = ({ children }: { children: React.ReactNode }) => (
+  <div role="group" className="py-1">{children}</div>
+)
+
+const SelectLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="px-2 pt-1 pb-1 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+    {children}
+  </div>
+)
+
+const SelectSeparator = () => <div className="my-1 h-px bg-white/8" />
+
+export {
+  Select,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
+}
 

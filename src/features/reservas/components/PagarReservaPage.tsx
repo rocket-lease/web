@@ -40,6 +40,10 @@ export function PagarReservaPage() {
   const vehicle = reservation?.vehicle
   const vehicleName = vehicle ? `${vehicle.brand} ${vehicle.model} ${vehicle.year}` : ''
 
+  const depositPercentage = reservation?.depositPercentageSnapshot ?? null
+  const depositCents =
+    depositPercentage !== null ? Math.floor((totalCents * depositPercentage) / 100) : 0
+
   const handleConfirm = async () => {
     if (!selectedMethod) return
     setProcessing(true)
@@ -74,6 +78,19 @@ export function PagarReservaPage() {
             <span className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</span>
           </div>
         </div>
+
+        {depositPercentage !== null && (
+          <div
+            className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3"
+            data-testid="payment-breakdown"
+          >
+            <p className="text-sm text-amber-400">
+              {t('reserva.breakdown.depositNotice')
+                .replace('{percentage}', String(depositPercentage))
+                .replace('{amount}', fmt.currency(depositCents))}
+            </p>
+          </div>
+        )}
 
         <Separator />
 

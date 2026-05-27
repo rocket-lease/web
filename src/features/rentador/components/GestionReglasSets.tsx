@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Plus, Trash2, Pencil } from 'lucide-react'
+import { Plus, Trash2, Pencil, Gauge, Clock, Car } from 'lucide-react'
 import { Button } from '@/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/card'
-import { Badge } from '@/ui/badge'
+import { Badge, type BadgeProps } from '@/ui/badge'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { t } from '@/i18n/es'
 import {
@@ -12,10 +11,18 @@ import {
 import {
   getCancellationPolicyLabel,
   getDepositLabel,
+  formatMaxKilometrage,
+  formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { CreateRuleSetDialog } from './CreateRuleSetDialog'
 import { EditRuleSetDialog } from './EditRuleSetDialog'
-import type { ReservationRuleSet } from '@rocket-lease/contracts'
+import type { CancellationPolicy, ReservationRuleSet } from '@rocket-lease/contracts'
+
+const CANCELLATION_VARIANT: Record<CancellationPolicy, BadgeProps['variant']> = {
+  FLEXIBLE: 'success',
+  MODERATE: 'warning',
+  STRICT: 'danger',
+}
 
 export function GestionReglasSets() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -71,78 +78,59 @@ export function GestionReglasSets() {
       ) : (
         <div className="px-4 py-4 space-y-3">
           {ruleSets.map((ruleSet) => (
-            <Card key={ruleSet.id} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg">{ruleSet.name}</CardTitle>
-                    {ruleSet.description && (
-                      <CardDescription className="mt-1 text-sm">
-                        {ruleSet.description}
-                      </CardDescription>
-                    )}
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        handleEdit(ruleSet)
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(ruleSet.id)}
-                      disabled={deleteRuleSetMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {getCancellationPolicyLabel(ruleSet.cancellationPolicy)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {getDepositLabel(ruleSet.deposit)}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs text-text-muted">
-                  {ruleSet.maxKilometrage.type === 'LIMITED' && (
-                    <p>
-                      <span className="text-text-primary font-medium">Km máx:</span> {ruleSet.maxKilometrage.value}
-                    </p>
-                  )}
-                  {(ruleSet.rentalTimeConstraints?.minDays || ruleSet.rentalTimeConstraints?.maxDays) && (
-                    <p>
-                      <span className="text-text-primary font-medium">Duración:</span>
-                      {ruleSet.rentalTimeConstraints?.minDays && ` min ${ruleSet.rentalTimeConstraints.minDays}d`}
-                      {ruleSet.rentalTimeConstraints?.minDays && ruleSet.rentalTimeConstraints?.maxDays && ' •'}
-                      {ruleSet.rentalTimeConstraints?.maxDays && ` max ${ruleSet.rentalTimeConstraints.maxDays}d`}
-                    </p>
+            <div key={ruleSet.id} className="rounded-2xl bg-surface-1 border border-white/6 overflow-hidden">
+              {/* Header */}
+              <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-text-primary text-base leading-tight">{ruleSet.name}</p>
+                  {ruleSet.description && (
+                    <p className="text-xs text-text-muted mt-1 line-clamp-2">{ruleSet.description}</p>
                   )}
                 </div>
+                <div className="flex gap-0.5 shrink-0 -mt-1 -mr-1">
+                  <Button size="sm" variant="ghost" onClick={() => handleEdit(ruleSet)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(ruleSet.id)}
+                    disabled={deleteRuleSetMutation.isPending}
+                    className="text-danger hover:text-danger"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-                {ruleSet.vehicleCount !== undefined && (
-                  <p className="text-xs text-text-muted">
-                    {ruleSet.vehicleCount > 0
-                      ? t('reservationRules.assignedTo') + ': ' + ruleSet.vehicleCount
-                      : t('reservationRules.notAssigned')}
-                  </p>
+              {/* Badges */}
+              <div className="px-4 pb-3 flex flex-wrap gap-2">
+                <Badge variant={CANCELLATION_VARIANT[ruleSet.cancellationPolicy]}>
+                  {getCancellationPolicyLabel(ruleSet.cancellationPolicy)}
+                </Badge>
+                <Badge variant={ruleSet.depositPercentage !== null ? 'default' : 'secondary'}>
+                  {getDepositLabel(ruleSet.depositPercentage)}
+                </Badge>
+              </div>
+
+              {/* Stats */}
+              <div className="px-4 py-3 border-t border-white/6 flex flex-wrap gap-x-4 gap-y-1.5">
+                <span className="flex items-center gap-1.5 text-xs text-text-secondary">
+                  <Gauge className="h-3.5 w-3.5 text-text-muted shrink-0" />
+                  {formatMaxKilometrage(ruleSet.maxKilometrage)}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-text-secondary">
+                  <Clock className="h-3.5 w-3.5 text-text-muted shrink-0" />
+                  {formatRentalTimeConstraints(ruleSet.rentalTimeConstraints)}
+                </span>
+                {ruleSet.vehicleCount !== undefined && ruleSet.vehicleCount > 0 && (
+                  <span className="flex items-center gap-1.5 text-xs text-text-muted">
+                    <Car className="h-3.5 w-3.5 shrink-0" />
+                    {ruleSet.vehicleCount} {ruleSet.vehicleCount === 1 ? t('reservationRules.vehicle') : t('reservationRules.vehicles')}
+                  </span>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}

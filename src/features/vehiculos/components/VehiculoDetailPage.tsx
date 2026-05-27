@@ -313,7 +313,7 @@ export function VehiculoDetailPage() {
                 <div className="rounded-xl bg-surface-2 p-3">
                   <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.deposit')}</p>
                   <p className="mt-1 text-sm font-semibold text-text-primary">
-                    {getDepositLabel(vehicle.reservationRuleSet.deposit)}
+                    {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
                   </p>
                 </div>
                 <div className="rounded-xl bg-surface-2 p-3">
