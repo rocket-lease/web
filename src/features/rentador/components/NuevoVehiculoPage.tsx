@@ -280,7 +280,7 @@ export function NuevoVehiculoPage() {
       const created = await vehiclesApi.publishVehicle(payload)
 
       setIsPublishing(false)
-      toast.success('Vehículo publicado')
+      toast.success(t('nuevoVehiculo.toast.published'))
 
       const bankAccounts = await bankAccountsApi.listMine()
       const hasBankAccount = bankAccounts.length > 0

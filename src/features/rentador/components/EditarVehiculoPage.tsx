@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/ui/card'
 import { ConfirmDialog } from '@/ui/confirm-dialog'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { fmt } from '@/lib/formatters'
-import { t } from '@/i18n/es'
+import { t, type I18nKey } from '@/i18n/es'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { SectionCard } from './EditarVehiculo/SectionCard'
@@ -188,9 +188,9 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     ? t('editVehiculo.section.rules.summary.shared').replace('{name}', sharedRuleSet.name)
     : t('editVehiculo.section.rules.summary.none')
 
-  const docStatus = (vehicle as { documentStatus?: string }).documentStatus
+  const docStatus = vehicle.documentStatus
   const docBadgeVariant = docStatus === 'verified' ? 'success' : docStatus === 'rejected' ? 'danger' : docStatus === 'pending' ? 'warning' : 'secondary'
-  const docSummaryKey = docStatus === 'verified'
+  const docSummaryKey: I18nKey = docStatus === 'verified'
     ? 'documentosVehiculo.section.summary.verified'
     : docStatus === 'pending'
       ? 'documentosVehiculo.section.summary.pending'
@@ -232,7 +232,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
           title={t('documentosVehiculo.title')}
           summary={
             <Badge variant={docBadgeVariant} className="text-xs">
-              {t(docSummaryKey as Parameters<typeof t>[0])}
+              {t(docSummaryKey)}
             </Badge>
           }
           onEdit={() =>

@@ -712,6 +712,7 @@ export const es = {  // --- App ---
   'nuevoVehiculo.step.publicar': 'Publicar',
   'nuevoVehiculo.publishing.title': 'Publicando vehículo',
   'nuevoVehiculo.publishing.description': 'Estamos subiendo las fotos y creando tu publicación. No cierres esta pantalla.',
+  'nuevoVehiculo.toast.published': 'Vehículo publicado',
 
   // --- Favoritos ---
   'favoritos.loginHint': 'Guarda tus autos favoritos para reservar con tu cuenta',

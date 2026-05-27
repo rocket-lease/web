@@ -154,7 +154,7 @@ export function VehicleDocumentsPage({ vehicleId }: VehicleDocumentsPageProps) {
             </div>
             <div className="flex-1">
               <Badge variant={status === 'rejected' ? 'danger' : 'secondary'}>
-                {t(`documentosVehiculo.status.${status === 'none' ? 'none' : status}` as const)}
+                {t(`documentosVehiculo.status.${status}`)}
               </Badge>
               <h1 className="mt-3 text-2xl font-bold text-text-primary">
                 {t('documentosVehiculo.form.title')}

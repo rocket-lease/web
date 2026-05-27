@@ -159,7 +159,7 @@ export function MisVehiculosPage() {
                       }
                     : { opacity: 0.55 }
                   : undefined
-                const ds = (v as { documentStatus?: string }).documentStatus
+                const ds = v.documentStatus
                 const cardBody = (
                   <article className={cardClass} style={selectedStyle}>
                     <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
