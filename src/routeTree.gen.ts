@@ -38,6 +38,7 @@ import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehi
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas.$id.pago'
+import { Route as AppMisVehiculosIdDocumentosRouteImport } from './routes/_app/mis-vehiculos.$id_.documentos'
 
 const VerificarRoute = VerificarRouteImport.update({
   id: '/verificar',
@@ -184,6 +185,12 @@ const AppReservasIdPagoRoute = AppReservasIdPagoRouteImport.update({
   path: '/$id/pago',
   getParentRoute: () => AppReservasRoute,
 } as any)
+const AppMisVehiculosIdDocumentosRoute =
+  AppMisVehiculosIdDocumentosRouteImport.update({
+    id: '/$id_/documentos',
+    path: '/$id/documentos',
+    getParentRoute: () => AppMisVehiculosRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
@@ -242,6 +250,7 @@ export interface FileRoutesByTo {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
@@ -274,6 +283,7 @@ export interface FileRoutesById {
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/_app/mis-vehiculos/$id_/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/_app/reservas/$id/pago': typeof AppReservasIdPagoRoute
   '/_app/vehiculos/$id_/reservar': typeof AppVehiculosIdReservarRoute
 }
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/pago'
     | '/vehiculos/$id/reservar'
   fileRoutesByTo: FileRoutesByTo
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/pago'
     | '/vehiculos/$id/reservar'
   id:
@@ -367,6 +379,7 @@ export interface FileRouteTypes {
     | '/_app/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/_app/mis-vehiculos/$id_/documentos'
     | '/_app/reservas/$id/pago'
     | '/_app/vehiculos/$id_/reservar'
   fileRoutesById: FileRoutesById
@@ -587,17 +600,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReservasIdPagoRouteImport
       parentRoute: typeof AppReservasRoute
     }
+    '/_app/mis-vehiculos/$id_/documentos': {
+      id: '/_app/mis-vehiculos/$id_/documentos'
+      path: '/$id/documentos'
+      fullPath: '/mis-vehiculos/$id/documentos'
+      preLoaderRoute: typeof AppMisVehiculosIdDocumentosRouteImport
+      parentRoute: typeof AppMisVehiculosRoute
+    }
   }
 }
 
 interface AppMisVehiculosRouteChildren {
   AppMisVehiculosIdRoute: typeof AppMisVehiculosIdRoute
   AppMisVehiculosNuevoRoute: typeof AppMisVehiculosNuevoRoute
+  AppMisVehiculosIdDocumentosRoute: typeof AppMisVehiculosIdDocumentosRoute
 }
 
 const AppMisVehiculosRouteChildren: AppMisVehiculosRouteChildren = {
   AppMisVehiculosIdRoute: AppMisVehiculosIdRoute,
   AppMisVehiculosNuevoRoute: AppMisVehiculosNuevoRoute,
+  AppMisVehiculosIdDocumentosRoute: AppMisVehiculosIdDocumentosRoute,
 }
 
 const AppMisVehiculosRouteWithChildren = AppMisVehiculosRoute._addFileChildren(

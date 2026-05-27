@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react'
-import { Plus, Car, Pencil, Sparkles } from 'lucide-react'
+import { Plus, Car, Pencil, Sparkles, FileText } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
@@ -159,6 +159,7 @@ export function MisVehiculosPage() {
                       }
                     : { opacity: 0.55 }
                   : undefined
+                const ds = (v as { documentStatus?: string }).documentStatus
                 const cardBody = (
                   <article className={cardClass} style={selectedStyle}>
                     <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-2">
@@ -179,6 +180,11 @@ export function MisVehiculosPage() {
                           <Badge variant={v.enabled ? 'success' : 'secondary'}>
                             {v.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive')}
                           </Badge>
+                          {ds === 'pending' && (
+                            <Badge variant="warning">
+                              {t('documentosVehiculo.status.pending')}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <p className="mt-1 text-sm text-text-secondary">
@@ -202,7 +208,19 @@ export function MisVehiculosPage() {
                       ) : null}
 
                       {!selectionMode && (
-                        <div className="mt-3 flex gap-2">
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(ds === 'none' || ds === 'rejected') && (
+                            <Link
+                              to="/mis-vehiculos/$id/documentos"
+                              params={{ id: v.id }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button size="sm" variant="ghost">
+                                <FileText className="h-4 w-4" />
+                                {t('documentosVehiculo.guard.cta')}
+                              </Button>
+                            </Link>
+                          )}
                           <Button size="sm" variant="ghost" onClick={(e) => { e.preventDefault(); setPromotingVehicleId(v.id) }}>
                             <Sparkles className="h-4 w-4 text-owner" />
                             Promocionar
