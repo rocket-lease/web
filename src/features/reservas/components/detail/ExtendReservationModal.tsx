@@ -12,6 +12,7 @@ import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
+import { getChainEndAt, getChainStartAt } from '../../utils/chain'
 import { useExtendReservation } from '../../hooks/useExtendReservation'
 
 interface ExtendReservationModalProps {
@@ -45,7 +46,7 @@ export function ExtendReservationModal({
   useLockBodyScroll()
   const mutation = useExtendReservation()
 
-  const chainEndAt = getChainTipEndAt(reservation)
+  const chainEndAt = getChainEndAt(reservation)
   const defaultNewEndAt = new Date(
     new Date(chainEndAt).getTime() + DAY_MS,
   )
@@ -324,36 +325,6 @@ export function computeRequiresApproval(args: RequiresApprovalArgs): boolean {
       DAY_MS,
   )
   return totalDays > vehicleMaxDays
-}
-
-/**
- * Devuelve el `startAt` del primer eslabón del chain (el padre). Si no hay
- * chain en la respuesta del backend, asume que la reserva actual es el padre.
- */
-function getChainStartAt(reservation: GetReservationResponse): string {
-  if (reservation.chain && reservation.chain.length > 0) {
-    const sorted = [...reservation.chain].sort((a, b) =>
-      a.startAt.localeCompare(b.startAt),
-    )
-    return sorted[0].startAt
-  }
-  return reservation.startAt
-}
-
-/**
- * Devuelve el `endAt` de la punta del chain (último eslabón no cancelado).
- * Si no hay chain expuesto, usa el `endAt` de la reserva en sí.
- */
-function getChainTipEndAt(reservation: GetReservationResponse): string {
-  if (reservation.chain && reservation.chain.length > 0) {
-    const active = reservation.chain.filter(
-      (item) => item.status !== 'cancelled' && item.status !== 'rejected',
-    )
-    if (active.length === 0) return reservation.endAt
-    const sorted = [...active].sort((a, b) => a.endAt.localeCompare(b.endAt))
-    return sorted[sorted.length - 1].endAt
-  }
-  return reservation.endAt
 }
 
 const MONTH_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']

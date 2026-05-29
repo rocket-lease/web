@@ -17,6 +17,7 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
+import { getChainEndAt, getChainStartAt } from '../../utils/chain'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
@@ -94,7 +95,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               </span>
             </div>
             <p className="font-semibold text-text-primary">
-              {fmt.dateTime(reservation.startAt)}
+              {fmt.dateTime(getChainStartAt(reservation))}
             </p>
           </div>
           <div className="flex-1 rounded-xl bg-surface-2 p-3">
@@ -105,7 +106,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               </span>
             </div>
             <p className="font-semibold text-text-primary">
-              {fmt.dateTime(reservation.endAt)}
+              {fmt.dateTime(getChainEndAt(reservation))}
             </p>
           </div>
         </div>

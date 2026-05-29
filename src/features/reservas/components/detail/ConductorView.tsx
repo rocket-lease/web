@@ -42,6 +42,7 @@ import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
+import { getChainEndAt, getChainStartAt } from '../../utils/chain'
 import {
   getCancellationRefundSummary,
   getEffectiveReservationRules,
@@ -66,8 +67,6 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     vehicle,
     rentador,
     status,
-    startAt,
-    endAt,
     totalCents,
     paymentMethod,
     holdExpiresAt,
@@ -75,6 +74,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     rejectionReason,
     voucherToken,
   } = reservation
+  const displayStartAt = getChainStartAt(reservation)
+  const displayEndAt = getChainEndAt(reservation)
   const showVoucher = status === RESERVATION_STATUS.confirmed
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
@@ -160,14 +161,14 @@ export function ConductorView({ reservation }: ConductorViewProps) {
               <CalendarDays className="h-4 w-4 text-brand-400" />
               <span className="text-xs text-text-muted">{t('reservas.detail.pickup')}</span>
             </div>
-            <p className="font-semibold text-text-primary">{fmt.dateTime(startAt)}</p>
+            <p className="font-semibold text-text-primary">{fmt.dateTime(displayStartAt)}</p>
           </div>
           <div className="flex-1 rounded-xl bg-surface-2 p-3">
             <div className="flex items-center gap-2 mb-1">
               <CalendarDays className="h-4 w-4 text-brand-400" />
               <span className="text-xs text-text-muted">{t('reservas.detail.return')}</span>
             </div>
-            <p className="font-semibold text-text-primary">{fmt.dateTime(endAt)}</p>
+            <p className="font-semibold text-text-primary">{fmt.dateTime(displayEndAt)}</p>
           </div>
         </div>
       </div>
