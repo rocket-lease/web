@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { CalendarPlus, Clock } from 'lucide-react'
+import { CalendarDays, CalendarPlus, Clock } from 'lucide-react'
 import type { GetReservationResponse } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
+import { Calendar } from '@/ui/calendar'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -24,7 +25,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
  * Modal para solicitar la extensión de una reserva en curso.
  *
  * Inputs:
- * - Date + time picker para el nuevo `endAt`. Default = `endAt` actual + 1 día.
+ * - Date picker (Calendar inline) + time picker nativo para el nuevo `endAt`.
+ *   Default = `endAt` actual + 1 día.
  *
  * Muestra:
  * - Total estimado client-side con `estimateReservationTotalCents()` usando
@@ -49,6 +51,7 @@ export function ExtendReservationModal({
   )
   const [date, setDate] = useState(toDateInput(defaultNewEndAt))
   const [time, setTime] = useState(toTimeInput(defaultNewEndAt))
+  const [calendarOpen, setCalendarOpen] = useState(false)
 
   const vehicleQuery = useQuery({
     queryKey: ['vehicle', reservation.vehicle.id],
@@ -125,13 +128,15 @@ export function ExtendReservationModal({
             {t('reservas.detail.extend.newEndAtLabel')}
           </label>
           <div className="flex gap-2">
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+            <button
+              type="button"
+              onClick={() => setCalendarOpen((o) => !o)}
               disabled={mutation.isPending}
-              className="flex-1"
-            />
+              className="flex flex-1 items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
+            >
+              <CalendarDays className="h-4 w-4 text-text-muted shrink-0" />
+              <span>{fmtDateLabel(date)}</span>
+            </button>
             <Input
               type="time"
               value={time}
@@ -140,6 +145,16 @@ export function ExtendReservationModal({
               className="w-28"
             />
           </div>
+          {calendarOpen && (
+            <div className="flex justify-center pt-1">
+              <Calendar
+                mode="single"
+                value={date}
+                minDate={toDateInput(new Date(new Date(chainEndAt).getTime() + DAY_MS))}
+                onChange={(d) => { setDate(d); setCalendarOpen(false) }}
+              />
+            </div>
+          )}
           {!isValid && (
             <p className="text-xs text-danger-400">
               {t('reservas.detail.extend.error.invalidEndAt')}
@@ -259,8 +274,16 @@ function getChainTipEndAt(reservation: GetReservationResponse): string {
   return reservation.endAt
 }
 
+const MONTH_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+
+function fmtDateLabel(ymd: string): string {
+  if (!ymd) return '—'
+  const [, m, d] = ymd.split('-').map(Number)
+  return `${d} de ${MONTH_SHORT[m - 1]}`
+}
+
 /**
- * Convierte un `Date` al formato `YYYY-MM-DD` que espera `<input type="date">`,
+ * Convierte un `Date` al formato `YYYY-MM-DD` que espera el Calendar,
  * respetando la zona horaria local del usuario.
  */
 function toDateInput(d: Date): string {
