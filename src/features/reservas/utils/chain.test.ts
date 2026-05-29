@@ -4,7 +4,7 @@ import type {
   ReservationChainItem,
   ReservationStatus,
 } from '@rocket-lease/contracts'
-import { getChainEndAt, getChainStartAt } from './chain'
+import { getChainEndAt, getChainStartAt, getChainTotalCents } from './chain'
 
 function makeChainItem(
   overrides: Partial<ReservationChainItem>,
@@ -67,6 +67,23 @@ describe('getChainStartAt / getChainEndAt', () => {
       })
       expect(getChainEndAt(reservation)).toBe('2026-06-03T10:00:00.000Z')
     }
+  })
+
+  it('suma los totalCents de los eslabones vigentes', () => {
+    const reservation = makeReservation({
+      totalCents: 2800000,
+      chain: [
+        makeChainItem({ id: 'parent', totalCents: 2800000 }),
+        makeChainItem({ id: 'ext-1', totalCents: 2800000 }),
+        makeChainItem({ id: 'ext-2', totalCents: 2800000 }),
+        makeChainItem({ id: 'cancelled', status: 'cancelled', totalCents: 5000000 }),
+      ],
+    })
+    expect(getChainTotalCents(reservation)).toBe(8400000)
+  })
+
+  it('usa el total propio cuando no hay cadena', () => {
+    expect(getChainTotalCents(makeReservation({ totalCents: 2800000 }))).toBe(2800000)
   })
 
   it('cae a la cadena completa si todos los eslabones son terminales', () => {

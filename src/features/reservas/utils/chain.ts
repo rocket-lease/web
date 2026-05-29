@@ -50,3 +50,13 @@ export function getChainEndAt(reservation: GetReservationResponse): string {
     members[0].endAt,
   )
 }
+
+/**
+ * Total efectivo de una reserva: la suma de los `totalCents` de los eslabones
+ * vigentes de su cadena, o el `totalCents` propio si no hay cadena.
+ */
+export function getChainTotalCents(reservation: GetReservationResponse): number {
+  const members = activeChainMembers(reservation)
+  if (!members) return reservation.totalCents
+  return members.reduce((sum, m) => sum + m.totalCents, 0)
+}

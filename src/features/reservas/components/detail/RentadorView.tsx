@@ -17,7 +17,7 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
-import { getChainEndAt, getChainStartAt } from '../../utils/chain'
+import { getChainEndAt, getChainStartAt, getChainTotalCents } from '../../utils/chain'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
@@ -159,7 +159,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           {t('rentador.reservas.detalle.total')}
         </p>
         <p className="text-xl font-bold text-brand-400">
-          {fmt.currency(reservation.totalCents)}
+          {fmt.currency(getChainTotalCents(reservation))}
         </p>
       </div>
 

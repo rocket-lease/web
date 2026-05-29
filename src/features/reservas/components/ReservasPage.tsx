@@ -334,6 +334,7 @@ function CollapsedReservasList({ items, role, isRefetching }: CollapsedReservasL
           role={role}
           rangeStartAt={entry.rangeStartAt}
           rangeEndAt={entry.rangeEndAt}
+          rangeTotalCents={entry.rangeTotalCents}
         />
       ))}
     </div>
@@ -344,6 +345,7 @@ interface CollapsedEntry {
   representative: ReservationListItem
   rangeStartAt: string
   rangeEndAt: string
+  rangeTotalCents: number
 }
 
 /**
@@ -403,7 +405,8 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
       (max, m) => (m.endAt > max ? m.endAt : max),
       rangeSource[0].endAt,
     )
-    result.push({ representative, rangeStartAt, rangeEndAt })
+    const rangeTotalCents = rangeSource.reduce((sum, m) => sum + m.totalCents, 0)
+    result.push({ representative, rangeStartAt, rangeEndAt, rangeTotalCents })
   }
 
   result.sort((a, b) => b.rangeStartAt.localeCompare(a.rangeStartAt))
@@ -447,17 +450,19 @@ interface ReservaCardProps {
   role: ReservationRole
   rangeStartAt?: string
   rangeEndAt?: string
+  rangeTotalCents?: number
 }
 
 /**
  * Card de listado. La contraparte mostrada depende del rol: para conductor,
  * el rentador; para rentador, el conductor.
  */
-function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt }: ReservaCardProps) {
+function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
   const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
   const startAt = rangeStartAt ?? reserva.startAt
   const endAt = rangeEndAt ?? reserva.endAt
+  const totalCents = rangeTotalCents ?? reserva.totalCents
 
   const canHaveChat =
     reserva.status === RESERVATION_STATUS.confirmed ||
@@ -517,7 +522,7 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt }: ReservaCardPro
             <span className="truncate">{counterpart.name}</span>
           </div>
           <span className="font-bold text-brand-400 shrink-0 text-sm">
-            {fmt.currency(reserva.totalCents)}
+            {fmt.currency(totalCents)}
           </span>
         </div>
       </div>

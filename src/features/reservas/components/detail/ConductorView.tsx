@@ -42,7 +42,7 @@ import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
-import { getChainEndAt, getChainStartAt } from '../../utils/chain'
+import { getChainEndAt, getChainStartAt, getChainTotalCents } from '../../utils/chain'
 import {
   getCancellationRefundSummary,
   getEffectiveReservationRules,
@@ -67,7 +67,6 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     vehicle,
     rentador,
     status,
-    totalCents,
     paymentMethod,
     holdExpiresAt,
     contractAcceptedAt,
@@ -76,6 +75,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
   } = reservation
   const displayStartAt = getChainStartAt(reservation)
   const displayEndAt = getChainEndAt(reservation)
+  const displayTotalCents = getChainTotalCents(reservation)
   const showVoucher = status === RESERVATION_STATUS.confirmed
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
@@ -203,7 +203,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       <div className="flex items-center justify-between">
         <p className="font-semibold text-text-primary">{t('reservas.detail.total')}</p>
-        <p className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</p>
+        <p className="text-xl font-bold text-brand-400">{fmt.currency(displayTotalCents)}</p>
       </div>
 
       <CancellationPolicyCard reservation={reservation} />
