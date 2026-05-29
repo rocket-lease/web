@@ -127,14 +127,14 @@ export function ExtendReservationModal({
           <label className="text-xs font-medium uppercase tracking-wider text-text-secondary">
             {t('reservas.detail.extend.newEndAtLabel')}
           </label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-[1fr_auto] gap-2">
             <button
               type="button"
               onClick={() => setCalendarOpen((o) => !o)}
               disabled={mutation.isPending}
-              className="flex flex-1 items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
             >
-              <CalendarDays className="h-4 w-4 text-text-muted shrink-0" />
+              <CalendarDays className="h-4 w-4 shrink-0 text-text-muted" />
               <span>{fmtDateLabel(date)}</span>
             </button>
             <Input
