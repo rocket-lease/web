@@ -1007,7 +1007,7 @@ export const es = {  // --- App ---
   'reservas.detail.extend.modalTitle': 'Extender alquiler',
   'reservas.detail.extend.currentEndAt': 'Devolución actual',
   'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
-  'reservas.detail.extend.totalPreview': 'Costo estimado',
+  'reservas.detail.extend.totalPreview': 'Costo',
   'reservas.detail.extend.infoInmediato':
     'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
   'reservas.detail.extend.infoSolicitud':

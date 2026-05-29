@@ -5,8 +5,8 @@ import { toast } from 'sonner'
 import { CalendarDays, CalendarPlus, Clock } from 'lucide-react'
 import type { GetReservationResponse } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
-import { Input } from '@/ui/input'
 import { Calendar } from '@/ui/calendar'
+import { cn } from '@/lib/utils'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -52,6 +52,10 @@ export function ExtendReservationModal({
   const [date, setDate] = useState(toDateInput(defaultNewEndAt))
   const [time, setTime] = useState(toTimeInput(defaultNewEndAt))
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [timeOpen, setTimeOpen] = useState(false)
+
+  const selectedHour = parseInt(time.split(':')[0], 10)
+  const selectedMinute = parseInt(time.split(':')[1], 10)
 
   const vehicleQuery = useQuery({
     queryKey: ['vehicle', reservation.vehicle.id],
@@ -127,23 +131,25 @@ export function ExtendReservationModal({
           <label className="text-xs font-medium uppercase tracking-wider text-text-secondary">
             {t('reservas.detail.extend.newEndAtLabel')}
           </label>
-          <div className="grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={() => setCalendarOpen((o) => !o)}
+              onClick={() => { setCalendarOpen((o) => !o); setTimeOpen(false) }}
               disabled={mutation.isPending}
               className="flex items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
             >
               <CalendarDays className="h-4 w-4 shrink-0 text-text-muted" />
               <span>{fmtDateLabel(date)}</span>
             </button>
-            <Input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
+            <button
+              type="button"
+              onClick={() => { setTimeOpen((o) => !o); setCalendarOpen(false) }}
               disabled={mutation.isPending}
-              className="w-28"
-            />
+              className="flex items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
+            >
+              <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+              <span>{fmtTimeLabel(time)}</span>
+            </button>
           </div>
           {calendarOpen && (
             <div className="flex justify-center pt-1">
@@ -153,6 +159,44 @@ export function ExtendReservationModal({
                 minDate={toDateInput(new Date(new Date(chainEndAt).getTime() + DAY_MS))}
                 onChange={(d) => { setDate(d); setCalendarOpen(false) }}
               />
+            </div>
+          )}
+          {timeOpen && (
+            <div className="rounded-xl border border-white/8 bg-surface-2 p-3 space-y-3">
+              <div className="grid grid-cols-6 gap-1">
+                {Array.from({ length: 24 }, (_, h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setTime(`${String(h).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`)}
+                    className={cn(
+                      'rounded-lg py-1.5 text-xs font-medium transition-colors',
+                      h === selectedHour
+                        ? 'bg-brand-500 text-white'
+                        : 'text-text-secondary hover:bg-surface-3',
+                    )}
+                  >
+                    {String(h).padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-4 gap-1">
+                {[0, 15, 30, 45].map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => { setTime(`${String(selectedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`); setTimeOpen(false) }}
+                    className={cn(
+                      'rounded-lg py-1.5 text-xs font-medium transition-colors',
+                      m === selectedMinute
+                        ? 'bg-brand-500 text-white'
+                        : 'text-text-secondary hover:bg-surface-3',
+                    )}
+                  >
+                    :{String(m).padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {!isValid && (
@@ -280,6 +324,14 @@ function fmtDateLabel(ymd: string): string {
   if (!ymd) return '—'
   const [, m, d] = ymd.split('-').map(Number)
   return `${d} de ${MONTH_SHORT[m - 1]}`
+}
+
+function fmtTimeLabel(hhmm: string): string {
+  if (!hhmm) return '—'
+  const [h, m] = hhmm.split(':').map(Number)
+  const period = h < 12 ? 'a.m.' : 'p.m.'
+  const displayHour = h % 12 === 0 ? 12 : h % 12
+  return `${displayHour}:${String(m).padStart(2, '0')} ${period}`
 }
 
 /**
