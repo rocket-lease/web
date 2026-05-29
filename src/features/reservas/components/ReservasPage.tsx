@@ -376,9 +376,10 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
   const byId = new Map<string, ReservationListItem>()
   for (const item of items) byId.set(item.id, item)
 
+  const rootCache = new Map<string, string>()
   const groups = new Map<string, ReservationListItem[]>()
   for (const item of items) {
-    const rootId = resolveRootId(item, byId)
+    const rootId = resolveRootId(item, byId, rootCache)
     const existing = groups.get(rootId)
     if (existing) existing.push(item)
     else groups.set(rootId, [item])
@@ -412,14 +413,25 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
 function resolveRootId(
   item: ReservationListItem,
   byId: Map<string, ReservationListItem>,
+  rootCache: Map<string, string>,
 ): string {
+  const visited: string[] = []
   let current = item
   while (current.parentReservationId) {
+    const cached = rootCache.get(current.id)
+    if (cached) {
+      for (const id of visited) rootCache.set(id, cached)
+      return cached
+    }
+    visited.push(current.id)
     const parent = byId.get(current.parentReservationId)
-    if (!parent) return current.id
+    if (!parent) break
     current = parent
   }
-  return current.id
+  const rootId = current.id
+  for (const id of visited) rootCache.set(id, rootId)
+  rootCache.set(rootId, rootId)
+  return rootId
 }
 
 function pickRepresentative(members: ReservationListItem[]): ReservationListItem {

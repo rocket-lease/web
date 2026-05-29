@@ -162,9 +162,13 @@ export function ExtendReservationModal({
               : 'rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm text-text-secondary'
           }
         >
-          {requiresApproval
-            ? t('reservas.detail.extend.infoSolicitud')
-            : t('reservas.detail.extend.infoInmediato')}
+          {vehicleQuery.isLoading
+            ? t('reservas.detail.extend.infoLoading')
+            : vehicleQuery.isError
+              ? t('reservas.detail.extend.infoVehicleError')
+              : requiresApproval
+                ? t('reservas.detail.extend.infoSolicitud')
+                : t('reservas.detail.extend.infoInmediato')}
         </div>
 
         <div className="flex gap-2 justify-end">

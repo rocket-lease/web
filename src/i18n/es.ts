@@ -1012,6 +1012,10 @@ export const es = {  // --- App ---
     'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
   'reservas.detail.extend.infoSolicitud':
     'Esta extensión necesita aprobación del rentador. Vas a recibir una respuesta dentro de las próximas 24 horas.',
+  'reservas.detail.extend.infoLoading':
+    'Calculando las condiciones de la extensión...',
+  'reservas.detail.extend.infoVehicleError':
+    'No pudimos cargar las condiciones del vehículo. Si confirmás, la extensión se enviará como solicitud para que el rentador la apruebe.',
   'reservas.detail.extend.confirmInmediato': 'Extender y pagar',
   'reservas.detail.extend.confirmSolicitud': 'Enviar solicitud',
   'reservas.detail.extend.cancel': 'Cancelar',
