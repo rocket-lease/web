@@ -6,6 +6,7 @@ import { X as PhosphorX } from '@phosphor-icons/react'
 import {
   AlertOctagon,
   CalendarDays,
+  CalendarPlus,
   ChevronDown,
   CheckCircle2,
   Clock,
@@ -38,6 +39,7 @@ import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { ExtendReservationModal } from './ExtendReservationModal'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
 import {
@@ -296,9 +298,11 @@ function PostPaymentActions({
   status: GetReservationResponse['status']
 }) {
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [showExtendModal, setShowExtendModal] = useState(false)
   const cancelMutation = useCancelReservation()
 
   const canCancel = status === RESERVATION_STATUS.confirmed
+  const canExtend = status === RESERVATION_STATUS.in_progress
   const canChat =
     status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
   const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
@@ -322,6 +326,16 @@ function PostPaymentActions({
     <>
       <Separator />
       <div className="space-y-2">
+        {canExtend && (
+          <Button
+            variant="outline"
+            className="w-full border-brand-500/40 text-brand-400 hover:bg-brand-500/10"
+            onClick={() => setShowExtendModal(true)}
+          >
+            <CalendarPlus className="h-4 w-4" />
+            {t('reservas.detail.extend.cta')}
+          </Button>
+        )}
         {canCancel && (
           <Button
             variant="outline"
@@ -361,6 +375,13 @@ function PostPaymentActions({
           refundPreview={refundPreview}
           onConfirm={handleCancel}
           onCancel={() => setShowCancelModal(false)}
+        />
+      )}
+
+      {showExtendModal && (
+        <ExtendReservationModal
+          reservation={reservation}
+          onClose={() => setShowExtendModal(false)}
         />
       )}
     </>

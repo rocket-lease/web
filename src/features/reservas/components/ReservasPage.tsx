@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
@@ -259,17 +259,11 @@ export function ReservasPage() {
         )}
         {data && data.items.length === 0 && <EmptyTab role={role} />}
         {data && (
-          <div
-            className={
-              isRefetching
-                ? 'flex flex-col gap-3 opacity-50 pointer-events-none transition-opacity'
-                : 'flex flex-col gap-3 transition-opacity'
-            }
-          >
-            {data.items.map((reserva) => (
-              <ReservaCard key={reserva.id} reserva={reserva} role={role} />
-            ))}
-          </div>
+          <CollapsedReservasList
+            items={data.items}
+            role={role}
+            isRefetching={isRefetching}
+          />
         )}
         {isRefetching && (
           <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
@@ -306,18 +300,152 @@ export function ReservasPage() {
   )
 }
 
+interface CollapsedReservasListProps {
+  items: ReservationListItem[]
+  role: ReservationRole
+  isRefetching: boolean
+}
+
+/**
+ * Una "extensión" es una row de `reservations` con `parentReservationId` apuntando
+ * al alquiler original. Esta lista colapsa cada cadena (padre + extensiones del
+ * mismo bloque) en una sola card representativa, eligiendo el eslabón "más
+ * activo" según `pickRepresentative()` y usando como rango `min(startAt) →
+ * max(endAt)` de los eslabones no cancelados/rechazados.
+ *
+ * Si el rentador del eslabón viene paginado en una página y el padre en otra,
+ * cada uno se muestra como una card independiente — es solo una limitación
+ * temporal del paginado server-side, no afecta correctness.
+ */
+function CollapsedReservasList({ items, role, isRefetching }: CollapsedReservasListProps) {
+  const collapsed = useMemo(() => collapseChain(items), [items])
+  return (
+    <div
+      className={
+        isRefetching
+          ? 'flex flex-col gap-3 opacity-50 pointer-events-none transition-opacity'
+          : 'flex flex-col gap-3 transition-opacity'
+      }
+    >
+      {collapsed.map((entry) => (
+        <ReservaCard
+          key={entry.representative.id}
+          reserva={entry.representative}
+          role={role}
+          rangeStartAt={entry.rangeStartAt}
+          rangeEndAt={entry.rangeEndAt}
+        />
+      ))}
+    </div>
+  )
+}
+
+interface CollapsedEntry {
+  representative: ReservationListItem
+  rangeStartAt: string
+  rangeEndAt: string
+}
+
+/**
+ * Prioridad de "actividad" para elegir el eslabón representativo de un chain.
+ * Estados más activos primero — el primer eslabón que matchee gana.
+ */
+const CHAIN_STATUS_PRIORITY: ReservationStatus[] = [
+  RESERVATION_STATUS.in_progress,
+  RESERVATION_STATUS.confirmed,
+  RESERVATION_STATUS.pending_payment,
+  RESERVATION_STATUS.pending_approval,
+  RESERVATION_STATUS.completed,
+  RESERVATION_STATUS.cancelled,
+  RESERVATION_STATUS.rejected,
+  RESERVATION_STATUS.expired,
+]
+
+/**
+ * Agrupa una lista plana de reservas en cadenas (padre + extensiones).
+ *
+ * Una reserva con `parentReservationId == null` actúa como root. Cada hija
+ * se anexa al root resolviendo recursivamente hacia arriba. Si el root no
+ * está en el page actual (paginado server-side), la hija se trata como su
+ * propio chain (orphan) — caso raro pero correcto.
+ *
+ * @returns Un entry por chain con el representante visible, el `startAt`
+ *   mínimo y el `endAt` máximo de los eslabones no terminales.
+ */
+export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
+  const byId = new Map<string, ReservationListItem>()
+  for (const item of items) byId.set(item.id, item)
+
+  const groups = new Map<string, ReservationListItem[]>()
+  for (const item of items) {
+    const rootId = resolveRootId(item, byId)
+    const existing = groups.get(rootId)
+    if (existing) existing.push(item)
+    else groups.set(rootId, [item])
+  }
+
+  const result: CollapsedEntry[] = []
+  for (const [, members] of groups) {
+    const representative = pickRepresentative(members)
+    const activeMembers = members.filter(
+      (m) =>
+        m.status !== RESERVATION_STATUS.cancelled &&
+        m.status !== RESERVATION_STATUS.rejected &&
+        m.status !== RESERVATION_STATUS.expired,
+    )
+    const rangeSource = activeMembers.length > 0 ? activeMembers : members
+    const rangeStartAt = rangeSource.reduce(
+      (min, m) => (m.startAt < min ? m.startAt : min),
+      rangeSource[0].startAt,
+    )
+    const rangeEndAt = rangeSource.reduce(
+      (max, m) => (m.endAt > max ? m.endAt : max),
+      rangeSource[0].endAt,
+    )
+    result.push({ representative, rangeStartAt, rangeEndAt })
+  }
+
+  result.sort((a, b) => b.rangeStartAt.localeCompare(a.rangeStartAt))
+  return result
+}
+
+function resolveRootId(
+  item: ReservationListItem,
+  byId: Map<string, ReservationListItem>,
+): string {
+  let current = item
+  while (current.parentReservationId) {
+    const parent = byId.get(current.parentReservationId)
+    if (!parent) return current.id
+    current = parent
+  }
+  return current.id
+}
+
+function pickRepresentative(members: ReservationListItem[]): ReservationListItem {
+  for (const status of CHAIN_STATUS_PRIORITY) {
+    const match = members.find((m) => m.status === status)
+    if (match) return match
+  }
+  return members[0]
+}
+
 interface ReservaCardProps {
   reserva: ReservationListItem
   role: ReservationRole
+  rangeStartAt?: string
+  rangeEndAt?: string
 }
 
 /**
  * Card de listado. La contraparte mostrada depende del rol: para conductor,
  * el rentador; para rentador, el conductor.
  */
-function ReservaCard({ reserva, role }: ReservaCardProps) {
+function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
   const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
+  const startAt = rangeStartAt ?? reserva.startAt
+  const endAt = rangeEndAt ?? reserva.endAt
 
   const canHaveChat =
     reserva.status === RESERVATION_STATUS.confirmed ||
@@ -361,14 +489,14 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
           <CalendarDays className="h-3.5 w-3.5 text-text-muted shrink-0" />
           <span className="truncate">
             <span className="font-semibold text-text-primary">
-              {fmt.dayMonth(reserva.startAt)}
+              {fmt.dayMonth(startAt)}
             </span>{' '}
-            {fmt.time(reserva.startAt)}
+            {fmt.time(startAt)}
             <ArrowRight className="inline h-3 w-3 mx-1 text-text-muted align-text-bottom" />
             <span className="font-semibold text-text-primary">
-              {fmt.dayMonth(reserva.endAt)}
+              {fmt.dayMonth(endAt)}
             </span>{' '}
-            {fmt.time(reserva.endAt)}
+            {fmt.time(endAt)}
           </span>
         </div>
         <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">

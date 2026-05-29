@@ -1002,6 +1002,39 @@ export const es = {  // --- App ---
   'paymentMethods.form.walletProvider': 'Billetera',
   'paymentMethods.form.walletAlias': 'Alias / CVU',
   'paymentMethods.form.cancel': 'Cancelar',
+
+  'reservas.detail.extend.cta': 'Extender alquiler',
+  'reservas.detail.extend.modalTitle': 'Extender alquiler',
+  'reservas.detail.extend.currentEndAt': 'Devolución actual',
+  'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
+  'reservas.detail.extend.totalPreview': 'Costo estimado',
+  'reservas.detail.extend.infoInmediato':
+    'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
+  'reservas.detail.extend.infoSolicitud':
+    'Esta extensión necesita aprobación del rentador. Vas a recibir una respuesta dentro de las próximas 24 horas.',
+  'reservas.detail.extend.confirmInmediato': 'Extender y pagar',
+  'reservas.detail.extend.confirmSolicitud': 'Enviar solicitud',
+  'reservas.detail.extend.cancel': 'Cancelar',
+  'reservas.detail.extend.submitting': 'Enviando...',
+  'reservas.detail.extend.success.inmediato':
+    'Extensión aplicada. Estamos procesando el pago.',
+  'reservas.detail.extend.success.solicitud':
+    'Solicitud enviada. El rentador tiene 24 horas para responder.',
+  'reservas.detail.extend.error.invalidEndAt':
+    'La nueva fecha debe ser posterior a la devolución actual.',
+  'reservas.detail.extend.error.generic':
+    'No pudimos procesar la extensión. Intentalo nuevamente.',
+
+  'reservas.approve.extensionTitle': 'Aprobar solicitud de extensión',
+  'reservas.approve.extensionSubtitle':
+    'El conductor pidió extender un alquiler en curso. Revisá las nuevas fechas antes de aprobar.',
+  'reservas.approve.extensionBody':
+    'El conductor recibirá 10 minutos para pagar la extensión. Las solicitudes solapadas se van a rechazar automáticamente.',
+
+  'reservar.errors.RESERVATION_EXTENSION_NOT_IN_PROGRESS':
+    'Solo podés extender un alquiler en curso.',
+  'reservar.errors.RESERVATION_EXTENSION_INVALID_END_AT':
+    'La nueva fecha no es válida — tiene que ser posterior a la devolución actual.',
 } as const
 
 export type I18nKey = keyof typeof es
