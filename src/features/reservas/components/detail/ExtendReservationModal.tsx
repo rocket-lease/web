@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { CalendarDays, CalendarPlus, Clock } from 'lucide-react'
+import { CalendarDays, CalendarPlus, Clock, Info } from 'lucide-react'
 import type { GetReservationResponse } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
 import { Calendar } from '@/ui/calendar'
@@ -129,17 +129,18 @@ export function ExtendReservationModal({
           </h2>
         </div>
 
-        <div className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-text-secondary">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-text-muted" />
-            <span>
-              {t('reservas.detail.extend.currentEndAt')}: {fmt.dateTime(chainEndAt)}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+          <span className="text-text-secondary">
+            {t('reservas.detail.extend.currentEndAt')}
+          </span>
+          <span className="ml-auto font-medium text-text-primary">
+            {fmt.dateTime(chainEndAt)}
+          </span>
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+          <label className="text-xs font-medium uppercase tracking-wider text-text-muted">
             {t('reservas.detail.extend.newEndAtLabel')}
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -147,7 +148,12 @@ export function ExtendReservationModal({
               type="button"
               onClick={() => { setCalendarOpen((o) => !o); setTimeOpen(false) }}
               disabled={mutation.isPending}
-              className="flex items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
+                calendarOpen
+                  ? 'border-brand-500/60 bg-brand-500/5'
+                  : 'border-white/10 hover:bg-surface-2',
+              )}
             >
               <CalendarDays className="h-4 w-4 shrink-0 text-text-muted" />
               <span>{fmtDateLabel(date)}</span>
@@ -156,7 +162,12 @@ export function ExtendReservationModal({
               type="button"
               onClick={() => { setTimeOpen((o) => !o); setCalendarOpen(false) }}
               disabled={mutation.isPending}
-              className="flex items-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-3 disabled:opacity-50"
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
+                timeOpen
+                  ? 'border-brand-500/60 bg-brand-500/5'
+                  : 'border-white/10 hover:bg-surface-2',
+              )}
             >
               <Clock className="h-4 w-4 shrink-0 text-text-muted" />
               <span>{fmtTimeLabel(time)}</span>
@@ -173,9 +184,9 @@ export function ExtendReservationModal({
             </div>
           )}
           {timeOpen && (
-            <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/8 bg-surface-2 p-2">
+            <div className="grid grid-cols-2 gap-3 pt-1">
               <div className="flex flex-col">
-                <span className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                <span className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                   {t('reservas.detail.extend.hourLabel')}
                 </span>
                 <div
@@ -192,7 +203,7 @@ export function ExtendReservationModal({
                         'w-full rounded-lg py-2 text-sm font-medium transition-colors',
                         h === selectedHour
                           ? 'bg-brand-500 text-white'
-                          : 'text-text-secondary hover:bg-surface-3',
+                          : 'text-text-secondary hover:bg-surface-2',
                       )}
                     >
                       {String(h).padStart(2, '0')}
@@ -201,7 +212,7 @@ export function ExtendReservationModal({
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                <span className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                   {t('reservas.detail.extend.minuteLabel')}
                 </span>
                 <div className="space-y-1">
@@ -214,7 +225,7 @@ export function ExtendReservationModal({
                         'w-full rounded-lg py-2 text-sm font-medium transition-colors',
                         m === selectedMinute
                           ? 'bg-brand-500 text-white'
-                          : 'text-text-secondary hover:bg-surface-3',
+                          : 'text-text-secondary hover:bg-surface-2',
                       )}
                     >
                       {String(m).padStart(2, '0')}
@@ -231,30 +242,32 @@ export function ExtendReservationModal({
           )}
         </div>
 
-        <div className="rounded-xl bg-surface-2 px-3 py-2 flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-white/8 pt-4">
           <span className="text-sm text-text-secondary">
             {t('reservas.detail.extend.totalPreview')}
           </span>
-          <span className="text-lg font-bold text-brand-400">
+          <span className="text-xl font-semibold text-text-primary">
             {fmt.currency(totalCentsPreview)}
           </span>
         </div>
 
-        <div
-          className={
-            requiresApproval
-              ? 'rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-text-secondary'
-              : 'rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm text-text-secondary'
-          }
+        <p
+          className={cn(
+            'flex items-start gap-2 text-xs leading-relaxed',
+            requiresApproval ? 'text-warning' : 'text-text-muted',
+          )}
         >
-          {vehicleQuery.isLoading
-            ? t('reservas.detail.extend.infoLoading')
-            : vehicleQuery.isError
-              ? t('reservas.detail.extend.infoVehicleError')
-              : requiresApproval
-                ? t('reservas.detail.extend.infoSolicitud')
-                : t('reservas.detail.extend.infoInmediato')}
-        </div>
+          <Info className="mt-px h-3.5 w-3.5 shrink-0" />
+          <span>
+            {vehicleQuery.isLoading
+              ? t('reservas.detail.extend.infoLoading')
+              : vehicleQuery.isError
+                ? t('reservas.detail.extend.infoVehicleError')
+                : requiresApproval
+                  ? t('reservas.detail.extend.infoSolicitud')
+                  : t('reservas.detail.extend.infoInmediato')}
+          </span>
+        </p>
 
         <div className="flex gap-2 justify-end">
           <Button
