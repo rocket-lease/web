@@ -187,7 +187,10 @@ export function RentadorView({ reservation }: RentadorViewProps) {
       )}
 
       {reservation.status === RESERVATION_STATUS.pending_approval && (
-        <ApprovalActions reservationId={reservation.id} />
+        <ApprovalActions
+          reservationId={reservation.id}
+          isExtension={!!reservation.parentReservationId}
+        />
       )}
 
       {reservation.status === RESERVATION_STATUS.confirmed && (
@@ -238,6 +241,7 @@ function RejectionReasonCard({ reason }: { reason: string }) {
 
 interface ApprovalActionsProps {
   reservationId: string
+  isExtension: boolean
 }
 
 /**
@@ -247,8 +251,12 @@ interface ApprovalActionsProps {
  * El click en "Aprobar" abre un confirm corto que recuerda al rentador
  * que se dispara la cascada de auto-rechazo. El click en "Rechazar" abre
  * un modal con textarea opcional (max 280 chars) para dejar la razón.
+ *
+ * Cuando `isExtension` es `true`, el copy del modal de aprobación y del
+ * banner informativo se ajusta para dejar claro que se trata de una
+ * solicitud de extensión de un alquiler en curso, no una reserva nueva.
  */
-function ApprovalActions({ reservationId }: ApprovalActionsProps) {
+function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
   const approveMutation = useApproveReservation()
   const rejectMutation = useRejectReservation()
   const [showRejectModal, setShowRejectModal] = useState(false)
@@ -282,7 +290,9 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
   return (
     <>
       <div className="rounded-xl bg-brand-500/10 border border-brand-500/20 px-3 py-2 text-sm text-text-secondary">
-        {t('rentador.reservas.detalle.solicitudInfo')}
+        {isExtension
+          ? t('reservas.approve.extensionSubtitle')
+          : t('rentador.reservas.detalle.solicitudInfo')}
       </div>
       <div className="flex gap-2">
         <Button
@@ -309,6 +319,7 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
       {showApproveConfirm && (
         <ApproveConfirmModal
           submitting={approveMutation.isPending}
+          isExtension={isExtension}
           onConfirm={handleApprove}
           onCancel={() => setShowApproveConfirm(false)}
         />
@@ -327,11 +338,17 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
 
 interface ApproveConfirmModalProps {
   submitting: boolean
+  isExtension: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-function ApproveConfirmModal({ submitting, onConfirm, onCancel }: ApproveConfirmModalProps) {
+function ApproveConfirmModal({
+  submitting,
+  isExtension,
+  onConfirm,
+  onCancel,
+}: ApproveConfirmModalProps) {
   useLockBodyScroll()
   return (
     <div
@@ -344,10 +361,14 @@ function ApproveConfirmModal({ submitting, onConfirm, onCancel }: ApproveConfirm
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold text-text-primary">
-          {t('rentador.reservas.aprobar.confirmTitle')}
+          {isExtension
+            ? t('reservas.approve.extensionTitle')
+            : t('rentador.reservas.aprobar.confirmTitle')}
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
-          {t('rentador.reservas.aprobar.confirmBody')}
+          {isExtension
+            ? t('reservas.approve.extensionBody')
+            : t('rentador.reservas.aprobar.confirmBody')}
         </p>
         <div className="mt-5 flex gap-2 justify-end">
           <Button variant="ghost" onClick={onCancel} disabled={submitting}>
