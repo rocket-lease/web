@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -56,6 +56,17 @@ export function ExtendReservationModal({
 
   const selectedHour = parseInt(time.split(':')[0], 10)
   const selectedMinute = parseInt(time.split(':')[1], 10)
+
+  const hoursColumnRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!timeOpen) return
+    const column = hoursColumnRef.current
+    const selected = column?.querySelector<HTMLElement>('[data-selected="true"]')
+    if (column && selected) {
+      column.scrollTop =
+        selected.offsetTop - column.clientHeight / 2 + selected.clientHeight / 2
+    }
+  }, [timeOpen])
 
   const vehicleQuery = useQuery({
     queryKey: ['vehicle', reservation.vehicle.id],
@@ -162,40 +173,54 @@ export function ExtendReservationModal({
             </div>
           )}
           {timeOpen && (
-            <div className="rounded-xl border border-white/8 bg-surface-2 p-3 space-y-3">
-              <div className="grid grid-cols-6 gap-1">
-                {Array.from({ length: 24 }, (_, h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => setTime(`${String(h).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`)}
-                    className={cn(
-                      'rounded-lg py-1.5 text-xs font-medium transition-colors',
-                      h === selectedHour
-                        ? 'bg-brand-500 text-white'
-                        : 'text-text-secondary hover:bg-surface-3',
-                    )}
-                  >
-                    {String(h).padStart(2, '0')}
-                  </button>
-                ))}
+            <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/8 bg-surface-2 p-2">
+              <div className="flex flex-col">
+                <span className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {t('reservas.detail.extend.hourLabel')}
+                </span>
+                <div
+                  ref={hoursColumnRef}
+                  className="relative max-h-40 space-y-1 overflow-y-auto pr-1"
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      data-selected={h === selectedHour}
+                      onClick={() => setTime(`${String(h).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`)}
+                      className={cn(
+                        'w-full rounded-lg py-2 text-sm font-medium transition-colors',
+                        h === selectedHour
+                          ? 'bg-brand-500 text-white'
+                          : 'text-text-secondary hover:bg-surface-3',
+                      )}
+                    >
+                      {String(h).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-4 gap-1">
-                {[0, 15, 30, 45].map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => { setTime(`${String(selectedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`); setTimeOpen(false) }}
-                    className={cn(
-                      'rounded-lg py-1.5 text-xs font-medium transition-colors',
-                      m === selectedMinute
-                        ? 'bg-brand-500 text-white'
-                        : 'text-text-secondary hover:bg-surface-3',
-                    )}
-                  >
-                    :{String(m).padStart(2, '0')}
-                  </button>
-                ))}
+              <div className="flex flex-col">
+                <span className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {t('reservas.detail.extend.minuteLabel')}
+                </span>
+                <div className="space-y-1">
+                  {[0, 15, 30, 45].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => { setTime(`${String(selectedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`); setTimeOpen(false) }}
+                      className={cn(
+                        'w-full rounded-lg py-2 text-sm font-medium transition-colors',
+                        m === selectedMinute
+                          ? 'bg-brand-500 text-white'
+                          : 'text-text-secondary hover:bg-surface-3',
+                      )}
+                    >
+                      {String(m).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
