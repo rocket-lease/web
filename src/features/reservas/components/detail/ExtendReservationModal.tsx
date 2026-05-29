@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { CalendarPlus, Clock } from 'lucide-react'
@@ -93,7 +94,7 @@ export function ExtendReservationModal({
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
       style={{ minHeight: '100dvh' }}
@@ -191,7 +192,8 @@ export function ExtendReservationModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
