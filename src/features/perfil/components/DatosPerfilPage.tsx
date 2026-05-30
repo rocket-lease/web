@@ -88,6 +88,7 @@ export function DatosPerfilPage() {
   }
 
   return (
+    <>
     <div className="flex flex-col pb-28">
       <PageHeader title={t('perfil.datos.title')} showBack />
 
@@ -221,5 +222,6 @@ export function DatosPerfilPage() {
         {isUpdating ? t('perfil.saving') : t('general.save')}
       </Button>
     </div>
+    </>
   )
 }
