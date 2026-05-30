@@ -3,7 +3,6 @@ import {
   MagnifyingGlass,
   CalendarCheck,
   Car,
-  Headset,
   Heart,
   UserCircle,
   ChartBar,
@@ -54,7 +53,6 @@ function AppLayout() {
     { to: '/mapa',        icon: MapTrifold,      label: t('nav.mapa') },
     { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
     { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
-    { to: '/soporte',     icon: Headset,         label: t('nav.soporte') },
     { to: '/perfil',      icon: UserCircle,      label: t('nav.perfil') },
   ]
 
