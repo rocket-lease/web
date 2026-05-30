@@ -184,6 +184,8 @@ describe('ReservaDetailPage (conductor) — pending_approval', () => {
       refundCents: 0,
       balanceInCents: 0,
       currency: 'ARS',
+      cancelledBy: 'conductor',
+      reputationPenalty: 0,
     })
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
@@ -247,6 +249,7 @@ describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
       makeReservation({
         status: 'confirmed',
         paidAt: '2026-05-31T10:00:00.000Z',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'FLEXIBLE',
       }),
     )
@@ -256,6 +259,8 @@ describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
       refundCents: 100000,
       balanceInCents: 100000,
       currency: 'ARS',
+      cancelledBy: 'conductor',
+      reputationPenalty: 0,
     })
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
@@ -285,6 +290,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
     getById.mockResolvedValue(
       makeReservation({
         status: 'pending_payment',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'FLEXIBLE',
       }),
     )
