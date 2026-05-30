@@ -66,6 +66,7 @@ export function PagarReservaPage() {
       <PageHeader
         title={t('reservas.pago.title')}
         showBack
+        sticky
       />
 
       <div className="px-4 py-5 space-y-6 flex-1">

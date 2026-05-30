@@ -35,7 +35,7 @@ export function SortBar({ value, onChange }: SortBarProps) {
             aria-disabled={opt.disabled}
             title={opt.hint}
             className={cn(
-              'shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 border inline-flex items-center gap-1.5',
+              'shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition duration-150 border inline-flex items-center gap-1.5',
               selected
                 ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent active:scale-95'
                 : opt.disabled

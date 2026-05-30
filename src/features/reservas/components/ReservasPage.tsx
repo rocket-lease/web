@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowRight, CalendarDays, Check, ClipboardList, Clock, Inbox, Loader2, User, X } from 'lucide-react'
+import { Bell } from '@phosphor-icons/react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -21,8 +22,8 @@ import { useReservations } from '../hooks/useReservations'
 import { useApproveReservation } from '../hooks/useApproveReservation'
 import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
-import { RoleSegmentedControl } from './RoleSegmentedControl'
 import { ConfirmationModal } from './modals/ConfirmationModal'
 import { RejectReasonModal } from './modals/RejectReasonModal'
 
@@ -71,21 +72,11 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
 
 const PAGE_SIZE = 20
 
-interface ReservasPageSearch {
-  role?: ReservationRole
-}
-
 /**
- * Panel unificado de reservas con un segmented control "Como conductor |
- * Como rentador" siempre visible. El toggle no representa una identidad —
- * es solo qué perspectiva del listado mostrar (las reservas que vos hiciste
- * vs las que te hicieron sobre tus vehículos). Por eso se muestra incluso
- * para usuarios que nunca publicaron: si entran a "Como rentador" sin tener
- * flota, el empty state los invita a publicar.
- *
- * Selección persistida en URL (`?role=owner|conductor`). El toggle es local
- * a la pantalla — no modifica `activeRole` global. La UI global del switcher
- * de rol es trabajo aparte (web#38).
+ * Panel de reservas. La perspectiva (reservas que el usuario hizo como
+ * conductor vs las que le hicieron sobre sus vehículos como rentador) se
+ * deriva del `activeRole` global: en modo rentador muestra `owner`, en modo
+ * conductor muestra `conductor`. El cambio de rol vive en el switcher global.
  *
  * Optimización smart-cache: la primera request al endpoint trae todas las
  * reservas (sin filtro de estado). Si `total <= PAGE_SIZE` (caso común),
@@ -93,11 +84,8 @@ interface ReservasPageSearch {
  * tab dispara su propia request server-side.
  */
 export function ReservasPage() {
-  const navigate = useNavigate({ from: '/reservas' })
-  const { role: roleSearch } = useSearch({
-    from: '/_app/reservas',
-  }) as ReservasPageSearch
-  const role: ReservationRole = roleSearch === 'owner' ? 'owner' : 'conductor'
+  const { activeRole } = useAuth()
+  const role: ReservationRole = activeRole === 'rentador' ? 'owner' : 'conductor'
 
   const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
@@ -182,17 +170,6 @@ export function ReservasPage() {
     setPage(1)
   }
 
-  const onRoleChange = (next: ReservationRole) => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        role: next === 'owner' ? 'owner' : undefined,
-      }),
-    })
-    setTab('all')
-    setPage(1)
-  }
-
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   const badgeLabel =
@@ -205,23 +182,28 @@ export function ReservasPage() {
       <PageHeader
         title={t('reservas.title')}
         actions={
-          solicitudesCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => onTabChange('solicitudes')}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
-              aria-label={`${badgeLabel} (${solicitudesCount})`}
+          <div className="flex items-center gap-2">
+            {solicitudesCount > 0 && (
+              <button
+                type="button"
+                onClick={() => onTabChange('solicitudes')}
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
+                aria-label={`${badgeLabel} (${solicitudesCount})`}
+              >
+                <Inbox className="h-3.5 w-3.5" />
+                <span>{badgeLabel} ({solicitudesCount})</span>
+              </button>
+            )}
+            <Link
+              to="/notificaciones"
+              aria-label={t('nav.notificaciones')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
             >
-              <Inbox className="h-3.5 w-3.5" />
-              <span>
-                {badgeLabel} ({solicitudesCount})
-              </span>
-            </button>
-          ) : undefined
+              <Bell size={22} />
+            </Link>
+          </div>
         }
       />
-
-      <RoleSegmentedControl value={role} onChange={onRoleChange} />
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">

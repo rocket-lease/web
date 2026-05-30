@@ -5,6 +5,7 @@ import { PerfilPage } from './PerfilPage'
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() } }),
+  Link: ({ children, ...rest }: { children: React.ReactNode; [key: string]: unknown }) => <a {...rest}>{children}</a>,
 }))
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
@@ -66,10 +67,10 @@ vi.mock('./OwnerReviewsSection', () => ({
 }))
 
 describe('PerfilPage', () => {
-  it('muestra el saldo de Rocketokens', () => {
+  it('muestra la fila de RocketTokens con el saldo en la sección Beneficios', () => {
     render(<PerfilPage />)
 
-    expect(screen.getByText(/Saldo disponible/i)).toBeInTheDocument()
+    expect(screen.getByText('RocketTokens')).toBeInTheDocument()
     expect(screen.getByText(/12\.500/)).toBeInTheDocument()
   })
 })

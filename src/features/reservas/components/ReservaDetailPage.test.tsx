@@ -177,7 +177,7 @@ describe('ReservaDetailPage (conductor) — pending_approval', () => {
       refundCents: 0,
       balanceInCents: 0,
       currency: 'ARS',
-      cancelledBy: 'conductor',
+      cancelledBy: 'conductor' as const,
       reputationPenalty: 0,
     })
 
@@ -252,7 +252,7 @@ describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
       refundCents: 100000,
       balanceInCents: 100000,
       currency: 'ARS',
-      cancelledBy: 'conductor',
+      cancelledBy: 'conductor' as const,
       reputationPenalty: 0,
     })
 
