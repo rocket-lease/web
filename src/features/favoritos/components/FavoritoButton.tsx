@@ -32,14 +32,7 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
         size={22}
         weight="fill"
         color={isFavorito ? '#F59E0B' : 'rgba(0,0,0,0.65)'}
-        style={{
-          filter: [
-            'drop-shadow(1px 0 0 rgba(255,255,255,0.9))',
-            'drop-shadow(-1px 0 0 rgba(255,255,255,0.9))',
-            'drop-shadow(0 1px 0 rgba(255,255,255,0.9))',
-            'drop-shadow(0 -1px 0 rgba(255,255,255,0.9))',
-          ].join(' '),
-        }}
+        style={{ filter: 'drop-shadow(0 0 1.5px white)' }}
       />
     </button>
   )
