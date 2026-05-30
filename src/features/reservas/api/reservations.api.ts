@@ -6,6 +6,7 @@ import {
   ExtendReservationResponseSchema,
   RejectReservationResponseSchema,
   ReservationsListResponseSchema,
+  CancelReservationResponseSchema,
   type ApproveReservationResponse,
   type ConfirmPickupResponse,
   type ConfirmReturnResponse,
@@ -15,6 +16,8 @@ import {
   type RejectReservationResponse,
   type ReservationsListRequest,
   type ReservationsListResponse,
+  type CancelReservationRequest,
+  type CancelReservationResponse,
 } from '@rocket-lease/contracts'
 
 /**
@@ -150,4 +153,16 @@ export async function confirmReturn(
 ): Promise<ConfirmReturnResponse> {
   const raw = await apiClient.post<unknown>('/reservations/return', { returnQrToken })
   return ConfirmReturnResponseSchema.parse(raw)
+}
+
+export async function cancelReservation(
+  reservationId: string,
+  reason?: string,
+): Promise<CancelReservationResponse> {
+  const body: CancelReservationRequest = reason ? { reason } : {}
+  const raw = await apiClient.post<unknown>(
+    `/reservations/${reservationId}/cancel-by-owner`,
+    body,
+  )
+  return CancelReservationResponseSchema.parse(raw)
 }
