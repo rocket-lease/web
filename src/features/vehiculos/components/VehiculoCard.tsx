@@ -68,7 +68,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
           {/* Auto-aceptar — bottom left */}
           {vehiculo.autoAccept && (
             <div className="absolute bottom-2.5 left-2.5">
-              <span className="flex items-center gap-1 rounded-full bg-owner/90 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-black">
+              <span className="flex h-7 items-center gap-1 rounded-full bg-owner/90 backdrop-blur-sm px-2.5 text-xs font-semibold text-black">
                 <Lightning size={11} weight="fill" />
                 {t('vehiculo.instantBook')}
               </span>
@@ -78,7 +78,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
           {/* No disponible — bottom right */}
           {!vehiculo.enabled && (
             <div className="absolute bottom-2.5 right-2.5">
-              <span className="rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white/70">
+              <span className="flex h-7 items-center rounded-full bg-black/70 backdrop-blur-sm px-2.5 text-xs font-semibold text-white/70">
                 {t('vehiculo.noDisponible')}
               </span>
             </div>
