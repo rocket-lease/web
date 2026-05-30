@@ -67,10 +67,10 @@ vi.mock('./OwnerReviewsSection', () => ({
 }))
 
 describe('PerfilPage', () => {
-  it('muestra el saldo de Rocketokens', () => {
+  it('muestra la fila de Créditos con el saldo en la sección Beneficios', () => {
     render(<PerfilPage />)
 
-    expect(screen.getByText(/Saldo disponible/i)).toBeInTheDocument()
+    expect(screen.getByText('Créditos')).toBeInTheDocument()
     expect(screen.getByText(/12\.500/)).toBeInTheDocument()
   })
 })

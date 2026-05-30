@@ -23,7 +23,7 @@ import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t, type I18nKey } from '@/i18n/es'
-import { Bell, Bank } from '@phosphor-icons/react'
+import { Bell, Bank, Coins, Tag, Trophy } from '@phosphor-icons/react'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 
 
@@ -95,7 +95,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   const handleSwitchRole = () => {
     const next = activeRole === 'rentador' ? 'conductor' : 'rentador'
     setActiveRole(next)
-    navigate({ to: next === 'rentador' ? '/dashboard' : '/buscar' })
   }
 
   const handleUploadAvatar = async () => {
@@ -194,25 +193,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
 
-        {/* Balance */}
-        {canEdit && (
-          <div className="w-full rounded-xl border border-info/20 bg-info/10 p-4 text-left">
-            <p className="text-xs font-semibold text-info">
-              {t('perfil.balance.title')}
-            </p>
-            <div className="mt-2 flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm text-text-secondary">{t('perfil.balance.subtitle')}</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {fmt.currency(profile.balanceInCents)}
-                </p>
-              </div>
-              <span className="rounded-full bg-info/15 px-3 py-1 text-xs font-medium text-info">
-                Rocketokens
-              </span>
-            </div>
-          </div>
-        )}
 
 
       </div>
@@ -297,6 +277,45 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <Settings className="h-5 w-5 shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+        </div>
+      )}
+
+      {/* Sección Beneficios */}
+      {canEdit && (
+        <div className="px-4 mt-6 mb-2 space-y-1">
+          <p className="text-xs font-medium text-text-secondary mb-3">{t('perfil.beneficios.title' as I18nKey)}</p>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/creditos' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+          >
+            <Coins size={20} className="shrink-0 text-text-secondary" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.beneficios.creditos' as I18nKey)}</span>
+            <span className="text-sm font-semibold text-info tabular-nums">{fmt.currency(profile.balanceInCents)}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/cupones' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+          >
+            <Tag size={20} className="shrink-0 text-text-secondary" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.beneficios.cupones' as I18nKey)}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/lealtad' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+          >
+            <Trophy size={20} className="shrink-0 text-text-secondary" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.beneficios.lealtad' as I18nKey)}</span>
+            <span className={`text-xs font-semibold ${levelColors[profile.level]}`}>{levelLabels[profile.level]}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
           </button>
         </div>
       )}

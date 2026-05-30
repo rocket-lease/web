@@ -101,7 +101,7 @@ export function BuscarPage() {
           <Link
             to="/notificaciones"
             aria-label={t('nav.notificaciones')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
           >
             <Bell size={22} />
           </Link>

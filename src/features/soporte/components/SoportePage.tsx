@@ -1,6 +1,7 @@
 import { Bell } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { t } from '@/i18n/es'
 import { FaqSearch } from './FaqSearch'
 import { FaqCategoryTabs } from './FaqCategoryTabs'
 import { FaqAccordion } from './FaqAccordion'
