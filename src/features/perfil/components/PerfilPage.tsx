@@ -188,8 +188,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       </div>
 
       {canEdit && selectedAvatarFile && (
-        <div className="px-4 pb-2">
-          <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar} className="w-full">
+        <div className="px-4 pb-2 flex gap-2">
+          <Button variant="outline" onClick={() => setSelectedAvatarFile(null)} disabled={isUploadingAvatar} className="flex-1">
+            Cancelar
+          </Button>
+          <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar} className="flex-1">
             <Save className="h-4 w-4" />
             {isUploadingAvatar ? t('perfil.saving') : 'Guardar foto'}
           </Button>
