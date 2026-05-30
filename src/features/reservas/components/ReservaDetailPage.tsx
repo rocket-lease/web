@@ -22,7 +22,7 @@ import { RentadorView } from './detail/RentadorView'
  */
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
-  const { role: roleSearch } = useSearch({ strict: false }) as { role?: 'conductor' | 'owner' }
+  const { role: _roleSearch } = useSearch({ strict: false }) as { role?: 'conductor' | 'owner' }
   const { user } = useAuth()
 
   const { data: reservation, isLoading, isError } = useQuery({
@@ -60,11 +60,7 @@ export function ReservaDetailPage() {
   }
 
   const perspective: 'conductor' | 'owner' =
-    roleSearch === 'owner' || roleSearch === 'conductor'
-      ? roleSearch
-      : user?.id === reservation.rentadorId
-        ? 'owner'
-        : 'conductor'
+    user?.id === reservation.rentadorId ? 'owner' : 'conductor'
 
   return (
     <div className="flex flex-col">

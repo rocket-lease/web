@@ -4,12 +4,13 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX } from '@phosphor-icons/react'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X } from 'lucide-react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X, MoreVertical } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { Skeleton } from '@/ui/skeleton'
+import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '@/ui/drawer'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { profileApi } from '@/features/perfil/api/profile.api'
@@ -26,6 +27,7 @@ import {
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
+import { useCancelReservation } from '../../hooks/useCancelReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 
 interface RentadorViewProps {
@@ -63,7 +65,12 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           {t('reservas.detail.idPrefix')}
           {reservation.id.slice(0, 8)}
         </p>
-        <ReservaStatusBadge estado={reservation.status} />
+        <div className="flex items-center gap-2">
+          <ReservaStatusBadge estado={reservation.status} />
+          {reservation.status === RESERVATION_STATUS.confirmed && (
+            <RentadorOptions reservationId={reservation.id} />
+          )}
+        </div>
       </div>
 
       <div className="card overflow-hidden">
@@ -591,6 +598,120 @@ function HoldNotice({ expiresAt }: { expiresAt: string }) {
       {expired
         ? t('rentador.reservas.detalle.holdExpirado')
         : `${t('rentador.reservas.detalle.holdActivo')} (${minutes} min)`}
+    </div>
+  )
+}
+
+function RentadorOptions({ reservationId }: { reservationId: string }) {
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  
+  return (
+    <>
+      <Drawer>
+        <DrawerTrigger asChild>
+          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-text-secondary hover:text-text-primary">
+            <MoreVertical className="h-4 w-4" />
+          </button>
+        </DrawerTrigger>
+        <DrawerContent className="p-4 pb-8 space-y-4">
+          <p className="font-semibold text-text-primary">Opciones</p>
+          <DrawerClose asChild>
+            <Button 
+              variant="outline" 
+              className="w-full border-danger/40 text-danger-400 hover:bg-danger/10 justify-start"
+              onClick={(e) => {
+                e.preventDefault()
+                setShowCancelModal(true)
+              }}
+            >
+              <X className="h-4 w-4 mr-2" />
+              {t('reservas.detail.cancel')}
+            </Button>
+          </DrawerClose>
+        </DrawerContent>
+      </Drawer>
+
+      {showCancelModal && (
+        <CancelReservationModal
+          reservationId={reservationId}
+          onClose={() => setShowCancelModal(false)}
+        />
+      )}
+    </>
+  )
+}
+
+function CancelReservationModal({ reservationId, onClose }: { reservationId: string; onClose: () => void }) {
+  const [reason, setReason] = useState('')
+  const cancelMutation = useCancelReservation()
+  useLockBodyScroll()
+
+  const handleCancel = async () => {
+    try {
+      const result = await cancelMutation.mutateAsync({ 
+        reservationId, 
+        reason: reason.trim().length > 0 ? reason.trim() : undefined 
+      })
+      if (result.reputationPenalty < 0) {
+        toast.success(`Reserva cancelada. Tu reputación bajó ${Math.abs(result.reputationPenalty)} puntos.`)
+      } else {
+        toast.success(t('reservas.detail.cancel.success'))
+      }
+      onClose()
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
+      style={{ minHeight: '100dvh' }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-lg font-bold text-text-primary">
+          {t('reservas.detail.cancel.modalTitle')}
+        </h2>
+        
+        <div className="mt-3 rounded-xl border border-warning/20 bg-warning/10 p-3 flex gap-2">
+          <AlertOctagon className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+          <p className="text-sm text-warning break-words">
+            Esta acción reembolsará al conductor y aplicará una penalización a tu reputación.
+          </p>
+        </div>
+
+        <label className="mt-4 mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
+          {t('rentador.reservas.rechazar.razonLabel')}
+        </label>
+        <textarea
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder={t('rentador.reservas.rechazar.razonPlaceholder')}
+          rows={3}
+          maxLength={280}
+          className="w-full rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500"
+          disabled={cancelMutation.isPending}
+        />
+
+        <div className="mt-5 flex gap-2 justify-end">
+          <Button variant="ghost" onClick={onClose} disabled={cancelMutation.isPending}>
+            {t('rentador.reservas.rechazar.cancelar')}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleCancel}
+            disabled={cancelMutation.isPending}
+          >
+            {cancelMutation.isPending
+              ? t('reservas.detail.cancel.canceling')
+              : t('reservas.detail.cancel.confirm')}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
