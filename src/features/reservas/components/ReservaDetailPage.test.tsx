@@ -294,6 +294,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
       makeReservation({
         status: 'pending_payment',
         cancellationPolicy: 'MODERATE',
+        startAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }),
     )
 
@@ -310,6 +311,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
         status: 'confirmed',
         cancellationPolicy: 'STRICT',
         paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        startAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }),
     )
 

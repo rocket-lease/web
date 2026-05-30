@@ -204,6 +204,7 @@ export const es = {  // --- App ---
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
   'reservas.list.pendingExtension': 'Extensión pendiente',
+  'reservas.list.extensionBadge': 'Extensión',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
@@ -399,6 +400,8 @@ export const es = {  // --- App ---
   'rentador.reservas.errorAccion': 'No pudimos completar la acción. Intentá de nuevo.',
   'rentador.reservas.aprobada': 'Solicitud aprobada',
   'rentador.reservas.rechazada': 'Solicitud rechazada',
+  'rentador.reservas.extension.aprobada': 'Extensión aprobada',
+  'rentador.reservas.extension.rechazada': 'Extensión rechazada',
   'reservas.estado.pending_approval': 'En revisión',
   'reservas.detail.pagar': 'Pagar',
   'reservas.pago.title': 'Pagar reserva',

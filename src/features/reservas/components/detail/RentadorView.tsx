@@ -17,6 +17,8 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
+import { ConfirmationModal } from '../modals/ConfirmationModal'
+import { RejectReasonModal } from '../modals/RejectReasonModal'
 import {
   getChainStartAt,
   getCommittedChainEndAt,
@@ -285,7 +287,13 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
   const handleApprove = async () => {
     try {
       await approveMutation.mutateAsync(reservationId)
-      toast.success(t('rentador.reservas.aprobada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.aprobada'
+            : 'rentador.reservas.aprobada',
+        ),
+      )
       setShowApproveConfirm(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
@@ -298,7 +306,13 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
         reservationId,
         reason: reason.trim().length > 0 ? reason.trim() : undefined,
       })
-      toast.success(t('rentador.reservas.rechazada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.rechazada'
+            : 'rentador.reservas.rechazada',
+        ),
+      )
       setShowRejectModal(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
@@ -337,9 +351,20 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
       </div>
 
       {showApproveConfirm && (
-        <ApproveConfirmModal
+        <ConfirmationModal
+          title={t(
+            isExtension
+              ? 'reservas.approve.extensionTitle'
+              : 'rentador.reservas.aprobar.confirmTitle',
+          )}
+          body={t(
+            isExtension
+              ? 'reservas.approve.extensionBody'
+              : 'rentador.reservas.aprobar.confirmBody',
+          )}
+          confirmLabel={t('rentador.reservas.aprobar.confirmar')}
+          submittingLabel={t('rentador.reservas.detalle.aprobando')}
           submitting={approveMutation.isPending}
-          isExtension={isExtension}
           onConfirm={handleApprove}
           onCancel={() => setShowApproveConfirm(false)}
         />
@@ -353,124 +378,6 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
         />
       )}
     </>
-  )
-}
-
-interface ApproveConfirmModalProps {
-  submitting: boolean
-  isExtension: boolean
-  onConfirm: () => void
-  onCancel: () => void
-}
-
-function ApproveConfirmModal({
-  submitting,
-  isExtension,
-  onConfirm,
-  onCancel,
-}: ApproveConfirmModalProps) {
-  useLockBodyScroll()
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {isExtension
-            ? t('reservas.approve.extensionTitle')
-            : t('rentador.reservas.aprobar.confirmTitle')}
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          {isExtension
-            ? t('reservas.approve.extensionBody')
-            : t('rentador.reservas.aprobar.confirmBody')}
-        </p>
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button onClick={onConfirm} disabled={submitting}>
-            {submitting
-              ? t('rentador.reservas.detalle.aprobando')
-              : t('rentador.reservas.aprobar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-interface RejectReasonModalProps {
-  submitting: boolean
-  onSubmit: (reason: string) => void
-  onCancel: () => void
-}
-
-const REJECT_REASON_MAX = 280
-
-function RejectReasonModal({ submitting, onSubmit, onCancel }: RejectReasonModalProps) {
-  const [reason, setReason] = useState('')
-  useLockBodyScroll()
-  const overLimit = reason.length > REJECT_REASON_MAX
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {t('rentador.reservas.rechazar.modalTitle')}
-        </h2>
-
-        <label className="mt-4 mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
-          {t('rentador.reservas.rechazar.razonLabel')}
-        </label>
-        <textarea
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder={t('rentador.reservas.rechazar.razonPlaceholder')}
-          rows={4}
-          maxLength={REJECT_REASON_MAX}
-          className="w-full rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500"
-          disabled={submitting}
-        />
-        <p
-          className={`mt-1 text-right text-xs ${
-            overLimit ? 'text-danger-400' : 'text-text-muted'
-          }`}
-        >
-          {t('rentador.reservas.rechazar.charCounter').replace(
-            '{count}',
-            String(reason.length),
-          )}
-        </p>
-
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => onSubmit(reason)}
-            disabled={submitting || overLimit}
-          >
-            {submitting
-              ? t('rentador.reservas.detalle.rechazando')
-              : t('rentador.reservas.rechazar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
   )
 }
 
