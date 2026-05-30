@@ -136,8 +136,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       />
 
       {/* Profile hero */}
-      <div className="px-4 py-6 flex flex-col items-center text-center gap-3">
-        <div className="relative">
+      <div className="px-4 py-5 flex items-center gap-4">
+        <div className="relative shrink-0">
           <Avatar
             src={currentAvatarSrc}
             fallback={profile.name}
@@ -158,44 +158,43 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white shadow"
+                className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-white shadow"
                 aria-label="Editar foto de perfil"
               >
-                <Pencil className="h-4 w-4" />
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             </>
           )}
         </div>
-        <div>
-          <h2 className="text-xl font-bold text-text-primary">{profile.name}</h2>
+
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-text-primary leading-tight truncate">{profile.name}</h2>
           {canEdit && (
-            <p className="text-sm text-text-muted">{profile.email}</p>
+            <p className="text-sm text-text-muted truncate mt-0.5">{profile.email}</p>
           )}
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-warning text-warning shrink-0" />
+              <span className="text-sm font-semibold text-text-primary">{profile.reputationScore}</span>
+              <span className="text-xs text-text-muted">({reviewCount})</span>
+            </div>
+            <div className="h-3.5 w-px bg-white/10" />
+            <div className="flex items-center gap-1">
+              <Award className={`h-3.5 w-3.5 shrink-0 ${levelColors[profile.level]}`} />
+              <span className={`text-xs font-semibold ${levelColors[profile.level]}`}>{levelLabels[profile.level]}</span>
+            </div>
+          </div>
         </div>
-        {canEdit && selectedAvatarFile && (
-          <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar}>
+      </div>
+
+      {canEdit && selectedAvatarFile && (
+        <div className="px-4 pb-2">
+          <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar} className="w-full">
             <Save className="h-4 w-4" />
             {isUploadingAvatar ? t('perfil.saving') : 'Guardar foto'}
           </Button>
-        )}
-
-        {/* Level + reputation */}
-        <div className="flex items-center gap-4 mt-1">
-          <div className="flex items-center gap-1.5">
-            <Award className={`h-4 w-4 ${levelColors[profile.level]}`} />
-            <span className="text-sm font-semibold text-text-primary">{levelLabels[profile.level]}</span>
-          </div>
-          <div className="h-4 w-px bg-white/10" />
-          <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-warning text-warning" />
-            <span className="text-sm font-semibold text-text-primary">{profile.reputationScore}</span>
-            <span className="text-xs text-text-muted">({reviewCount})</span>
-          </div>
         </div>
-
-
-
-      </div>
+      )}
 
       {canEdit && <Separator />}
 
