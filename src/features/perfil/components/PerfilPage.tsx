@@ -1,18 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, Link } from '@tanstack/react-router'
 import {
   ChevronRight,
   Star,
   Award,
   Settings,
-  Save,
-  Pencil,
   UserCircle,
   CreditCard,
   ArrowLeftRight,
   ShieldCheck,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -52,8 +49,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     data: profile,
     isLoading,
     isOwnProfile,
-    uploadAvatar,
-    isUploadingAvatar,
   } = useMyProfile(profileId)
   const { status: verificationStatus } = useVerificationStatus()
   const identityVerification = profile?.identityVerification
@@ -70,9 +65,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     driverLicenseVerification?.status === 'pending'
   const allVerifDone = identityVerified && licenseVerified && emailVerified
 
-  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-
   const reviewCount = useMemo(() => {
     if (!profile) return 0
     return Math.max(0, Math.round(profile.reputationScore * 10))
@@ -80,32 +72,9 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
   const canEdit = isOwnProfile || user?.id === profile?.id
 
-  const avatarPreviewUrl = useMemo(
-    () => (selectedAvatarFile ? URL.createObjectURL(selectedAvatarFile) : null),
-    [selectedAvatarFile],
-  )
-
-  useEffect(() => {
-    if (!avatarPreviewUrl) return
-    return () => URL.revokeObjectURL(avatarPreviewUrl)
-  }, [avatarPreviewUrl])
-
-  const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
-
   const handleSwitchRole = () => {
     const next = activeRole === 'rentador' ? 'conductor' : 'rentador'
     setActiveRole(next)
-  }
-
-  const handleUploadAvatar = async () => {
-    if (!selectedAvatarFile) return
-    try {
-      await uploadAvatar(selectedAvatarFile)
-      setSelectedAvatarFile(null)
-      toast.success(t('perfil.saveSuccess'))
-    } catch {
-      toast.error(t('error.default'))
-    }
   }
 
   if (isLoading || !profile) {
@@ -139,32 +108,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       <div className="px-4 py-5 flex items-center gap-4">
         <div className="relative shrink-0">
           <Avatar
-            src={currentAvatarSrc}
+            src={profile.avatarUrl}
             fallback={profile.name}
             size="xl"
             className="ring-2 ring-brand-600/40 ring-offset-2 ring-offset-surface-0"
           />
-          {canEdit && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => {
-                  setSelectedAvatarFile(event.target.files?.[0] ?? null)
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-white shadow"
-                aria-label="Editar foto de perfil"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </button>
-            </>
-          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -186,18 +134,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         </div>
       </div>
-
-      {canEdit && selectedAvatarFile && (
-        <div className="px-4 pb-2 flex gap-2">
-          <Button variant="outline" onClick={() => setSelectedAvatarFile(null)} disabled={isUploadingAvatar} className="flex-1">
-            Cancelar
-          </Button>
-          <Button onClick={handleUploadAvatar} disabled={isUploadingAvatar} className="flex-1">
-            <Save className="h-4 w-4" />
-            {isUploadingAvatar ? t('perfil.saving') : 'Guardar foto'}
-          </Button>
-        </div>
-      )}
 
       {canEdit && <Separator />}
 
