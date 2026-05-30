@@ -3,6 +3,8 @@ export const es = {  // --- App ---
   'app.tagline': 'Alquila el vehiculo que necesitas',
   'app.role.rentadorActive': 'Rentando',
   'app.role.conductorActive': 'Conduciendo',
+  'app.role.switchToRentador': 'Cambiar a modo rentador',
+  'app.role.switchToConductor': 'Cambiar a modo conductor',
 
   // --- Nav ---
   'nav.buscar': 'Buscar',

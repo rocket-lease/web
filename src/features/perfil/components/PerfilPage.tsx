@@ -11,6 +11,7 @@ import {
   Pencil,
   UserCircle,
   CreditCard,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar } from '@/ui/avatar'
@@ -47,7 +48,7 @@ interface PerfilPageProps {
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, activeRole, setActiveRole } = useAuth()
   const {
     data: profile,
     isLoading,
@@ -80,6 +81,12 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
   const currentAvatarSrc = avatarPreviewUrl ?? profile?.avatarUrl
 
+  const handleSwitchRole = () => {
+    const next = activeRole === 'rentador' ? 'conductor' : 'rentador'
+    setActiveRole(next)
+    navigate({ to: next === 'rentador' ? '/dashboard' : '/buscar' })
+  }
+
   const handleUploadAvatar = async () => {
     if (!selectedAvatarFile) return
     try {
@@ -101,7 +108,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pb-20">
       <PageHeader
         title={canEdit ? t('perfil.title') : profile.name}
         showBack={!canEdit}
@@ -306,6 +313,17 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
         </div>
+      )}
+
+      {canEdit && (
+        <button
+          type="button"
+          onClick={handleSwitchRole}
+          className="fixed bottom-24 left-1/2 z-40 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap rounded-full border border-white/10 bg-surface-3 px-6 py-3 text-sm font-semibold text-text-primary shadow-elevated backdrop-blur-md transition-transform active:scale-95"
+        >
+          <ArrowLeftRight className="h-4 w-4 text-brand-400" />
+          {t(activeRole === 'rentador' ? 'app.role.switchToConductor' : 'app.role.switchToRentador')}
+        </button>
       )}
 
     </div>

@@ -52,7 +52,7 @@ export function VehiculoDetailPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-full">
-        <PageHeader title="Detalle del vehículo" showBack />
+        <PageHeader title="Detalle del vehículo" showBack sticky />
         <div className="aspect-4/3 bg-surface-2 animate-pulse" />
         <div className="px-4 py-5 space-y-4">
           <div className="h-7 w-2/3 rounded-lg bg-surface-2 animate-pulse" />
@@ -65,7 +65,7 @@ export function VehiculoDetailPage() {
   if (isError || !vehicle) {
     return (
       <div className="flex flex-col min-h-full">
-        <PageHeader title="Detalle del vehículo" showBack />
+        <PageHeader title="Detalle del vehículo" showBack sticky />
         <div className="flex items-center justify-center flex-1 py-24">
           <p className="text-sm text-danger">{t('buscar.error')}</p>
         </div>
@@ -100,7 +100,7 @@ export function VehiculoDetailPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <PageHeader title="Detalle del vehículo" showBack />
+      <PageHeader title="Detalle del vehículo" showBack sticky />
 
       {/* Galería */}
       <div
@@ -184,7 +184,7 @@ export function VehiculoDetailPage() {
           )}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-text-muted">Tarifa</p>
+              <p className="text-xs text-text-muted">Tarifa</p>
               <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(vehicle.basePriceCents)}</p>
               <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
             </div>
@@ -289,47 +289,42 @@ export function VehiculoDetailPage() {
 
         <Separator />
         <div>
-          <p className="text-sm text-text-muted mb-2">{t('vehiculo.rules')}</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-text-muted">{t('vehiculo.rules')}</p>
+            {vehicle.reservationRuleSet && (
+              <Badge variant="secondary">{t('vehiculo.rulesActive')}</Badge>
+            )}
+          </div>
           {vehicle.reservationRuleSet ? (
-            <div className="overflow-hidden rounded-2xl border border-white/8 bg-surface-1">
-              <div className="border-b border-white/8 px-4 py-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-xs uppercase tracking-wider text-text-muted">Set de reglas</p>
-                  </div>
-                  <Badge variant="secondary">{t('vehiculo.rulesActive')}</Badge>
-                </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-5">
+              <div className="col-span-2">
+                <dt className="text-xs text-text-secondary">{t('reservationRules.cancellationPolicy')}</dt>
+                <dd className="mt-1 text-sm font-semibold text-text-primary">
+                  {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
+                </dd>
+                <dd className="mt-0.5 text-xs text-text-secondary">
+                  {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
+                </dd>
               </div>
-              <div className="grid gap-3 p-4 sm:grid-cols-2">
-                <div className="rounded-xl bg-surface-2 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.cancellationPolicy')}</p>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">
-                    {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
-                  </p>
-                  <p className="mt-1 text-xs text-text-secondary">
-                    {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-surface-2 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.deposit')}</p>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">
-                    {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-surface-2 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.maxKilometrage')}</p>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">
-                    {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
-                  </p>
-                </div>
-                <div className="rounded-xl bg-surface-2 p-3">
-                  <p className="text-xs uppercase tracking-wider text-text-muted">{t('reservationRules.rentalTime')}</p>
-                  <p className="mt-1 text-sm font-semibold text-text-primary">
-                    {formatRentalTimeConstraints(vehicle.reservationRuleSet.rentalTimeConstraints)}
-                  </p>
-                </div>
+              <div>
+                <dt className="text-xs text-text-secondary">{t('reservationRules.deposit')}</dt>
+                <dd className="mt-1 text-sm font-semibold text-text-primary">
+                  {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
+                </dd>
               </div>
-            </div>
+              <div>
+                <dt className="text-xs text-text-secondary">{t('reservationRules.maxKilometrage')}</dt>
+                <dd className="mt-1 text-sm font-semibold text-text-primary">
+                  {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
+                </dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs text-text-secondary">{t('reservationRules.rentalTime')}</dt>
+                <dd className="mt-1 text-sm font-semibold text-text-primary">
+                  {formatRentalTimeConstraints(vehicle.reservationRuleSet.rentalTimeConstraints)}
+                </dd>
+              </div>
+            </dl>
           ) : vehicle.reservationRuleSetId ? (
             <div className="rounded-2xl border border-warning/20 bg-warning/10 px-4 py-4">
               <p className="text-sm font-medium text-warning">{t('vehiculo.rulesUnavailableTitle')}</p>

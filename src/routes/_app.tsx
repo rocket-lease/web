@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 import {
   MagnifyingGlass,
   CalendarCheck,
@@ -22,9 +22,21 @@ export const Route = createFileRoute('/_app')({
   component: AppLayout,
 })
 
+/**
+ * Rutas de tarea (detalle de vehículo y flujo de reserva) que se muestran sin
+ * el chrome global de navegación: header superior y bottom nav se ocultan para
+ * dejar la pantalla enfocada en la tarea, con el header propio de cada página.
+ */
+function isImmersiveRoute(pathname: string): boolean {
+  return pathname.startsWith('/vehiculos/')
+}
+
 function AppLayout() {
   const { activeRole } = useAuth()
   const queryClient = useQueryClient()
+  const immersive = useRouterState({
+    select: (s) => isImmersiveRoute(s.location.pathname),
+  })
 
   const handleRefresh = async () => {
     // Re-sync auth so a stale session does not silently keep showing logged-out UI.
@@ -54,27 +66,28 @@ function AppLayout() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="flex min-h-dvh flex-col bg-surface-0">
-        {/* App top bar */}
-        <header
-          className="flex items-center justify-between px-5 py-3 bg-surface-0/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
-        >
-          <img src="/logo-symbol.png" alt="Rocket Lease" className="h-8 w-auto" />
-          <Link
-            to="/notificaciones"
-            aria-label={t('nav.notificaciones')}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
+        {!immersive && (
+          <header
+            className="flex items-center justify-between px-5 py-3 bg-surface-0/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
           >
-            <Bell size={22} />
-          </Link>
-        </header>
+            <img src="/logo-symbol.png" alt="Rocket Lease" className="h-8 w-auto" />
+            <Link
+              to="/notificaciones"
+              aria-label={t('nav.notificaciones')}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
+            >
+              <Bell size={22} />
+            </Link>
+          </header>
+        )}
 
         <VerificationBanner />
 
-        <main className="flex-1 pb-24">
+        <main className={immersive ? 'flex-1' : 'flex-1 pb-24'}>
           <Outlet />
         </main>
-        <BottomNav tabs={tabs} activeRole={role} />
+        {!immersive && <BottomNav tabs={tabs} activeRole={role} />}
       </div>
     </PullToRefresh>
   )

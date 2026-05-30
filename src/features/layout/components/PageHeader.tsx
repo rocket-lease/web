@@ -10,17 +10,21 @@ interface PageHeaderProps {
   actions?: React.ReactNode
   icon?: React.ReactNode
   className?: string
+  /** Fija el header al tope del viewport al scrollear. Útil en pantallas inmersivas sin header global. */
+  sticky?: boolean
 }
 
-export function PageHeader({ title, subtitle, showBack = false, onBack, actions, icon, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, showBack = false, onBack, actions, icon, className, sticky = false }: PageHeaderProps) {
   const router = useRouter()
 
   return (
     <header
       className={cn(
         'flex items-center gap-3 px-4 py-4 border-b border-white/6 bg-surface-0',
+        sticky && 'sticky top-0 z-40 bg-surface-0/90 backdrop-blur-md',
         className,
       )}
+      style={sticky ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' } : undefined}
     >
       {showBack && (
         <button
