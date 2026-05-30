@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 import { Gear, Users, MapPin, Lightning, Sparkle } from '@phosphor-icons/react'
-import { Badge } from '@/ui/badge'
 import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
@@ -10,23 +9,15 @@ import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 
 export function VehiculoCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card', className)}>
-      <Skeleton className="aspect-video w-full rounded-none" />
-      <div className="p-5 space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5 flex-1 min-w-0">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/3" />
-          </div>
-          <Skeleton className="h-5 w-16 rounded-full shrink-0" />
+    <div className={cn('', className)}>
+      <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+      <div className="mt-2.5 space-y-1.5">
+        <div className="flex items-start justify-between gap-2">
+          <Skeleton className="h-3.5 w-2/3" />
+          <Skeleton className="h-3.5 w-1/5 shrink-0" />
         </div>
+        <Skeleton className="h-3 w-1/2" />
         <Skeleton className="h-3 w-2/5" />
-        <Skeleton className="h-7 w-1/3" />
-        <div className="flex items-center gap-3 pt-1 border-t border-white/5">
-          <Skeleton className="h-3 w-12" />
-          <Skeleton className="h-3 w-8" />
-          <Skeleton className="h-3 w-16" />
-        </div>
       </div>
     </div>
   )
@@ -44,107 +35,99 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
   const days = from && to ? Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) : 0
 
   return (
-    <article className={cn('relative overflow-hidden rounded-xl bg-surface-1 border border-white/6 shadow-card transition-transform duration-150 active:scale-[0.97]', className)}>
+    <article className={cn('relative', className)}>
       <Link
         to="/vehiculos/$id"
         params={{ id: vehiculo.id }}
-        className="block"
+        className="block active:scale-[0.98] transition-transform duration-150"
       >
         {/* Foto */}
-        <div className="relative aspect-video overflow-hidden bg-surface-2">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-2">
           <img
             src={coverPhoto}
             alt={`${vehiculo.brand} ${vehiculo.model}`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
-          {vehiculo.isPromoted && (
-            <div className="absolute left-2 top-2">
-              <Badge variant="warning" className="text-[10px] gap-0.5">
-                <Sparkle size={10} weight="fill" />
+
+          {/* Badges overlay — top left */}
+          <div className="absolute left-2.5 top-2.5 flex flex-col gap-1.5">
+            {vehiculo.isPromoted && (
+              <span className="flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
+                <Sparkle size={11} weight="fill" className="text-warning" />
                 {t('promocionar.active')}
-              </Badge>
-            </div>
-          )}
-          {vehiculo.isAccessible && (
-            <div className="absolute left-2 bottom-2">
-              <Badge variant="secondary" className="text-[10px]">Accesible</Badge>
-            </div>
-          )}
+              </span>
+            )}
+            {vehiculo.isAccessible && (
+              <span className="rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
+                Accesible
+              </span>
+            )}
+          </div>
+
+          {/* Auto-aceptar — bottom left */}
           {vehiculo.autoAccept && (
-            <div className="absolute right-2 bottom-2">
-              <span className="flex items-center gap-1 rounded-full bg-owner/90 backdrop-blur-sm px-2 py-0.5 text-[10px] font-semibold text-black">
-                <Lightning size={10} weight="fill" />
+            <div className="absolute bottom-2.5 left-2.5">
+              <span className="flex items-center gap-1 rounded-full bg-owner/90 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-black">
+                <Lightning size={11} weight="fill" />
                 {t('vehiculo.instantBook')}
+              </span>
+            </div>
+          )}
+
+          {/* No disponible — bottom right */}
+          {!vehiculo.enabled && (
+            <div className="absolute bottom-2.5 right-2.5">
+              <span className="rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white/70">
+                {t('vehiculo.noDisponible')}
               </span>
             </div>
           )}
         </div>
 
-        {/* Info */}
-        <div className="p-5 space-y-4">
-
-          {/* Nombre + disponibilidad */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-bold text-base text-text-primary leading-tight truncate">
-                {vehiculo.brand} {vehiculo.model}
-              </p>
-              <p className="text-xs text-text-muted mt-0.5">{vehiculo.year} · {vehiculo.color}</p>
+        {/* Caption */}
+        <div className="mt-2.5">
+          {/* Fila 1: título + precio */}
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="font-semibold text-sm text-text-primary leading-snug truncate">
+              {vehiculo.brand} {vehiculo.model} · {vehiculo.year}
+            </p>
+            <div className="shrink-0 text-right">
+              {days > 0 ? (
+                <span className="text-sm font-semibold text-text-primary">
+                  {fmt.currency(vehiculo.basePriceCents * days)}
+                  <span className="text-xs font-normal text-text-muted"> / {days === 1 ? '1 día' : `${days} días`}</span>
+                </span>
+              ) : (
+                <span className="text-sm font-semibold text-text-primary">
+                  {fmt.currency(vehiculo.basePriceCents)}
+                  <span className="text-xs font-normal text-text-muted"> / {t('vehiculo.perDay')}</span>
+                </span>
+              )}
             </div>
-            <Badge
-              variant={vehiculo.enabled ? 'success' : 'danger'}
-              className="shrink-0 text-[10px] mt-0.5"
-            >
-              {vehiculo.enabled ? t('vehiculo.disponible') : t('vehiculo.noDisponible')}
-            </Badge>
           </div>
 
-          {/* Ubicación */}
-          <div className="flex items-center gap-1 text-xs text-text-muted">
-            <MapPin size={11} weight="fill" />
-            <span>{vehiculo.city}, {vehiculo.province}</span>
-          </div>
+          {/* Fila 2: ubicación */}
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-text-muted">
+            <MapPin size={11} weight="fill" className="shrink-0" />
+            {vehiculo.city}, {vehiculo.province}
+          </p>
 
-          {/* Rentador */}
-          {vehiculo.owner?.name && (
-            <span className="text-xs text-text-muted">por {vehiculo.owner.name}</span>
-          )}
-
-          {/* Precio */}
-          <div className="flex items-baseline gap-1">
-            {days > 0 ? (
-              <>
-                <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents * days)}</span>
-                <span className="text-xs text-text-muted">{days === 1 ? '1 día' : `${days} días`}</span>
-              </>
-            ) : (
-              <>
-                <span className="text-2xl font-bold text-text-primary">{fmt.currency(vehiculo.basePriceCents)}</span>
-                <span className="text-xs text-text-muted">{t('vehiculo.perDay')}</span>
-              </>
-            )}
-          </div>
-
-          {/* Características */}
-          <div className="flex items-center gap-3 pt-1 border-t border-white/5 text-xs text-text-muted">
-            <span className="flex items-center gap-1">
-              <Gear size={12} weight="regular" />
-              {vehiculo.transmission === 'Manual' ? t('vehiculo.manual') : t('vehiculo.automatic')}
-            </span>
-            <span className="h-3 w-px bg-white/10" />
-            <span className="flex items-center gap-1">
-              <Users size={12} weight="regular" />
-              {vehiculo.passengers}
-            </span>
-            <span className="h-3 w-px bg-white/10" />
-            <span>{vehiculo.mileage.toLocaleString('es-AR')} km</span>
-          </div>
-
+          {/* Fila 3: specs */}
+          <p className="mt-0.5 text-xs text-text-muted flex items-center gap-1.5">
+            <Gear size={11} />
+            {vehiculo.transmission === 'Manual' ? t('vehiculo.manual') : t('vehiculo.automatic')}
+            <span className="text-white/15">·</span>
+            <Users size={11} />
+            {vehiculo.passengers}
+            <span className="text-white/15">·</span>
+            {vehiculo.mileage.toLocaleString('es-AR')} km
+          </p>
         </div>
       </Link>
 
-      <div className="absolute right-1 top-1 z-10">
+      {/* Favorito — overlay top right de la foto */}
+      <div className="absolute right-2.5 top-2.5 z-10">
         <FavoritoButton vehicleId={vehiculo.id} />
       </div>
     </article>
