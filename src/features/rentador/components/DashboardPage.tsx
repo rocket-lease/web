@@ -1,4 +1,4 @@
-import { TrendUp, CalendarCheck, Car, Star, Plus, Bell, ArrowRight } from '@phosphor-icons/react'
+import { TrendUp, CalendarCheck, Star, Plus, Bell, ArrowRight } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
 import { Card, CardContent } from '@/ui/card'

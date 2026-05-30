@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, Link } from '@tanstack/react-router'
 import {
   ChevronRight,
@@ -11,7 +11,6 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { Avatar } from '@/ui/avatar'
-import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
