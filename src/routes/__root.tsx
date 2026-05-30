@@ -16,10 +16,10 @@ function RootLayout() {
         <Outlet />
         <PWAUpdateToast />
         <Toaster
-          position="top-center"
+          position="bottom-center"
           richColors
-          offset={'calc(env(safe-area-inset-top, 0px) + 16px)'}
-          mobileOffset={'calc(env(safe-area-inset-top, 0px) + 16px)'}
+          offset={'calc(env(safe-area-inset-bottom, 0px) + 88px)'}
+          mobileOffset={'calc(env(safe-area-inset-bottom, 0px) + 88px)'}
           toastOptions={{
             style: {
               background: 'var(--color-surface-2)',
