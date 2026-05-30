@@ -215,6 +215,7 @@ export function DatosPerfilPage() {
               min={0}
               max={150000}
               step={5000}
+              className="-mb-3"
             />
             <div className="flex justify-between px-1">
               <span className="text-[10px] text-text-muted">Sin límite</span>
