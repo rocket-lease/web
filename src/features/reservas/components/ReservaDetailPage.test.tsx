@@ -70,6 +70,9 @@ const RES = '44444444-4444-4444-4444-444444444444'
 const getById = vi.mocked(reservarApi.getById)
 const cancel = vi.mocked(reservarApi.cancel)
 
+const HOUR_MS = 60 * 60 * 1000
+const DAY_MS = 24 * HOUR_MS
+
 interface MakeOpts {
   status?:
     | 'pending_approval'
@@ -129,6 +132,10 @@ function makeReservation(opts: MakeOpts = {}) {
     vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
+}
+
+function isoFromNow(offsetMs: number) {
+  return new Date(Date.now() + offsetMs).toISOString()
 }
 
 beforeEach(() => {
@@ -294,6 +301,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
       makeReservation({
         status: 'pending_payment',
         cancellationPolicy: 'MODERATE',
+        startAt: isoFromNow(3 * DAY_MS),
       }),
     )
 
@@ -309,7 +317,8 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
       makeReservation({
         status: 'confirmed',
         cancellationPolicy: 'STRICT',
-        paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        startAt: isoFromNow(5 * DAY_MS),
+        paidAt: isoFromNow(-2 * DAY_MS),
       }),
     )
 
@@ -359,6 +368,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
       makeReservation({
         status: 'pending_payment',
         cancellationPolicy: null,
+        startAt: isoFromNow(3 * DAY_MS),
       }),
     )
 

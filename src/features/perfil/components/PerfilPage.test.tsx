@@ -69,7 +69,7 @@ describe('PerfilPage', () => {
   it('muestra el saldo de Rocketokens', () => {
     render(<PerfilPage />)
 
-    expect(screen.getByText(/Saldo disponible/i)).toBeInTheDocument()
+    expect(screen.getByText(/^Saldo disponible$/i)).toBeInTheDocument()
     expect(screen.getByText(/12\.500/)).toBeInTheDocument()
   })
 })
