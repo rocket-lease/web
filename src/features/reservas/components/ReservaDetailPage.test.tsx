@@ -301,7 +301,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
         status: 'pending_payment',
         startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'MODERATE',
-      }),
+      })
     )
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
@@ -318,7 +318,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
         cancellationPolicy: 'STRICT',
         startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      }),
+      })
     )
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
