@@ -203,6 +203,7 @@ export const es = {  // --- App ---
 
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
+  'reservas.list.pendingExtension': 'Extensión pendiente',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
@@ -1005,9 +1006,18 @@ export const es = {  // --- App ---
 
   'reservas.detail.extend.cta': 'Extender alquiler',
   'reservas.detail.extend.modalTitle': 'Extender alquiler',
+  'reservas.detail.extend.modifyTitle': 'Modificar extensión',
+  'reservas.detail.extend.saveChanges': 'Guardar cambios',
+  'reservas.detail.extend.cancelPedido.cta': 'Cancelar pedido pendiente',
+  'reservas.detail.extend.cancelPedido.success': 'Pedido de extensión cancelado',
   'reservas.detail.extend.currentEndAt': 'Devolución actual',
   'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
-  'reservas.detail.extend.totalPreview': 'Costo estimado',
+  'reservas.detail.extend.hourLabel': 'Hora',
+  'reservas.detail.extend.minuteLabel': 'Min',
+  'reservas.detail.extend.totalPreview': 'Costo',
+  'reservas.detail.extend.pendingApproval': 'Extensión pendiente de aprobación',
+  'reservas.detail.extend.pendingPayment': 'Extensión pendiente de pago',
+  'reservas.detail.extend.pendingUntil': 'hasta',
   'reservas.detail.extend.infoInmediato':
     'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
   'reservas.detail.extend.infoSolicitud':
@@ -1028,6 +1038,9 @@ export const es = {  // --- App ---
     'La nueva fecha debe ser posterior a la devolución actual.',
   'reservas.detail.extend.error.generic':
     'No pudimos procesar la extensión. Intentalo nuevamente.',
+  'reservas.detail.extend.error.vehicleNotAvailable':
+    'El vehículo no está disponible en esas fechas. Elegí una fecha anterior.',
+  'reservas.detail.extend.availableUntil': 'Disponible hasta el',
 
   'reservas.approve.extensionTitle': 'Aprobar solicitud de extensión',
   'reservas.approve.extensionSubtitle':

@@ -118,6 +118,26 @@ export async function extendReservation(
   return ExtendReservationResponseSchema.parse(raw)
 }
 
+/**
+ * Modifica una extensión todavía pendiente cambiando su fecha de devolución.
+ *
+ * @param extensionId - UUID del eslabón de extensión pendiente a modificar.
+ * @param newEndAt - Nueva fecha de devolución ISO 8601 UTC.
+ * @returns Respuesta validada con el estado y total recalculados.
+ * @throws ProblemDetails si la API rechaza la acción (403, 409, etc.).
+ */
+export async function modifyExtension(
+  extensionId: string,
+  newEndAt: string,
+): Promise<ExtendReservationResponse> {
+  const body: ExtendReservationRequest = { newEndAt }
+  const raw = await apiClient.patch<unknown>(
+    `/reservations/${extensionId}/extend`,
+    body,
+  )
+  return ExtendReservationResponseSchema.parse(raw)
+}
+
 export async function confirmPickup(
   voucherToken: string,
 ): Promise<ConfirmPickupResponse> {

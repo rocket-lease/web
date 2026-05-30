@@ -43,6 +43,12 @@ import { ExtendReservationModal } from './ExtendReservationModal'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
 import {
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getCommittedChainTotalCents,
+  getPendingExtension,
+} from '../../utils/chain'
+import {
   getCancellationRefundSummary,
   getEffectiveReservationRules,
   type EffectiveReservationRules,
@@ -66,15 +72,16 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     vehicle,
     rentador,
     status,
-    startAt,
-    endAt,
-    totalCents,
     paymentMethod,
     holdExpiresAt,
     contractAcceptedAt,
     rejectionReason,
     voucherToken,
   } = reservation
+  const displayStartAt = getChainStartAt(reservation)
+  const displayEndAt = getCommittedChainEndAt(reservation)
+  const displayTotalCents = getCommittedChainTotalCents(reservation)
+  const pendingExtension = getPendingExtension(reservation)
   const showVoucher = status === RESERVATION_STATUS.confirmed
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
@@ -160,16 +167,29 @@ export function ConductorView({ reservation }: ConductorViewProps) {
               <CalendarDays className="h-4 w-4 text-brand-400" />
               <span className="text-xs text-text-muted">{t('reservas.detail.pickup')}</span>
             </div>
-            <p className="font-semibold text-text-primary">{fmt.dateTime(startAt)}</p>
+            <p className="font-semibold text-text-primary">{fmt.dateTime(displayStartAt)}</p>
           </div>
           <div className="flex-1 rounded-xl bg-surface-2 p-3">
             <div className="flex items-center gap-2 mb-1">
               <CalendarDays className="h-4 w-4 text-brand-400" />
               <span className="text-xs text-text-muted">{t('reservas.detail.return')}</span>
             </div>
-            <p className="font-semibold text-text-primary">{fmt.dateTime(endAt)}</p>
+            <p className="font-semibold text-text-primary">{fmt.dateTime(displayEndAt)}</p>
           </div>
         </div>
+        {pendingExtension && (
+          <p className="flex items-center gap-2 text-xs text-warning">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {pendingExtension.status === RESERVATION_STATUS.pending_payment
+                ? t('reservas.detail.extend.pendingPayment')
+                : t('reservas.detail.extend.pendingApproval')}
+              {' · '}
+              {t('reservas.detail.extend.pendingUntil')}{' '}
+              {fmt.dayMonth(pendingExtension.endAt)}
+            </span>
+          </p>
+        )}
       </div>
 
       <Separator />
@@ -202,7 +222,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       <div className="flex items-center justify-between">
         <p className="font-semibold text-text-primary">{t('reservas.detail.total')}</p>
-        <p className="text-xl font-bold text-brand-400">{fmt.currency(totalCents)}</p>
+        <p className="text-xl font-bold text-brand-400">{fmt.currency(displayTotalCents)}</p>
       </div>
 
       <CancellationPolicyCard reservation={reservation} />

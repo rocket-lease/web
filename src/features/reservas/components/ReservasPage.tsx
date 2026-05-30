@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
+import { ArrowRight, CalendarDays, ClipboardList, Clock, Inbox, Loader2, User } from 'lucide-react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -334,6 +334,8 @@ function CollapsedReservasList({ items, role, isRefetching }: CollapsedReservasL
           role={role}
           rangeStartAt={entry.rangeStartAt}
           rangeEndAt={entry.rangeEndAt}
+          rangeTotalCents={entry.rangeTotalCents}
+          hasPendingExtension={entry.hasPendingExtension}
         />
       ))}
     </div>
@@ -344,7 +346,20 @@ interface CollapsedEntry {
   representative: ReservationListItem
   rangeStartAt: string
   rangeEndAt: string
+  rangeTotalCents: number
+  hasPendingExtension: boolean
 }
+
+const COMMITTED_STATUSES: ReservationStatus[] = [
+  RESERVATION_STATUS.confirmed,
+  RESERVATION_STATUS.in_progress,
+  RESERVATION_STATUS.completed,
+]
+
+const PENDING_STATUSES: ReservationStatus[] = [
+  RESERVATION_STATUS.pending_approval,
+  RESERVATION_STATUS.pending_payment,
+]
 
 /**
  * Prioridad de "actividad" para elegir el eslabón representativo de un chain.
@@ -394,7 +409,15 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
         m.status !== RESERVATION_STATUS.rejected &&
         m.status !== RESERVATION_STATUS.expired,
     )
-    const rangeSource = activeMembers.length > 0 ? activeMembers : members
+    const committedMembers = members.filter((m) =>
+      COMMITTED_STATUSES.includes(m.status),
+    )
+    const rangeSource =
+      committedMembers.length > 0
+        ? committedMembers
+        : activeMembers.length > 0
+          ? activeMembers
+          : members
     const rangeStartAt = rangeSource.reduce(
       (min, m) => (m.startAt < min ? m.startAt : min),
       rangeSource[0].startAt,
@@ -403,7 +426,18 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
       (max, m) => (m.endAt > max ? m.endAt : max),
       rangeSource[0].endAt,
     )
-    result.push({ representative, rangeStartAt, rangeEndAt })
+    const rangeTotalCents = rangeSource.reduce((sum, m) => sum + m.totalCents, 0)
+    const hasPendingExtension = members.some(
+      (m) =>
+        m.parentReservationId !== null && PENDING_STATUSES.includes(m.status),
+    )
+    result.push({
+      representative,
+      rangeStartAt,
+      rangeEndAt,
+      rangeTotalCents,
+      hasPendingExtension,
+    })
   }
 
   result.sort((a, b) => b.rangeStartAt.localeCompare(a.rangeStartAt))
@@ -447,17 +481,20 @@ interface ReservaCardProps {
   role: ReservationRole
   rangeStartAt?: string
   rangeEndAt?: string
+  rangeTotalCents?: number
+  hasPendingExtension?: boolean
 }
 
 /**
  * Card de listado. La contraparte mostrada depende del rol: para conductor,
  * el rentador; para rentador, el conductor.
  */
-function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt }: ReservaCardProps) {
+function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents, hasPendingExtension }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
   const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
   const startAt = rangeStartAt ?? reserva.startAt
   const endAt = rangeEndAt ?? reserva.endAt
+  const totalCents = rangeTotalCents ?? reserva.totalCents
 
   const canHaveChat =
     reserva.status === RESERVATION_STATUS.confirmed ||
@@ -511,13 +548,19 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt }: ReservaCardPro
             {fmt.time(endAt)}
           </span>
         </div>
+        {hasPendingExtension && (
+          <div className="flex items-center gap-1 text-[11px] text-warning">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>{t('reservas.list.pendingExtension')}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
           <div className="flex items-center gap-2 min-w-0">
             <User className="h-3.5 w-3.5 text-text-muted shrink-0" />
             <span className="truncate">{counterpart.name}</span>
           </div>
           <span className="font-bold text-brand-400 shrink-0 text-sm">
-            {fmt.currency(reserva.totalCents)}
+            {fmt.currency(totalCents)}
           </span>
         </div>
       </div>

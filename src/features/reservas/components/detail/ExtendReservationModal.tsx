@@ -1,17 +1,28 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { CalendarPlus, Clock } from 'lucide-react'
-import type { GetReservationResponse } from '@rocket-lease/contracts'
+import { CalendarDays, CalendarPlus, Clock, Info } from 'lucide-react'
+import type { GetReservationResponse, ProblemDetails } from '@rocket-lease/contracts'
+import { ErrorCodes } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
-import { Input } from '@/ui/input'
+import { Calendar } from '@/ui/calendar'
+import { cn } from '@/lib/utils'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
+import {
+  getChainEndAt,
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getPendingExtension,
+} from '../../utils/chain'
 import { useExtendReservation } from '../../hooks/useExtendReservation'
+import { useModifyExtension } from '../../hooks/useModifyExtension'
+import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 
 interface ExtendReservationModalProps {
   reservation: GetReservationResponse
@@ -24,7 +35,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
  * Modal para solicitar la extensión de una reserva en curso.
  *
  * Inputs:
- * - Date + time picker para el nuevo `endAt`. Default = `endAt` actual + 1 día.
+ * - Date picker (Calendar inline) + time picker nativo para el nuevo `endAt`.
+ *   Default = `endAt` actual + 1 día.
  *
  * Muestra:
  * - Total estimado client-side con `estimateReservationTotalCents()` usando
@@ -41,14 +53,41 @@ export function ExtendReservationModal({
   onClose,
 }: ExtendReservationModalProps) {
   useLockBodyScroll()
-  const mutation = useExtendReservation()
+  const extendMutation = useExtendReservation()
+  const modifyMutation = useModifyExtension(reservation.id)
+  const cancelMutation = useCancelReservation()
+  const isSubmitting =
+    extendMutation.isPending ||
+    modifyMutation.isPending ||
+    cancelMutation.isPending
 
-  const chainEndAt = getChainTipEndAt(reservation)
-  const defaultNewEndAt = new Date(
-    new Date(chainEndAt).getTime() + DAY_MS,
-  )
+  const pendingExtension = getPendingExtension(reservation)
+  const isModifyMode = pendingExtension !== null
+
+  const chainEndAt = isModifyMode
+    ? getCommittedChainEndAt(reservation)
+    : getChainEndAt(reservation)
+  const defaultNewEndAt = isModifyMode
+    ? new Date(pendingExtension!.endAt)
+    : new Date(new Date(chainEndAt).getTime() + DAY_MS)
   const [date, setDate] = useState(toDateInput(defaultNewEndAt))
   const [time, setTime] = useState(toTimeInput(defaultNewEndAt))
+  const [calendarOpen, setCalendarOpen] = useState(false)
+  const [timeOpen, setTimeOpen] = useState(false)
+
+  const selectedHour = parseInt(time.split(':')[0], 10)
+  const selectedMinute = parseInt(time.split(':')[1], 10)
+
+  const hoursColumnRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!timeOpen) return
+    const column = hoursColumnRef.current
+    const selected = column?.querySelector<HTMLElement>('[data-selected="true"]')
+    if (column && selected) {
+      column.scrollTop =
+        selected.offsetTop - column.clientHeight / 2 + selected.clientHeight / 2
+    }
+  }, [timeOpen])
 
   const vehicleQuery = useQuery({
     queryKey: ['vehicle', reservation.vehicle.id],
@@ -56,8 +95,37 @@ export function ExtendReservationModal({
     staleTime: 60_000,
   })
 
+  const busyRangesQuery = useQuery({
+    queryKey: ['busyRanges', reservation.vehicle.id],
+    queryFn: () => reservarApi.getBusyRanges(reservation.vehicle.id),
+    staleTime: 30_000,
+  })
+
+  // First busy range that starts strictly after the committed chain end.
+  const nextConflictDate = useMemo(() => {
+    const items = busyRangesQuery.data?.items
+    if (!items) return undefined
+    const chainEndDate = toDateInput(new Date(chainEndAt))
+    const future = items
+      .map((r) => toDateInput(new Date(r.startAt)))
+      .filter((d) => d > chainEndDate)
+      .sort()
+    return future.length > 0 ? future[0] : undefined
+  }, [busyRangesQuery.data, chainEndAt])
+
+  // Last selectable day (one before the conflict).
+  const lastAvailableDate = useMemo(() => {
+    if (!nextConflictDate) return undefined
+    const d = new Date(`${nextConflictDate}T00:00:00`)
+    d.setDate(d.getDate() - 1)
+    return d
+  }, [nextConflictDate])
+
   const newEndAtIso = useMemo(() => combineDateTime(date, time), [date, time])
-  const isValid = newEndAtIso !== null && newEndAtIso > chainEndAt
+  const isValid =
+    newEndAtIso !== null &&
+    newEndAtIso > chainEndAt &&
+    (nextConflictDate === undefined || date < nextConflictDate)
 
   const dailyPriceCents = reservation.basePriceCentsSnapshot
   const totalCentsPreview = useMemo(() => {
@@ -79,15 +147,38 @@ export function ExtendReservationModal({
   const handleConfirm = async () => {
     if (!isValid || !newEndAtIso) return
     try {
-      const result = await mutation.mutateAsync({
-        reservationId: reservation.id,
-        newEndAt: newEndAtIso,
-      })
+      const result =
+        isModifyMode && pendingExtension
+          ? await modifyMutation.mutateAsync({
+              extensionId: pendingExtension.id,
+              newEndAt: newEndAtIso,
+            })
+          : await extendMutation.mutateAsync({
+              reservationId: reservation.id,
+              newEndAt: newEndAtIso,
+            })
       toast.success(
         result.requiresApproval
           ? t('reservas.detail.extend.success.solicitud')
           : t('reservas.detail.extend.success.inmediato'),
       )
+      onClose()
+    } catch (err) {
+      const isProblem = (v: unknown): v is ProblemDetails =>
+        typeof v === 'object' && v !== null && 'code' in v
+      if (isProblem(err) && err.code === ErrorCodes.RESERVATION_VEHICLE_NOT_AVAILABLE) {
+        toast.error(t('reservas.detail.extend.error.vehicleNotAvailable'))
+      } else {
+        toast.error(t('reservas.detail.extend.error.generic'))
+      }
+    }
+  }
+
+  const handleCancelPedido = async () => {
+    if (!pendingExtension) return
+    try {
+      await cancelMutation.mutateAsync(pendingExtension.id)
+      toast.success(t('reservas.detail.extend.cancelPedido.success'))
       onClose()
     } catch {
       toast.error(t('reservas.detail.extend.error.generic'))
@@ -107,39 +198,126 @@ export function ExtendReservationModal({
         <div className="flex items-center gap-2">
           <CalendarPlus className="h-5 w-5 text-brand-400" />
           <h2 className="text-lg font-bold text-text-primary">
-            {t('reservas.detail.extend.modalTitle')}
+            {isModifyMode
+              ? t('reservas.detail.extend.modifyTitle')
+              : t('reservas.detail.extend.modalTitle')}
           </h2>
         </div>
 
-        <div className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-text-secondary">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-text-muted" />
-            <span>
-              {t('reservas.detail.extend.currentEndAt')}: {fmt.dateTime(chainEndAt)}
-            </span>
-          </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+          <span className="text-text-secondary">
+            {t('reservas.detail.extend.currentEndAt')}
+          </span>
+          <span className="ml-auto font-medium text-text-primary">
+            {fmt.dateTime(chainEndAt)}
+          </span>
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-medium uppercase tracking-wider text-text-secondary">
+          <label className="text-xs font-medium uppercase tracking-wider text-text-muted">
             {t('reservas.detail.extend.newEndAtLabel')}
           </label>
-          <div className="flex gap-2">
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              disabled={mutation.isPending}
-              className="flex-1"
-            />
-            <Input
-              type="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              disabled={mutation.isPending}
-              className="w-28"
-            />
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => { setCalendarOpen((o) => !o); setTimeOpen(false) }}
+              disabled={isSubmitting}
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
+                calendarOpen
+                  ? 'border-brand-500/60 bg-brand-500/5'
+                  : 'border-white/10 hover:bg-surface-2',
+              )}
+            >
+              <CalendarDays className="h-4 w-4 shrink-0 text-text-muted" />
+              <span>{fmtDateLabel(date)}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTimeOpen((o) => !o); setCalendarOpen(false) }}
+              disabled={isSubmitting}
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
+                timeOpen
+                  ? 'border-brand-500/60 bg-brand-500/5'
+                  : 'border-white/10 hover:bg-surface-2',
+              )}
+            >
+              <Clock className="h-4 w-4 shrink-0 text-text-muted" />
+              <span>{fmtTimeLabel(time)}</span>
+            </button>
           </div>
+          {calendarOpen && (
+            <div className="flex justify-center pt-1">
+              <Calendar
+                mode="single"
+                value={date}
+                minDate={toDateInput(new Date(new Date(chainEndAt).getTime() + DAY_MS))}
+                isDateDisabled={nextConflictDate ? (d) => d >= nextConflictDate : undefined}
+                onChange={(d) => { setDate(d); setCalendarOpen(false) }}
+              />
+            </div>
+          )}
+          {lastAvailableDate && (
+            <p className="flex items-center gap-1.5 text-xs text-warning">
+              <Info className="h-3.5 w-3.5 shrink-0" />
+              {t('reservas.detail.extend.availableUntil')}{' '}
+              <span className="font-medium">{fmt.dateShort(lastAvailableDate)}</span>
+            </p>
+          )}
+          {timeOpen && (
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <div className="flex flex-col">
+                <span className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {t('reservas.detail.extend.hourLabel')}
+                </span>
+                <div
+                  ref={hoursColumnRef}
+                  className="relative max-h-40 space-y-1 overflow-y-auto pr-1"
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      data-selected={h === selectedHour}
+                      onClick={() => setTime(`${String(h).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`)}
+                      className={cn(
+                        'w-full rounded-lg py-2 text-sm font-medium transition-colors',
+                        h === selectedHour
+                          ? 'bg-brand-500 text-white'
+                          : 'text-text-secondary hover:bg-surface-2',
+                      )}
+                    >
+                      {String(h).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  {t('reservas.detail.extend.minuteLabel')}
+                </span>
+                <div className="space-y-1">
+                  {[0, 15, 30, 45].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => { setTime(`${String(selectedHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`); setTimeOpen(false) }}
+                      className={cn(
+                        'w-full rounded-lg py-2 text-sm font-medium transition-colors',
+                        m === selectedMinute
+                          ? 'bg-brand-500 text-white'
+                          : 'text-text-secondary hover:bg-surface-2',
+                      )}
+                    >
+                      {String(m).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {!isValid && (
             <p className="text-xs text-danger-400">
               {t('reservas.detail.extend.error.invalidEndAt')}
@@ -147,48 +325,63 @@ export function ExtendReservationModal({
           )}
         </div>
 
-        <div className="rounded-xl bg-surface-2 px-3 py-2 flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-white/8 pt-4">
           <span className="text-sm text-text-secondary">
             {t('reservas.detail.extend.totalPreview')}
           </span>
-          <span className="text-lg font-bold text-brand-400">
+          <span className="text-xl font-semibold text-text-primary">
             {fmt.currency(totalCentsPreview)}
           </span>
         </div>
 
-        <div
-          className={
-            requiresApproval
-              ? 'rounded-xl border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-text-secondary'
-              : 'rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm text-text-secondary'
-          }
+        <p
+          className={cn(
+            'flex items-start gap-2 text-xs leading-relaxed',
+            requiresApproval ? 'text-warning' : 'text-text-muted',
+          )}
         >
-          {vehicleQuery.isLoading
-            ? t('reservas.detail.extend.infoLoading')
-            : vehicleQuery.isError
-              ? t('reservas.detail.extend.infoVehicleError')
-              : requiresApproval
-                ? t('reservas.detail.extend.infoSolicitud')
-                : t('reservas.detail.extend.infoInmediato')}
-        </div>
+          <Info className="mt-px h-3.5 w-3.5 shrink-0" />
+          <span>
+            {vehicleQuery.isLoading
+              ? t('reservas.detail.extend.infoLoading')
+              : vehicleQuery.isError
+                ? t('reservas.detail.extend.infoVehicleError')
+                : requiresApproval
+                  ? t('reservas.detail.extend.infoSolicitud')
+                  : t('reservas.detail.extend.infoInmediato')}
+          </span>
+        </p>
+
+        {isModifyMode && (
+          <button
+            type="button"
+            onClick={handleCancelPedido}
+            disabled={isSubmitting}
+            className="w-full rounded-lg border border-danger-500/30 py-2 text-sm font-medium text-danger-400 transition-colors hover:bg-danger-500/10 disabled:opacity-50"
+          >
+            {t('reservas.detail.extend.cancelPedido.cta')}
+          </button>
+        )}
 
         <div className="flex gap-2 justify-end">
           <Button
             variant="ghost"
             onClick={onClose}
-            disabled={mutation.isPending}
+            disabled={isSubmitting}
           >
             {t('reservas.detail.extend.cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!isValid || mutation.isPending}
+            disabled={!isValid || isSubmitting}
           >
-            {mutation.isPending
+            {isSubmitting
               ? t('reservas.detail.extend.submitting')
-              : requiresApproval
-                ? t('reservas.detail.extend.confirmSolicitud')
-                : t('reservas.detail.extend.confirmInmediato')}
+              : isModifyMode
+                ? t('reservas.detail.extend.saveChanges')
+                : requiresApproval
+                  ? t('reservas.detail.extend.confirmSolicitud')
+                  : t('reservas.detail.extend.confirmInmediato')}
           </Button>
         </div>
       </div>
@@ -229,38 +422,24 @@ export function computeRequiresApproval(args: RequiresApprovalArgs): boolean {
   return totalDays > vehicleMaxDays
 }
 
-/**
- * Devuelve el `startAt` del primer eslabón del chain (el padre). Si no hay
- * chain en la respuesta del backend, asume que la reserva actual es el padre.
- */
-function getChainStartAt(reservation: GetReservationResponse): string {
-  if (reservation.chain && reservation.chain.length > 0) {
-    const sorted = [...reservation.chain].sort((a, b) =>
-      a.startAt.localeCompare(b.startAt),
-    )
-    return sorted[0].startAt
-  }
-  return reservation.startAt
+const MONTH_SHORT = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+
+function fmtDateLabel(ymd: string): string {
+  if (!ymd) return '—'
+  const [, m, d] = ymd.split('-').map(Number)
+  return `${d} de ${MONTH_SHORT[m - 1]}`
+}
+
+function fmtTimeLabel(hhmm: string): string {
+  if (!hhmm) return '—'
+  const [h, m] = hhmm.split(':').map(Number)
+  const period = h < 12 ? 'a.m.' : 'p.m.'
+  const displayHour = h % 12 === 0 ? 12 : h % 12
+  return `${displayHour}:${String(m).padStart(2, '0')} ${period}`
 }
 
 /**
- * Devuelve el `endAt` de la punta del chain (último eslabón no cancelado).
- * Si no hay chain expuesto, usa el `endAt` de la reserva en sí.
- */
-function getChainTipEndAt(reservation: GetReservationResponse): string {
-  if (reservation.chain && reservation.chain.length > 0) {
-    const active = reservation.chain.filter(
-      (item) => item.status !== 'cancelled' && item.status !== 'rejected',
-    )
-    if (active.length === 0) return reservation.endAt
-    const sorted = [...active].sort((a, b) => a.endAt.localeCompare(b.endAt))
-    return sorted[sorted.length - 1].endAt
-  }
-  return reservation.endAt
-}
-
-/**
- * Convierte un `Date` al formato `YYYY-MM-DD` que espera `<input type="date">`,
+ * Convierte un `Date` al formato `YYYY-MM-DD` que espera el Calendar,
  * respetando la zona horaria local del usuario.
  */
 function toDateInput(d: Date): string {
