@@ -24,7 +24,7 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
         toggle(vehicleId, isFavorito)
       }}
       className={cn(
-        'group flex h-7 w-7 items-start justify-center pt-0.5 transition-all duration-150 active:scale-90',
+        'group flex h-7 w-7 items-center justify-center transition-all duration-150 active:scale-90',
         className,
       )}
     >
