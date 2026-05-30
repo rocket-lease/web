@@ -89,7 +89,7 @@ export function DatosPerfilPage() {
   }
 
   return (
-    <div className="flex flex-col pb-24">
+    <div className="flex flex-col pb-8">
       <PageHeader title={t('perfil.datos.title')} showBack />
 
       {/* Avatar */}
