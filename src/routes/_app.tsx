@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import {
   MagnifyingGlass,
   CalendarCheck,
@@ -8,7 +8,6 @@ import {
   UserCircle,
   ChartBar,
   ClipboardText,
-  Bell,
   MapTrifold,
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -72,22 +71,6 @@ function AppLayout() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="flex min-h-dvh flex-col bg-surface-0">
-        {!immersive && (
-          <header
-            className="flex items-center justify-between px-5 py-3 bg-surface-0/90 backdrop-blur-md sticky top-0 z-40 border-b border-white/5"
-            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
-          >
-            <img src="/logo-symbol.png" alt="Rocket Lease" className="h-8 w-auto" />
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={22} />
-            </Link>
-          </header>
-        )}
-
         <VerificationBanner />
 
         <main className={immersive ? 'flex-1' : 'flex-1 pb-24'}>

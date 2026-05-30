@@ -1,21 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, Link } from '@tanstack/react-router'
 import {
-  Bell,
   ChevronRight,
   Star,
   Award,
   Settings,
-  Rocket,
   Save,
   Pencil,
   UserCircle,
   CreditCard,
   ArrowLeftRight,
+  ShieldCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar } from '@/ui/avatar'
-import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -25,7 +23,8 @@ import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t, type I18nKey } from '@/i18n/es'
-import { WarningCircle, IdentificationCard } from '@phosphor-icons/react'
+import { Bell, Bank } from '@phosphor-icons/react'
+import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 
 
 const levelColors: Record<string, string> = {
@@ -56,8 +55,20 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     uploadAvatar,
     isUploadingAvatar,
   } = useMyProfile(profileId)
+  const { status: verificationStatus } = useVerificationStatus()
   const identityVerification = profile?.identityVerification
   const driverLicenseVerification = profile?.driverLicenseVerification
+  const identityVerified = identityVerification?.status === 'verified'
+  const licenseVerified = driverLicenseVerification?.status === 'verified'
+  const emailVerified = verificationStatus?.email ?? false
+
+  const anyVerifRejected =
+    identityVerification?.status === 'rejected' ||
+    driverLicenseVerification?.status === 'rejected'
+  const anyVerifPending =
+    identityVerification?.status === 'pending' ||
+    driverLicenseVerification?.status === 'pending'
+  const allVerifDone = identityVerified && licenseVerified && emailVerified
 
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -112,6 +123,17 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       <PageHeader
         title={canEdit ? t('perfil.title') : profile.name}
         showBack={!canEdit}
+        actions={
+          canEdit ? (
+            <Link
+              to="/notificaciones"
+              aria-label={t('nav.notificaciones')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+            >
+              <Bell size={22} />
+            </Link>
+          ) : undefined
+        }
       />
 
       {/* Profile hero */}
@@ -192,35 +214,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           </div>
         )}
 
-        {canEdit && (
-          <div className="w-full space-y-3 text-left">
-            {identityVerification && (
-              <VerificationCard
-                title={t('perfil.identity.title')}
-                statusLabel={t(`identidad.status.${identityVerification.status}` as const)}
-                status={identityVerification.status}
-                pendingCopy={t('perfil.identity.pending')}
-                rejectedReasonLabel={t('perfil.identity.rejectedReason')}
-                rejectedReason={identityVerification.rejectionReason}
-                cta={identityVerification.status === 'rejected' ? t('perfil.identity.retry') : t('perfil.identity.cta')}
-                onCta={() => navigate({ to: '/identidad' })}
-              />
-            )}
-
-            {driverLicenseVerification && (
-              <VerificationCard
-                title={t('perfil.driverLicense.title')}
-                statusLabel={t(`licencia.status.${driverLicenseVerification.status}` as const)}
-                status={driverLicenseVerification.status}
-                pendingCopy={t('perfil.driverLicense.pending')}
-                rejectedReasonLabel={t('perfil.driverLicense.rejectedReason')}
-                rejectedReason={driverLicenseVerification.rejectionReason}
-                cta={driverLicenseVerification.status === 'rejected' ? t('perfil.driverLicense.retry') : t('perfil.driverLicense.cta')}
-                onCta={() => navigate({ to: '/licencia' })}
-              />
-            )}
-          </div>
-        )}
 
       </div>
 
@@ -234,40 +227,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </>
       )}
 
-      {/* Mis vehiculos shortcut */}
-      {canEdit && (
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/mis-vehiculos' })}
-          className="mx-4 mt-4 rounded-2xl bg-linear-to-r from-brand-900 to-brand-800 border border-brand-700/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600">
-            <Rocket className="h-5 w-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary">Mis vehículos</p>
-            <p className="text-xs text-text-muted mt-0.5">Gestioná tu flota o publicá uno nuevo</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </button>
-      )}
-
-      {canEdit && (
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/perfil/cuentas' })}
-          className="mx-4 mt-4 rounded-2xl bg-linear-to-r from-slate-700 to-slate-600 border border-surface-6 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-600">
-            <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 10h18M3 14h18M7 6h10v2H7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary">{t('bankAccount.title')}</p>
-            <p className="text-xs text-text-muted mt-0.5">{t('bankAccount.empty')}</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </button>
-      )}
 
       {/* Settings menu (solo perfil propio) */}
       {canEdit && (
@@ -277,39 +236,66 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           <button
             type="button"
             onClick={() => navigate({ to: '/perfil/datos' })}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
           >
-            <UserCircle className="h-5 w-5 shrink-0" />
+            <UserCircle className="h-5 w-5 shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.datos.title')}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          {/* Medios de pago: dónde el conductor paga (solo modo conductor) */}
+          {activeRole === 'conductor' && (
+            <button
+              type="button"
+              onClick={() => navigate({ to: '/perfil/medios-de-pago' })}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+            >
+              <CreditCard className="h-5 w-5 shrink-0 text-text-secondary" />
+              <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('paymentMethods.title' as I18nKey)}</span>
+              <ChevronRight className="h-4 w-4 text-text-muted" />
+            </button>
+          )}
+
+          {/* Cuentas bancarias: dónde el rentador recibe pagos (solo modo rentador) */}
+          {activeRole === 'rentador' && (
+            <button
+              type="button"
+              onClick={() => navigate({ to: '/perfil/cuentas' })}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+            >
+              <Bank size={20} className="shrink-0 text-text-secondary" />
+              <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.cuentas.row' as I18nKey)}</span>
+              <ChevronRight className="h-4 w-4 text-text-muted" />
+            </button>
+          )}
+
+          {/* Verificaciones: identidad, licencia y email — submenu unificado */}
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/verificaciones' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+          >
+            <ShieldCheck className={`h-5 w-5 shrink-0 ${allVerifDone ? 'text-success' : 'text-text-secondary'}`} />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.verificaciones.row' as I18nKey)}</span>
+            {anyVerifRejected ? (
+              <span className="text-xs font-medium text-danger">Acción requerida</span>
+            ) : anyVerifPending ? (
+              <span className="text-xs font-medium text-warning">En revisión</span>
+            ) : allVerifDone ? (
+              <ShieldCheck className="h-4 w-4 text-success" />
+            ) : (
+              <span className="text-xs font-medium text-warning">Completar</span>
+            )}
+            <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
           </button>
 
           <button
             type="button"
             onClick={() => navigate({ to: '/configuracion' })}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
           >
-            <Settings className="h-5 w-5 shrink-0" />
+            <Settings className="h-5 w-5 shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
-            <ChevronRight className="h-4 w-4 text-text-muted" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate({ to: '/perfil/medios-de-pago' })}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
-          >
-            <CreditCard className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('paymentMethods.title' as I18nKey)}</span>
-            <ChevronRight className="h-4 w-4 text-text-muted" />
-          </button>
-
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors text-text-secondary"
-          >
-            <Bell className="h-5 w-5 shrink-0" />
-            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.notifications')}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
         </div>
@@ -330,74 +316,3 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
   )
 }
 
-interface VerificationCardProps {
-  title: string
-  statusLabel: string
-  status: 'not_started' | 'pending' | 'verified' | 'rejected'
-  pendingCopy: string
-  rejectedReasonLabel: string
-  rejectedReason: string | null | undefined
-  cta: string
-  onCta: () => void
-}
-
-function VerificationCard({
-  title,
-  statusLabel,
-  status,
-  pendingCopy,
-  rejectedReasonLabel,
-  rejectedReason,
-  cta,
-  onCta,
-}: VerificationCardProps) {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 text-left">
-      <div className="flex items-center gap-3">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${status === 'verified' ? 'bg-success-bg text-success' : status === 'rejected' ? 'bg-danger-bg text-danger' : 'bg-warning-bg text-warning'}`}>
-          <IdentificationCard size={22} weight="duotone" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-text-primary">{title}</p>
-        </div>
-        <Badge
-          variant={
-            status === 'verified'
-              ? 'success'
-              : status === 'rejected'
-                ? 'danger'
-                : 'warning'
-          }
-        >
-          {statusLabel}
-        </Badge>
-      </div>
-
-      {status === 'pending' && (
-        <p className="mt-3 text-sm text-text-secondary">
-          {pendingCopy}
-        </p>
-      )}
-
-      {status === 'rejected' && rejectedReason && (
-        <div className="mt-3 rounded-xl border border-danger/20 bg-danger-bg p-3 text-sm text-danger">
-          <div className="flex items-center gap-2 font-semibold">
-            <WarningCircle size={16} weight="duotone" />
-            {rejectedReasonLabel}
-          </div>
-          <p className="mt-1 text-text-primary">{rejectedReason}</p>
-        </div>
-      )}
-
-      {status !== 'verified' && (
-        <Button
-          variant="secondary"
-          className="mt-4 w-full"
-          onClick={onCta}
-        >
-          {cta}
-        </Button>
-      )}
-    </div>
-  )
-}

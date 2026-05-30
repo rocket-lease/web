@@ -5,6 +5,7 @@ import { PerfilPage } from './PerfilPage'
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
   useRouter: () => ({ history: { back: vi.fn() } }),
+  Link: ({ children, ...rest }: { children: React.ReactNode; [key: string]: unknown }) => <a {...rest}>{children}</a>,
 }))
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({

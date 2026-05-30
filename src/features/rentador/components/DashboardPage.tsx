@@ -1,4 +1,4 @@
-import { TrendUp, Car, CalendarCheck, Star, Plus } from '@phosphor-icons/react'
+import { TrendUp, Car, CalendarCheck, Star, Plus, Bell } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
 import { Card, CardContent } from '@/ui/card'
 import { Button } from '@/ui/button'
@@ -22,18 +22,30 @@ export function DashboardPage() {
   return (
       <div className="flex flex-col">
         {/* Header con acento ámbar (rol rentador) */}
-      <div className="px-4 pt-12 pb-6 bg-gradient-to-b from-[var(--color-owner-subtle)] to-transparent">
-        <div className="flex items-start justify-between">
+      <div
+        className="px-4 pb-6 bg-gradient-to-b from-[var(--color-owner-subtle)] to-transparent"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.5rem)' }}
+      >
+        <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-sm font-medium text-owner">{t('dashboard.greeting')},</p>
             <h1 className="text-2xl font-bold text-text-primary mt-0.5">{name}</h1>
           </div>
-          <Link to="/mis-vehiculos/nuevo">
-            <Button size="sm" className="flex items-center gap-1.5">
-              <Plus size={15} weight="bold" />
-              {t('dashboard.publicar')}
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to="/notificaciones"
+              aria-label={t('nav.notificaciones')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+            >
+              <Bell size={20} />
+            </Link>
+            <Link to="/mis-vehiculos/nuevo">
+              <Button size="sm" className="flex items-center gap-1.5">
+                <Plus size={15} weight="bold" />
+                {t('dashboard.publicar')}
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

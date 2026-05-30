@@ -24,7 +24,7 @@ export function PageHeader({ title, subtitle, showBack = false, onBack, actions,
         sticky && 'sticky top-0 z-40 bg-surface-0/90 backdrop-blur-md',
         className,
       )}
-      style={sticky ? { paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' } : undefined}
+      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
     >
       {showBack && (
         <button
@@ -41,7 +41,7 @@ export function PageHeader({ title, subtitle, showBack = false, onBack, actions,
       )}
 
       <div className="min-w-0 flex-1">
-        <h1 className="text-lg font-bold leading-tight text-text-primary truncate">{title}</h1>
+        <h1 className="text-xl font-bold leading-tight text-text-primary truncate">{title}</h1>
         {subtitle && (
           <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
         )}

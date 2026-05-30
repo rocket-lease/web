@@ -1,7 +1,8 @@
-import { Heart } from '@phosphor-icons/react'
+import { Heart, Bell } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@/i18n/es'
+import { PageHeader } from '@/features/layout/components/PageHeader'
 import { VehiculoCard } from '@/features/vehiculos/components/VehiculoCard'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { useFavoritos } from '../hooks/useFavoritos'
@@ -22,6 +23,18 @@ export function FavoritosPage() {
 
   return (
     <div className="flex flex-col">
+      <PageHeader
+        title={t('nav.favoritos')}
+        actions={
+          <Link
+            to="/notificaciones"
+            aria-label={t('nav.notificaciones')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+          >
+            <Bell size={22} />
+          </Link>
+        }
+      />
       <div className="px-4 pt-4 pb-2">
         {isLoading && (
           <div className="flex flex-col gap-4">

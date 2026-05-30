@@ -6,7 +6,6 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { createWrapper } from '@/test/query-wrapper'
 
 const navigateMock = vi.fn()
-const searchMock = { current: {} as { role?: 'conductor' | 'owner' } }
 
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -21,8 +20,15 @@ vi.mock('@tanstack/react-router', () => ({
     [key: string]: unknown
   }) => <a {...rest}>{children}</a>,
   useNavigate: () => navigateMock,
-  useSearch: () => searchMock.current,
   useRouter: () => ({ history: { back: vi.fn() } }),
+}))
+
+const authMock = {
+  current: { activeRole: 'conductor' as 'conductor' | 'rentador' },
+}
+
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => authMock.current,
 }))
 
 vi.mock('../api/reservations.api', () => ({
@@ -44,33 +50,20 @@ function emptyListResponse() {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  searchMock.current = {}
+  authMock.current = { activeRole: 'conductor' }
   fetchMock.mockResolvedValue(emptyListResponse())
   vehiclesMock.mockResolvedValue([])
 })
 
-describe('ReservasPage — toggle de rol', () => {
-  it('muestra el toggle siempre (sin esperar a getMyVehicles)', async () => {
-    render(<ReservasPage />, { wrapper: createWrapper() })
-
-    expect(
-      await screen.findByRole('tab', { name: /Como conductor/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('tab', { name: /Como rentador/i }),
-    ).toBeInTheDocument()
-  })
-
-  it('no dispara getMyVehicles en el render inicial — solo cuando se necesita el empty state owner', async () => {
+describe('ReservasPage — fetch según activeRole', () => {
+  it('no dispara getMyVehicles en el render inicial como conductor', async () => {
     render(<ReservasPage />, { wrapper: createWrapper() })
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
     expect(vehiclesMock).not.toHaveBeenCalled()
   })
-})
 
-describe('ReservasPage — fetch con role', () => {
-  it('llama al endpoint con role=conductor por defecto', async () => {
+  it('llama al endpoint con role=conductor cuando activeRole es conductor', async () => {
     render(<ReservasPage />, { wrapper: createWrapper() })
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalled())
@@ -79,8 +72,8 @@ describe('ReservasPage — fetch con role', () => {
     )
   })
 
-  it('llama al endpoint con role=owner cuando ?role=owner', async () => {
-    searchMock.current = { role: 'owner' }
+  it('llama al endpoint con role=owner cuando activeRole es rentador', async () => {
+    authMock.current = { activeRole: 'rentador' }
 
     render(<ReservasPage />, { wrapper: createWrapper() })
 
@@ -94,7 +87,7 @@ describe('ReservasPage — fetch con role', () => {
 
 describe('ReservasPage — empty state', () => {
   it('dispara getMyVehicles cuando el lado owner está vacío para diferenciar la copy', async () => {
-    searchMock.current = { role: 'owner' }
+    authMock.current = { activeRole: 'rentador' }
     vehiclesMock.mockResolvedValue([])
     fetchMock.mockResolvedValue(emptyListResponse())
 

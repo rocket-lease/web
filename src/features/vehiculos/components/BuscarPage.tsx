@@ -1,5 +1,6 @@
-import { MagnifyingGlass, SlidersHorizontal, MapPin, X } from '@phosphor-icons/react'
+import { MagnifyingGlass, SlidersHorizontal, MapPin, X, Bell } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
@@ -91,9 +92,21 @@ export function BuscarPage() {
   return (
     <div className="flex flex-col">
       <div
-        className="sticky z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
+        className="sticky top-0 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pb-3 border-b border-white/5"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
       >
+        {/* Título + notificaciones */}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-text-primary">{t('nav.buscar')}</h1>
+          <Link
+            to="/notificaciones"
+            aria-label={t('nav.notificaciones')}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary transition-colors active:scale-95"
+          >
+            <Bell size={22} />
+          </Link>
+        </div>
+
         {/* Fila ciudad + fechas */}
         <div className="flex items-center gap-2 mb-3">
           <button

@@ -1,4 +1,5 @@
-import { LifeBuoy } from 'lucide-react'
+import { Bell } from '@phosphor-icons/react'
+import { Link } from '@tanstack/react-router'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { FaqSearch } from './FaqSearch'
 import { FaqCategoryTabs } from './FaqCategoryTabs'
@@ -20,13 +21,21 @@ export function SoportePage() {
     <div className="flex flex-col min-h-full">
       <PageHeader
         title="Soporte"
-        icon={<LifeBuoy className="h-5 w-5" />}
+        actions={
+          <Link
+            to="/notificaciones"
+            aria-label={t('nav.notificaciones')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+          >
+            <Bell size={22} />
+          </Link>
+        }
       />
 
-      {/* Sticky search + category tabs (debajo del header global, respetando safe-area) */}
+      {/* Sticky search + category tabs (se fija bajo la muesca al scrollear) */}
       <div
         className="sticky z-30 bg-surface-0/95 backdrop-blur-xl border-b border-white/6 px-4 pt-4 pb-3 space-y-3"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
+        style={{ top: 'env(safe-area-inset-top, 0px)' }}
       >
         <FaqSearch value={query} onChange={setQuery} />
         <FaqCategoryTabs
