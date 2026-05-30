@@ -42,7 +42,12 @@ import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
-import { getChainEndAt, getChainStartAt, getChainTotalCents } from '../../utils/chain'
+import {
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getCommittedChainTotalCents,
+  getPendingExtension,
+} from '../../utils/chain'
 import {
   getCancellationRefundSummary,
   getEffectiveReservationRules,
@@ -74,8 +79,9 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     voucherToken,
   } = reservation
   const displayStartAt = getChainStartAt(reservation)
-  const displayEndAt = getChainEndAt(reservation)
-  const displayTotalCents = getChainTotalCents(reservation)
+  const displayEndAt = getCommittedChainEndAt(reservation)
+  const displayTotalCents = getCommittedChainTotalCents(reservation)
+  const pendingExtension = getPendingExtension(reservation)
   const showVoucher = status === RESERVATION_STATUS.confirmed
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
@@ -171,6 +177,19 @@ export function ConductorView({ reservation }: ConductorViewProps) {
             <p className="font-semibold text-text-primary">{fmt.dateTime(displayEndAt)}</p>
           </div>
         </div>
+        {pendingExtension && (
+          <p className="flex items-center gap-2 text-xs text-warning">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {pendingExtension.status === RESERVATION_STATUS.pending_payment
+                ? t('reservas.detail.extend.pendingPayment')
+                : t('reservas.detail.extend.pendingApproval')}
+              {' · '}
+              {t('reservas.detail.extend.pendingUntil')}{' '}
+              {fmt.dayMonth(pendingExtension.endAt)}
+            </span>
+          </p>
+        )}
       </div>
 
       <Separator />

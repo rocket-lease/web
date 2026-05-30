@@ -109,6 +109,28 @@ describe('collapseChain', () => {
     expect(result[0].rangeEndAt).toBe('2026-06-05T10:00:00.000Z')
   })
 
+  it('excluye extensiones pendientes del rango/total y marca hasPendingExtension', () => {
+    const parent = makeItem({
+      id: 'parent',
+      status: 'in_progress',
+      startAt: '2026-06-01T10:00:00.000Z',
+      endAt: '2026-06-05T10:00:00.000Z',
+      totalCents: 100000,
+    })
+    const pendingExt = makeItem({
+      id: 'ext',
+      status: 'pending_approval',
+      startAt: '2026-06-05T10:00:00.000Z',
+      endAt: '2026-06-08T10:00:00.000Z',
+      totalCents: 60000,
+      parentReservationId: 'parent',
+    })
+    const result = collapseChain([parent, pendingExt])
+    expect(result[0].rangeEndAt).toBe('2026-06-05T10:00:00.000Z')
+    expect(result[0].rangeTotalCents).toBe(100000)
+    expect(result[0].hasPendingExtension).toBe(true)
+  })
+
   it('agrupa cadena de tres niveles (padre + dos extensiones encadenadas)', () => {
     const parent = makeItem({
       id: 'parent',

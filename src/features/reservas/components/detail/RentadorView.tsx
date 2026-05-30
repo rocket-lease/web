@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX } from '@phosphor-icons/react'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, MessageSquare, User, X } from 'lucide-react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -17,7 +17,12 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
-import { getChainEndAt, getChainStartAt, getChainTotalCents } from '../../utils/chain'
+import {
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getCommittedChainTotalCents,
+  getPendingExtension,
+} from '../../utils/chain'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
@@ -49,6 +54,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
   const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
 
   const photo = reservation.vehicle.photo
+  const pendingExtension = getPendingExtension(reservation)
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -106,10 +112,23 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               </span>
             </div>
             <p className="font-semibold text-text-primary">
-              {fmt.dateTime(getChainEndAt(reservation))}
+              {fmt.dateTime(getCommittedChainEndAt(reservation))}
             </p>
           </div>
         </div>
+        {pendingExtension && (
+          <p className="flex items-center gap-2 text-xs text-warning">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {pendingExtension.status === RESERVATION_STATUS.pending_payment
+                ? t('reservas.detail.extend.pendingPayment')
+                : t('reservas.detail.extend.pendingApproval')}
+              {' · '}
+              {t('reservas.detail.extend.pendingUntil')}{' '}
+              {fmt.dayMonth(pendingExtension.endAt)}
+            </span>
+          </p>
+        )}
       </div>
 
       <Separator />
@@ -159,7 +178,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           {t('rentador.reservas.detalle.total')}
         </p>
         <p className="text-xl font-bold text-brand-400">
-          {fmt.currency(getChainTotalCents(reservation))}
+          {fmt.currency(getCommittedChainTotalCents(reservation))}
         </p>
       </div>
 

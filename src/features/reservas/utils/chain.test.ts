@@ -4,7 +4,14 @@ import type {
   ReservationChainItem,
   ReservationStatus,
 } from '@rocket-lease/contracts'
-import { getChainEndAt, getChainStartAt, getChainTotalCents } from './chain'
+import {
+  getChainEndAt,
+  getChainStartAt,
+  getChainTotalCents,
+  getCommittedChainEndAt,
+  getCommittedChainTotalCents,
+  getPendingExtension,
+} from './chain'
 
 function makeChainItem(
   overrides: Partial<ReservationChainItem>,
@@ -95,5 +102,44 @@ describe('getChainStartAt / getChainEndAt', () => {
     })
     expect(getChainStartAt(reservation)).toBe('2026-06-01T10:00:00.000Z')
     expect(getChainEndAt(reservation)).toBe('2026-06-06T10:00:00.000Z')
+  })
+})
+
+describe('chain comprometido vs pendiente', () => {
+  const tCross = () =>
+    makeReservation({
+      endAt: '2026-06-02T09:00:00.000Z',
+      totalCents: 2800000,
+      chain: [
+        makeChainItem({ id: 'root', status: 'in_progress', startAt: '2026-05-25T09:00:00.000Z', endAt: '2026-06-02T09:00:00.000Z', totalCents: 2800000, parentReservationId: null }),
+        makeChainItem({ id: 'ext1', status: 'confirmed', startAt: '2026-06-02T09:00:00.000Z', endAt: '2026-06-03T09:00:00.000Z', totalCents: 2800000, parentReservationId: 'root' }),
+        makeChainItem({ id: 'ext2', status: 'confirmed', startAt: '2026-06-03T09:00:00.000Z', endAt: '2026-06-04T09:00:00.000Z', totalCents: 2800000, parentReservationId: 'ext1' }),
+        makeChainItem({ id: 'ext3', status: 'pending_approval', startAt: '2026-06-04T09:00:00.000Z', endAt: '2026-06-05T09:00:00.000Z', totalCents: 2800000, parentReservationId: 'ext2' }),
+        makeChainItem({ id: 'ext4', status: 'pending_approval', startAt: '2026-06-05T09:00:00.000Z', endAt: '2026-06-06T09:00:00.000Z', totalCents: 2800000, parentReservationId: 'ext3' }),
+      ],
+    })
+
+  it('la fecha/total comprometidos ignoran las extensiones pendientes', () => {
+    const r = tCross()
+    expect(getCommittedChainEndAt(r)).toBe('2026-06-04T09:00:00.000Z')
+    expect(getCommittedChainTotalCents(r)).toBe(8400000)
+  })
+
+  it('la cadena vigente (baseline de extensión) sí incluye las pendientes', () => {
+    const r = tCross()
+    expect(getChainEndAt(r)).toBe('2026-06-06T09:00:00.000Z')
+  })
+
+  it('getPendingExtension devuelve la pendiente más lejana', () => {
+    const pending = getPendingExtension(tCross())
+    expect(pending?.id).toBe('ext4')
+    expect(pending?.endAt).toBe('2026-06-06T09:00:00.000Z')
+  })
+
+  it('sin extensiones pendientes, getPendingExtension es null y committed = propio', () => {
+    const r = makeReservation({ endAt: '2026-06-03T10:00:00.000Z', totalCents: 100000 })
+    expect(getPendingExtension(r)).toBeNull()
+    expect(getCommittedChainEndAt(r)).toBe('2026-06-03T10:00:00.000Z')
+    expect(getCommittedChainTotalCents(r)).toBe(100000)
   })
 })

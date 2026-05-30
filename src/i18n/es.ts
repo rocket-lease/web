@@ -203,6 +203,7 @@ export const es = {  // --- App ---
 
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
+  'reservas.list.pendingExtension': 'Extensión pendiente',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
@@ -1010,6 +1011,9 @@ export const es = {  // --- App ---
   'reservas.detail.extend.hourLabel': 'Hora',
   'reservas.detail.extend.minuteLabel': 'Min',
   'reservas.detail.extend.totalPreview': 'Costo',
+  'reservas.detail.extend.pendingApproval': 'Extensión pendiente de aprobación',
+  'reservas.detail.extend.pendingPayment': 'Extensión pendiente de pago',
+  'reservas.detail.extend.pendingUntil': 'hasta',
   'reservas.detail.extend.infoInmediato':
     'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
   'reservas.detail.extend.infoSolicitud':
