@@ -205,8 +205,6 @@ export const es = {  // --- App ---
   'reservas.title': 'Mis reservas',
   'reservas.list.pendingExtension': 'Extensión pendiente',
   'reservas.list.extensionBadge': 'Extensión',
-  'reservas.list.extensionApprove': 'Aprobar',
-  'reservas.list.extensionReject': 'Rechazar',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
