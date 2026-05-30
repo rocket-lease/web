@@ -15,7 +15,6 @@ import { Skeleton } from '@/ui/skeleton'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
-import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
@@ -24,6 +23,8 @@ import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { RoleSegmentedControl } from './RoleSegmentedControl'
+import { ConfirmationModal } from './modals/ConfirmationModal'
+import { RejectReasonModal } from './modals/RejectReasonModal'
 
 type TabKey =
   | 'all'
@@ -663,167 +664,24 @@ function ExtensionQuickActions({ reservationId }: ExtensionQuickActionsProps) {
         </Button>
       </div>
       {showApprove && (
-        <ExtensionApproveModal
+        <ConfirmationModal
+          title={t('reservas.approve.extensionTitle')}
+          body={t('reservas.approve.extensionBody')}
+          confirmLabel={t('rentador.reservas.aprobar.confirmar')}
+          submittingLabel={t('rentador.reservas.detalle.aprobando')}
           submitting={approveMutation.isPending}
           onConfirm={handleApprove}
           onCancel={() => setShowApprove(false)}
         />
       )}
       {showReject && (
-        <ExtensionRejectModal
+        <RejectReasonModal
           submitting={rejectMutation.isPending}
           onSubmit={handleReject}
           onCancel={() => setShowReject(false)}
         />
       )}
     </>
-  )
-}
-
-interface ExtensionApproveModalProps {
-  submitting: boolean
-  onConfirm: () => void
-  onCancel: () => void
-}
-
-function ExtensionApproveModal({ submitting, onConfirm, onCancel }: ExtensionApproveModalProps) {
-  useLockBodyScroll()
-  const stop = (e: React.MouseEvent) => e.stopPropagation()
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={(e) => {
-        e.stopPropagation()
-        e.preventDefault()
-        onCancel()
-      }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={stop}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {t('reservas.approve.extensionTitle')}
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          {t('reservas.approve.extensionBody')}
-        </p>
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button
-            variant="ghost"
-            disabled={submitting}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              onCancel()
-            }}
-          >
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button
-            disabled={submitting}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              onConfirm()
-            }}
-          >
-            {submitting
-              ? t('rentador.reservas.detalle.aprobando')
-              : t('rentador.reservas.aprobar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-interface ExtensionRejectModalProps {
-  submitting: boolean
-  onSubmit: (reason: string) => void
-  onCancel: () => void
-}
-
-const REJECT_REASON_MAX = 280
-
-function ExtensionRejectModal({ submitting, onSubmit, onCancel }: ExtensionRejectModalProps) {
-  const [reason, setReason] = useState('')
-  useLockBodyScroll()
-  const overLimit = reason.length > REJECT_REASON_MAX
-  const stop = (e: React.MouseEvent) => e.stopPropagation()
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={(e) => {
-        e.stopPropagation()
-        e.preventDefault()
-        onCancel()
-      }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={stop}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {t('rentador.reservas.rechazar.modalTitle')}
-        </h2>
-        <label className="mt-4 mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
-          {t('rentador.reservas.rechazar.razonLabel')}
-        </label>
-        <textarea
-          value={reason}
-          onChange={(e) => {
-            e.stopPropagation()
-            setReason(e.target.value)
-          }}
-          onClick={stop}
-          placeholder={t('rentador.reservas.rechazar.razonPlaceholder')}
-          rows={4}
-          maxLength={REJECT_REASON_MAX}
-          className="w-full rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500"
-          disabled={submitting}
-        />
-        <p
-          className={`mt-1 text-right text-xs ${
-            overLimit ? 'text-danger-400' : 'text-text-muted'
-          }`}
-        >
-          {t('rentador.reservas.rechazar.charCounter').replace(
-            '{count}',
-            String(reason.length),
-          )}
-        </p>
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button
-            variant="ghost"
-            disabled={submitting}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              onCancel()
-            }}
-          >
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={submitting || overLimit}
-            onClick={(e) => {
-              e.stopPropagation()
-              e.preventDefault()
-              onSubmit(reason)
-            }}
-          >
-            {submitting
-              ? t('rentador.reservas.detalle.rechazando')
-              : t('rentador.reservas.rechazar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
   )
 }
 
