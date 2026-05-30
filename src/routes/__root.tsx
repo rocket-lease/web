@@ -25,6 +25,8 @@ function RootLayout() {
               background: 'var(--color-surface-2)',
               border: '1px solid rgba(255,255,255,0.08)',
               color: 'var(--color-text-primary)',
+              width: 'calc(100vw - 32px)',
+              maxWidth: 'none',
             },
           }}
         />
