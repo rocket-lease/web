@@ -53,13 +53,13 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
           {/* Badges overlay — top left */}
           <div className="absolute left-2.5 top-2.5 flex flex-col gap-1.5">
             {vehiculo.isPromoted && (
-              <span className="flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
+              <span className="flex h-9 items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-3 text-[11px] font-semibold text-white">
                 <Sparkle size={11} weight="fill" className="text-warning" />
                 {t('promocionar.active')}
               </span>
             )}
             {vehiculo.isAccessible && (
-              <span className="rounded-full bg-black/70 backdrop-blur-sm px-2.5 py-1 text-[11px] font-semibold text-white">
+              <span className="flex h-9 items-center rounded-full bg-black/70 backdrop-blur-sm px-3 text-[11px] font-semibold text-white">
                 Accesible
               </span>
             )}
