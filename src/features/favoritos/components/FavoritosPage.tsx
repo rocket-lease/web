@@ -35,7 +35,7 @@ export function FavoritosPage() {
           </Link>
         }
       />
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-5 pt-4 pb-2">
         {isLoading && (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map(i => (
@@ -69,7 +69,7 @@ export function FavoritosPage() {
               <span className="font-semibold text-text-primary">{favVehicles.length}</span>{' '}
               {favVehicles.length === 1 ? t('favoritos.countOne') : t('favoritos.count')}
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
               {favVehicles.map(v => (
                 <VehiculoCard key={v.id} vehiculo={v} />
               ))}

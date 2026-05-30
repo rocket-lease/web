@@ -195,13 +195,13 @@ export function BuscarPage() {
       </div>
 
       {/* Resultados */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-5 pt-4 pb-2">
         {isError && (
           <p className="text-sm text-danger text-center py-8">{t('buscar.error')}</p>
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <VehiculoCardSkeleton key={i} />
             ))}
@@ -247,7 +247,7 @@ export function BuscarPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                 {sorted.map(v => (
                   <VehiculoCard key={v.id} vehiculo={v} from={startDate} to={endDate} />
                 ))}

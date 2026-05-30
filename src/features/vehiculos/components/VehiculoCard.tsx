@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { Gear, Users, MapPin, Lightning, Sparkle } from '@phosphor-icons/react'
+import { Gear, Users, MapPin, Lightning, Sparkle, Gauge } from '@phosphor-icons/react'
 import { Skeleton } from '@/ui/skeleton'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
@@ -101,7 +101,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
               ) : (
                 <span className="text-sm font-semibold text-text-primary">
                   {fmt.currency(vehiculo.basePriceCents)}
-                  <span className="text-xs font-normal text-text-muted"> / {t('vehiculo.perDay')}</span>
+                  <span className="text-xs font-normal text-text-muted"> / día</span>
                 </span>
               )}
             </div>
@@ -121,6 +121,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
             <Users size={11} />
             {vehiculo.passengers}
             <span className="text-white/15">·</span>
+            <Gauge size={11} />
             {vehiculo.mileage.toLocaleString('es-AR')} km
           </p>
         </div>
