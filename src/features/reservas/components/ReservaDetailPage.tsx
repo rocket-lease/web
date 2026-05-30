@@ -1,4 +1,4 @@
-import { useParams, useSearch } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -22,7 +22,7 @@ import { RentadorView } from './detail/RentadorView'
  */
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
-  const { role: _roleSearch } = useSearch({ strict: false }) as { role?: 'conductor' | 'owner' }
+
   const { user } = useAuth()
 
   const { data: reservation, isLoading, isError } = useQuery({
