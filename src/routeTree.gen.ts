@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSoporteRouteImport } from './routes/_app/soporte'
+import { Route as AppSaldoRouteImport } from './routes/_app/saldo'
 import { Route as AppReservasRouteImport } from './routes/_app/reservas'
 import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 import { Route as AppNotificacionesRouteImport } from './routes/_app/notificaciones'
@@ -75,6 +76,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppSoporteRoute = AppSoporteRouteImport.update({
   id: '/soporte',
   path: '/soporte',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSaldoRoute = AppSaldoRouteImport.update({
+  id: '/saldo',
+  path: '/saldo',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReservasRoute = AppReservasRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/notificaciones': typeof AppNotificacionesRoute
   '/perfil': typeof AppPerfilRoute
   '/reservas': typeof AppReservasRouteWithChildren
+  '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/notificaciones': typeof AppNotificacionesRoute
   '/perfil': typeof AppPerfilRoute
   '/reservas': typeof AppReservasRouteWithChildren
+  '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/_app/notificaciones': typeof AppNotificacionesRoute
   '/_app/perfil': typeof AppPerfilRoute
   '/_app/reservas': typeof AppReservasRouteWithChildren
+  '/_app/saldo': typeof AppSaldoRoute
   '/_app/soporte': typeof AppSoporteRoute
   '/_app/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/_app/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -333,6 +342,7 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/perfil'
     | '/reservas'
+    | '/saldo'
     | '/soporte'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/perfil'
     | '/reservas'
+    | '/saldo'
     | '/soporte'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/_app/notificaciones'
     | '/_app/perfil'
     | '/_app/reservas'
+    | '/_app/saldo'
     | '/_app/soporte'
     | '/_app/mis-vehiculos/$id'
     | '/_app/mis-vehiculos/nuevo'
@@ -480,6 +492,13 @@ declare module '@tanstack/react-router' {
       path: '/soporte'
       fullPath: '/soporte'
       preLoaderRoute: typeof AppSoporteRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/saldo': {
+      id: '/_app/saldo'
+      path: '/saldo'
+      fullPath: '/saldo'
+      preLoaderRoute: typeof AppSaldoRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reservas': {
@@ -707,6 +726,7 @@ interface AppRouteChildren {
   AppNotificacionesRoute: typeof AppNotificacionesRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppReservasRoute: typeof AppReservasRouteWithChildren
+  AppSaldoRoute: typeof AppSaldoRoute
   AppSoporteRoute: typeof AppSoporteRoute
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCuentasRoute: typeof AppPerfilCuentasRoute
@@ -731,6 +751,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNotificacionesRoute: AppNotificacionesRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppReservasRoute: AppReservasRouteWithChildren,
+  AppSaldoRoute: AppSaldoRoute,
   AppSoporteRoute: AppSoporteRoute,
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCuentasRoute: AppPerfilCuentasRoute,
