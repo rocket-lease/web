@@ -127,7 +127,7 @@ export function VehiculoDetailPage() {
             {photos.map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-1.5 rounded-full transition-[width,background-color] ${
                   i === photoIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
                 }`}
               />

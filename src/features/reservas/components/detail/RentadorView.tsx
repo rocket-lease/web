@@ -91,7 +91,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
       <Separator />
 
       <div className="space-y-3">
-        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+        <p className="text-sm font-medium text-text-secondary">
           {t('rentador.reservas.detalle.fechas')}
         </p>
         <div className="flex gap-3">
@@ -252,7 +252,7 @@ function RejectionReasonCard({ reason }: { reason: string }) {
     <div className="rounded-xl border border-danger/20 bg-danger/10 p-3 flex gap-3">
       <AlertOctagon className="h-4 w-4 text-danger-400 shrink-0 mt-0.5" />
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-danger-400 uppercase tracking-wider">
+        <p className="text-xs font-semibold text-danger-400">
           {t('rentador.reservas.detalle.rejectionReason.titulo')}
         </p>
         <p className="mt-1 text-sm text-text-secondary break-words">{reason}</p>

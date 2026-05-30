@@ -23,12 +23,18 @@ export const Route = createFileRoute('/_app')({
 })
 
 /**
- * Rutas de tarea (detalle de vehículo y flujo de reserva) que se muestran sin
- * el chrome global de navegación: header superior y bottom nav se ocultan para
- * dejar la pantalla enfocada en la tarea, con el header propio de cada página.
+ * Rutas de tarea (detalle de vehículo, flujo de reserva, detalle de reserva y
+ * transferencia) que se muestran sin el chrome global de navegación: header
+ * superior y bottom nav se ocultan para dejar la pantalla enfocada en la tarea,
+ * con el header propio de cada página. El listado `/reservas` (tab) conserva el
+ * chrome; solo los detalles `/reservas/:id` son inmersivos.
  */
 function isImmersiveRoute(pathname: string): boolean {
-  return pathname.startsWith('/vehiculos/')
+  return (
+    pathname.startsWith('/vehiculos/') ||
+    pathname.startsWith('/reservas/') ||
+    pathname.startsWith('/reservas-transferencia/')
+  )
 }
 
 function AppLayout() {

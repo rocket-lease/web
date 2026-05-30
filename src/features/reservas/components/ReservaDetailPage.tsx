@@ -36,7 +36,7 @@ export function ReservaDetailPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('reservas.detail.title')} showBack />
+        <PageHeader title={t('reservas.detail.title')} showBack sticky />
         <div className="px-4 py-5 space-y-4">
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="h-40 rounded-2xl" />
@@ -49,7 +49,7 @@ export function ReservaDetailPage() {
   if (isError || !reservation) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('reservas.detail.title')} showBack />
+        <PageHeader title={t('reservas.detail.title')} showBack sticky />
         <div className="flex items-center justify-center flex-1 py-24">
           <p className="text-sm text-danger">
             {t('reservar.errors.RESERVATION_NOT_FOUND')}
@@ -68,7 +68,7 @@ export function ReservaDetailPage() {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={t('reservas.detail.title')} showBack />
+      <PageHeader title={t('reservas.detail.title')} showBack sticky />
       {perspective === 'owner' ? (
         <RentadorView reservation={reservation} />
       ) : (

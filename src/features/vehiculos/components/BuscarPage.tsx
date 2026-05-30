@@ -168,7 +168,7 @@ export function BuscarPage() {
                   ...f,
                   [chip.key]: f[chip.key as keyof VehiculoFilters] === chip.value ? undefined : chip.value,
                 }))}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 border ${
+                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition duration-150 active:scale-95 border ${
                   active
                     ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                     : 'bg-surface-1 text-text-secondary border-white/10'

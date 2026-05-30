@@ -91,7 +91,7 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
                   key={opt.value}
                   onClick={() => set('transmission', localFilters.transmission === opt.value ? null : opt.value)}
                   className={cn(
-                    'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                    'rounded-full px-4 py-2 text-sm font-medium border transition',
                     localFilters.transmission === opt.value
                       ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                       : 'bg-surface-1 text-text-secondary border-white/10',
@@ -141,7 +141,7 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
                   key={n}
                   onClick={() => set('minSeats', localFilters.minSeats === n ? null : n)}
                   className={cn(
-                    'rounded-full w-10 h-10 text-sm font-medium border transition-all',
+                    'rounded-full w-10 h-10 text-sm font-medium border transition',
                     localFilters.minSeats === n
                       ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                       : 'bg-surface-1 text-text-secondary border-white/10',
@@ -204,7 +204,7 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
             <button
               onClick={() => set('isAccessible', localFilters.isAccessible ? undefined : true)}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                'rounded-full px-4 py-2 text-sm font-medium border transition',
                 localFilters.isAccessible
                   ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                   : 'bg-surface-1 text-text-secondary border-white/10',
@@ -227,7 +227,7 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
                     key={char}
                     onClick={() => toggleCharacteristic(char)}
                     className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium border transition-all',
+                      'rounded-full px-4 py-2 text-sm font-medium border transition',
                       isSelected
                         ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                         : 'bg-surface-1 text-text-secondary border-white/10',

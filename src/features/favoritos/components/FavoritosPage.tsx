@@ -54,7 +54,7 @@ export function FavoritosPage() {
           <>
             <p className="text-xs text-text-muted mb-4">
               <span className="font-semibold text-text-primary">{favVehicles.length}</span>{' '}
-              {t('favoritos.count')}
+              {favVehicles.length === 1 ? t('favoritos.countOne') : t('favoritos.count')}
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {favVehicles.map(v => (

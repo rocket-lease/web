@@ -175,7 +175,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         {/* Balance */}
         {canEdit && (
           <div className="w-full rounded-xl border border-info/20 bg-info/10 p-4 text-left">
-            <p className="text-xs font-semibold uppercase tracking-wider text-info">
+            <p className="text-xs font-semibold text-info">
               {t('perfil.balance.title')}
             </p>
             <div className="mt-2 flex items-end justify-between gap-3">
@@ -272,7 +272,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       {/* Settings menu (solo perfil propio) */}
       {canEdit && (
         <div className="px-4 mt-5 space-y-1">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{t('perfil.settings')}</p>
+          <p className="text-xs font-medium text-text-secondary mb-3">{t('perfil.settings')}</p>
 
           <button
             type="button"
@@ -358,10 +358,7 @@ function VerificationCard({
           <IdentificationCard size={22} weight="duotone" />
         </div>
         <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-            {title}
-          </p>
-          <p className="text-sm font-semibold text-text-primary">{statusLabel}</p>
+          <p className="text-sm font-semibold text-text-primary">{title}</p>
         </div>
         <Badge
           variant={
