@@ -1006,6 +1006,10 @@ export const es = {  // --- App ---
 
   'reservas.detail.extend.cta': 'Extender alquiler',
   'reservas.detail.extend.modalTitle': 'Extender alquiler',
+  'reservas.detail.extend.modifyTitle': 'Modificar extensión',
+  'reservas.detail.extend.saveChanges': 'Guardar cambios',
+  'reservas.detail.extend.cancelPedido.cta': 'Cancelar pedido pendiente',
+  'reservas.detail.extend.cancelPedido.success': 'Pedido de extensión cancelado',
   'reservas.detail.extend.currentEndAt': 'Devolución actual',
   'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
   'reservas.detail.extend.hourLabel': 'Hora',

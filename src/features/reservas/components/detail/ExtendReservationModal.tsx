@@ -12,8 +12,15 @@ import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
-import { getChainEndAt, getChainStartAt } from '../../utils/chain'
+import {
+  getChainEndAt,
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getPendingExtension,
+} from '../../utils/chain'
 import { useExtendReservation } from '../../hooks/useExtendReservation'
+import { useModifyExtension } from '../../hooks/useModifyExtension'
+import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 
 interface ExtendReservationModalProps {
   reservation: GetReservationResponse
@@ -44,12 +51,23 @@ export function ExtendReservationModal({
   onClose,
 }: ExtendReservationModalProps) {
   useLockBodyScroll()
-  const mutation = useExtendReservation()
+  const extendMutation = useExtendReservation()
+  const modifyMutation = useModifyExtension(reservation.id)
+  const cancelMutation = useCancelReservation()
+  const isSubmitting =
+    extendMutation.isPending ||
+    modifyMutation.isPending ||
+    cancelMutation.isPending
 
-  const chainEndAt = getChainEndAt(reservation)
-  const defaultNewEndAt = new Date(
-    new Date(chainEndAt).getTime() + DAY_MS,
-  )
+  const pendingExtension = getPendingExtension(reservation)
+  const isModifyMode = pendingExtension !== null
+
+  const chainEndAt = isModifyMode
+    ? getCommittedChainEndAt(reservation)
+    : getChainEndAt(reservation)
+  const defaultNewEndAt = isModifyMode
+    ? new Date(pendingExtension!.endAt)
+    : new Date(new Date(chainEndAt).getTime() + DAY_MS)
   const [date, setDate] = useState(toDateInput(defaultNewEndAt))
   const [time, setTime] = useState(toTimeInput(defaultNewEndAt))
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -98,15 +116,32 @@ export function ExtendReservationModal({
   const handleConfirm = async () => {
     if (!isValid || !newEndAtIso) return
     try {
-      const result = await mutation.mutateAsync({
-        reservationId: reservation.id,
-        newEndAt: newEndAtIso,
-      })
+      const result =
+        isModifyMode && pendingExtension
+          ? await modifyMutation.mutateAsync({
+              extensionId: pendingExtension.id,
+              newEndAt: newEndAtIso,
+            })
+          : await extendMutation.mutateAsync({
+              reservationId: reservation.id,
+              newEndAt: newEndAtIso,
+            })
       toast.success(
         result.requiresApproval
           ? t('reservas.detail.extend.success.solicitud')
           : t('reservas.detail.extend.success.inmediato'),
       )
+      onClose()
+    } catch {
+      toast.error(t('reservas.detail.extend.error.generic'))
+    }
+  }
+
+  const handleCancelPedido = async () => {
+    if (!pendingExtension) return
+    try {
+      await cancelMutation.mutateAsync(pendingExtension.id)
+      toast.success(t('reservas.detail.extend.cancelPedido.success'))
       onClose()
     } catch {
       toast.error(t('reservas.detail.extend.error.generic'))
@@ -126,7 +161,9 @@ export function ExtendReservationModal({
         <div className="flex items-center gap-2">
           <CalendarPlus className="h-5 w-5 text-brand-400" />
           <h2 className="text-lg font-bold text-text-primary">
-            {t('reservas.detail.extend.modalTitle')}
+            {isModifyMode
+              ? t('reservas.detail.extend.modifyTitle')
+              : t('reservas.detail.extend.modalTitle')}
           </h2>
         </div>
 
@@ -148,7 +185,7 @@ export function ExtendReservationModal({
             <button
               type="button"
               onClick={() => { setCalendarOpen((o) => !o); setTimeOpen(false) }}
-              disabled={mutation.isPending}
+              disabled={isSubmitting}
               className={cn(
                 'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
                 calendarOpen
@@ -162,7 +199,7 @@ export function ExtendReservationModal({
             <button
               type="button"
               onClick={() => { setTimeOpen((o) => !o); setCalendarOpen(false) }}
-              disabled={mutation.isPending}
+              disabled={isSubmitting}
               className={cn(
                 'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-text-primary transition-colors disabled:opacity-50',
                 timeOpen
@@ -270,23 +307,36 @@ export function ExtendReservationModal({
           </span>
         </p>
 
+        {isModifyMode && (
+          <button
+            type="button"
+            onClick={handleCancelPedido}
+            disabled={isSubmitting}
+            className="w-full rounded-lg border border-danger-500/30 py-2 text-sm font-medium text-danger-400 transition-colors hover:bg-danger-500/10 disabled:opacity-50"
+          >
+            {t('reservas.detail.extend.cancelPedido.cta')}
+          </button>
+        )}
+
         <div className="flex gap-2 justify-end">
           <Button
             variant="ghost"
             onClick={onClose}
-            disabled={mutation.isPending}
+            disabled={isSubmitting}
           >
             {t('reservas.detail.extend.cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!isValid || mutation.isPending}
+            disabled={!isValid || isSubmitting}
           >
-            {mutation.isPending
+            {isSubmitting
               ? t('reservas.detail.extend.submitting')
-              : requiresApproval
-                ? t('reservas.detail.extend.confirmSolicitud')
-                : t('reservas.detail.extend.confirmInmediato')}
+              : isModifyMode
+                ? t('reservas.detail.extend.saveChanges')
+                : requiresApproval
+                  ? t('reservas.detail.extend.confirmSolicitud')
+                  : t('reservas.detail.extend.confirmInmediato')}
           </Button>
         </div>
       </div>
