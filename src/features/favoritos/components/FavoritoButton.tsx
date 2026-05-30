@@ -24,15 +24,14 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
         toggle(vehicleId, isFavorito)
       }}
       className={cn(
-        'group flex h-8 w-8 items-center justify-center transition-all duration-150 active:scale-90',
+        'group flex h-8 w-8 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm transition-all duration-150 active:scale-90',
         className,
       )}
     >
       <Heart
-        size={22}
+        size={18}
         weight={isFavorito ? 'fill' : 'regular'}
         color={isFavorito ? '#F59E0B' : '#ffffff'}
-        className="drop-shadow-[0_1px_4px_rgba(0,0,0,0.7)]"
       />
     </button>
   )
