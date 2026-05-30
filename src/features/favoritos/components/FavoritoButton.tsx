@@ -32,7 +32,9 @@ export function FavoritoButton({ vehicleId, className }: FavoritoButtonProps) {
         size={22}
         weight="fill"
         color={isFavorito ? '#F59E0B' : 'rgba(0,0,0,0.65)'}
-        style={{ filter: 'drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white) drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(1px 1px 0 white) drop-shadow(-1px -1px 0 white) drop-shadow(1px -1px 0 white) drop-shadow(-1px 1px 0 white)' }}
+        stroke="white"
+        strokeWidth={1.5}
+        style={{ paintOrder: 'stroke fill' }}
       />
     </button>
   )
