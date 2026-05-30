@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { CalendarDays, CalendarPlus, Clock, Info } from 'lucide-react'
-import type { GetReservationResponse } from '@rocket-lease/contracts'
+import type { GetReservationResponse, ProblemDetails } from '@rocket-lease/contracts'
+import { ErrorCodes } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
 import { Calendar } from '@/ui/calendar'
 import { cn } from '@/lib/utils'
@@ -11,6 +12,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
 import {
   getChainEndAt,
@@ -93,8 +95,37 @@ export function ExtendReservationModal({
     staleTime: 60_000,
   })
 
+  const busyRangesQuery = useQuery({
+    queryKey: ['busyRanges', reservation.vehicle.id],
+    queryFn: () => reservarApi.getBusyRanges(reservation.vehicle.id),
+    staleTime: 30_000,
+  })
+
+  // First busy range that starts strictly after the committed chain end.
+  const nextConflictDate = useMemo(() => {
+    const items = busyRangesQuery.data?.items
+    if (!items) return undefined
+    const chainEndDate = toDateInput(new Date(chainEndAt))
+    const future = items
+      .map((r) => toDateInput(new Date(r.startAt)))
+      .filter((d) => d > chainEndDate)
+      .sort()
+    return future.length > 0 ? future[0] : undefined
+  }, [busyRangesQuery.data, chainEndAt])
+
+  // Last selectable day (one before the conflict).
+  const lastAvailableDate = useMemo(() => {
+    if (!nextConflictDate) return undefined
+    const d = new Date(`${nextConflictDate}T00:00:00`)
+    d.setDate(d.getDate() - 1)
+    return d
+  }, [nextConflictDate])
+
   const newEndAtIso = useMemo(() => combineDateTime(date, time), [date, time])
-  const isValid = newEndAtIso !== null && newEndAtIso > chainEndAt
+  const isValid =
+    newEndAtIso !== null &&
+    newEndAtIso > chainEndAt &&
+    (nextConflictDate === undefined || date < nextConflictDate)
 
   const dailyPriceCents = reservation.basePriceCentsSnapshot
   const totalCentsPreview = useMemo(() => {
@@ -132,8 +163,14 @@ export function ExtendReservationModal({
           : t('reservas.detail.extend.success.inmediato'),
       )
       onClose()
-    } catch {
-      toast.error(t('reservas.detail.extend.error.generic'))
+    } catch (err) {
+      const isProblem = (v: unknown): v is ProblemDetails =>
+        typeof v === 'object' && v !== null && 'code' in v
+      if (isProblem(err) && err.code === ErrorCodes.RESERVATION_VEHICLE_NOT_AVAILABLE) {
+        toast.error(t('reservas.detail.extend.error.vehicleNotAvailable'))
+      } else {
+        toast.error(t('reservas.detail.extend.error.generic'))
+      }
     }
   }
 
@@ -217,9 +254,17 @@ export function ExtendReservationModal({
                 mode="single"
                 value={date}
                 minDate={toDateInput(new Date(new Date(chainEndAt).getTime() + DAY_MS))}
+                isDateDisabled={nextConflictDate ? (d) => d >= nextConflictDate : undefined}
                 onChange={(d) => { setDate(d); setCalendarOpen(false) }}
               />
             </div>
+          )}
+          {lastAvailableDate && (
+            <p className="flex items-center gap-1.5 text-xs text-warning">
+              <Info className="h-3.5 w-3.5 shrink-0" />
+              {t('reservas.detail.extend.availableUntil')}{' '}
+              <span className="font-medium">{fmt.dateShort(lastAvailableDate)}</span>
+            </p>
           )}
           {timeOpen && (
             <div className="grid grid-cols-2 gap-3 pt-1">

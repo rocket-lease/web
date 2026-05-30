@@ -1038,6 +1038,9 @@ export const es = {  // --- App ---
     'La nueva fecha debe ser posterior a la devolución actual.',
   'reservas.detail.extend.error.generic':
     'No pudimos procesar la extensión. Intentalo nuevamente.',
+  'reservas.detail.extend.error.vehicleNotAvailable':
+    'El vehículo no está disponible en esas fechas. Elegí una fecha anterior.',
+  'reservas.detail.extend.availableUntil': 'Disponible hasta el',
 
   'reservas.approve.extensionTitle': 'Aprobar solicitud de extensión',
   'reservas.approve.extensionSubtitle':
