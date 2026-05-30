@@ -242,6 +242,7 @@ describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
       makeReservation({
         status: 'confirmed',
         paidAt: '2026-05-31T10:00:00.000Z',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'FLEXIBLE',
       }),
     )
@@ -282,6 +283,7 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
     getById.mockResolvedValue(
       makeReservation({
         status: 'pending_payment',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'FLEXIBLE',
       }),
     )
@@ -297,9 +299,9 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
     getById.mockResolvedValue(
       makeReservation({
         status: 'pending_payment',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         cancellationPolicy: 'MODERATE',
-        startAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      }),
+      })
     )
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
@@ -314,9 +316,9 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
       makeReservation({
         status: 'confirmed',
         cancellationPolicy: 'STRICT',
+        startAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        startAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      }),
+      })
     )
 
     render(<ReservaDetailPage />, { wrapper: createWrapper() })
