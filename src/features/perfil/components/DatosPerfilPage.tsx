@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
 import { Avatar } from '@/ui/avatar'
+import { Slider } from '@/ui/slider'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { t } from '@/i18n/es'
@@ -20,7 +21,7 @@ export function DatosPerfilPage() {
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
-  const [maxPriceDaily, setMaxPriceDaily] = useState('')
+  const [maxPriceDaily, setMaxPriceDaily] = useState(0)
   const [transmission, setTransmission] = useState<'automatic' | 'manual' | null>(null)
   const [syncedProfileId, setSyncedProfileId] = useState<string | null>(null)
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null)
@@ -30,7 +31,7 @@ export function DatosPerfilPage() {
     setSyncedProfileId(profile.id)
     setName(profile.name)
     setPhone(profile.phone)
-    setMaxPriceDaily(profile.preferences.maxPriceDaily?.toString() ?? '')
+    setMaxPriceDaily(profile.preferences.maxPriceDaily ?? 0)
     setTransmission(profile.preferences.transmission)
   }
 
@@ -66,7 +67,7 @@ export function DatosPerfilPage() {
       preferences: {
         transmission,
         accessibility: profile.preferences.accessibility,
-        maxPriceDaily: maxPriceDaily.trim().length > 0 ? Number(maxPriceDaily) : null,
+        maxPriceDaily: maxPriceDaily > 0 ? maxPriceDaily : null,
       },
       autoAccept: profile.autoAccept,
     }
@@ -201,16 +202,24 @@ export function DatosPerfilPage() {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-text-muted px-1">{t('perfil.form.maxPriceDaily')}</label>
-            <input
-              type="number"
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between px-1">
+              <label className="text-xs font-medium text-text-muted">{t('perfil.form.maxPriceDaily')}</label>
+              <span className="text-sm font-semibold text-text-primary">
+                {maxPriceDaily > 0 ? `$${maxPriceDaily.toLocaleString('es-AR')}` : 'Sin límite'}
+              </span>
+            </div>
+            <Slider
               value={maxPriceDaily}
-              onChange={(e) => setMaxPriceDaily(e.target.value)}
-              placeholder="Sin límite"
+              onValueChange={setMaxPriceDaily}
               min={0}
-              className="w-full rounded-xl border border-white/8 bg-surface-1 px-4 h-11 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-600/60 transition-colors"
+              max={150000}
+              step={5000}
             />
+            <div className="flex justify-between px-1">
+              <span className="text-[10px] text-text-muted">Sin límite</span>
+              <span className="text-[10px] text-text-muted">$150.000</span>
+            </div>
           </div>
         </div>
 
