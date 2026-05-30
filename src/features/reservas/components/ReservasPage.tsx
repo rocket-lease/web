@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, ClipboardList, Clock, Inbox, Loader2, User } from 'lucide-react'
+import { toast } from 'sonner'
+import { ArrowRight, CalendarDays, Check, ClipboardList, Clock, Inbox, Loader2, User, X } from 'lucide-react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -17,9 +18,13 @@ import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
+import { useApproveReservation } from '../hooks/useApproveReservation'
+import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { RoleSegmentedControl } from './RoleSegmentedControl'
+import { ConfirmationModal } from './modals/ConfirmationModal'
+import { RejectReasonModal } from './modals/RejectReasonModal'
 
 type TabKey =
   | 'all'
@@ -488,6 +493,12 @@ interface ReservaCardProps {
 /**
  * Card de listado. La contraparte mostrada depende del rol: para conductor,
  * el rentador; para rentador, el conductor.
+ *
+ * Si el eslabón representativo está en `pending_approval` y el usuario está
+ * con rol owner, la card muestra acciones rápidas inline para aprobar o
+ * rechazar sin entrar al detalle. Cuando además es una extensión
+ * (`parentReservationId` presente), suma un badge purple "Extensión" para
+ * distinguirla visualmente de una solicitud de reserva nueva.
  */
 function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents, hasPendingExtension }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
@@ -500,6 +511,11 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
     reserva.status === RESERVATION_STATUS.confirmed ||
     reserva.status === RESERVATION_STATUS.in_progress
   const { data: unreadCount = 0 } = useUnreadCount(reserva.id, canHaveChat)
+
+  const isPendingApprovalForOwner =
+    role === 'owner' && reserva.status === RESERVATION_STATUS.pending_approval
+  const isExtension = reserva.parentReservationId != null
+  const showExtensionBadge = isPendingApprovalForOwner && isExtension
 
   return (
     <Link
@@ -532,7 +548,14 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
           <p className="font-semibold text-text-primary truncate">
             {reserva.vehicle.brand} {reserva.vehicle.model}
           </p>
-          <ReservaStatusBadge estado={reserva.status} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {showExtensionBadge && (
+              <span className="inline-flex items-center rounded-full bg-purple-500/15 text-purple-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                {t('reservas.list.extensionBadge')}
+              </span>
+            )}
+            <ReservaStatusBadge estado={reserva.status} />
+          </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <CalendarDays className="h-3.5 w-3.5 text-text-muted shrink-0" />
@@ -548,7 +571,7 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
             {fmt.time(endAt)}
           </span>
         </div>
-        {hasPendingExtension && (
+        {hasPendingExtension && !showExtensionBadge && (
           <div className="flex items-center gap-1 text-[11px] text-warning">
             <Clock className="h-3 w-3 shrink-0" />
             <span>{t('reservas.list.pendingExtension')}</span>
@@ -563,8 +586,127 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
             {fmt.currency(totalCents)}
           </span>
         </div>
+        {isPendingApprovalForOwner && (
+          <ReservationQuickActions
+            reservationId={reserva.id}
+            isExtension={isExtension}
+          />
+        )}
       </div>
     </Link>
+  )
+}
+
+interface ReservationQuickActionsProps {
+  reservationId: string
+  isExtension: boolean
+}
+
+/**
+ * Acciones rápidas para que el rentador apruebe o rechace una solicitud
+ * `pending_approval` desde la lista, sin tener que entrar al detalle. Cubre
+ * tanto solicitudes de reserva nuevas como solicitudes de extensión —
+ * `isExtension` selecciona los copies (modal + toast) adecuados.
+ *
+ * Los botones detienen propagación y previenen el default del `<Link>`
+ * contenedor para que clickearlos no dispare la navegación al detalle.
+ */
+function ReservationQuickActions({ reservationId, isExtension }: ReservationQuickActionsProps) {
+  const approveMutation = useApproveReservation()
+  const rejectMutation = useRejectReservation()
+  const [showApprove, setShowApprove] = useState(false)
+  const [showReject, setShowReject] = useState(false)
+  const isBusy = approveMutation.isPending || rejectMutation.isPending
+
+  const handleApprove = async () => {
+    try {
+      await approveMutation.mutateAsync(reservationId)
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.aprobada'
+            : 'rentador.reservas.aprobada',
+        ),
+      )
+      setShowApprove(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const handleReject = async (reason: string) => {
+    try {
+      await rejectMutation.mutateAsync({
+        reservationId,
+        reason: reason.trim().length > 0 ? reason.trim() : undefined,
+      })
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.rechazada'
+            : 'rentador.reservas.rechazada',
+        ),
+      )
+      setShowReject(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const stop = (handler: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    handler()
+  }
+
+  return (
+    <>
+      <div className="flex gap-2 pt-1">
+        <Button
+          variant="outline"
+          className="flex-1 h-8 text-xs border-danger/40 text-danger-400 hover:bg-danger/10"
+          disabled={isBusy}
+          onClick={stop(() => setShowReject(true))}
+        >
+          <X className="h-3.5 w-3.5" />
+          {t('rentador.reservas.detalle.rechazar')}
+        </Button>
+        <Button
+          className="flex-1 h-8 text-xs"
+          disabled={isBusy}
+          onClick={stop(() => setShowApprove(true))}
+        >
+          <Check className="h-3.5 w-3.5" />
+          {t('rentador.reservas.detalle.aprobar')}
+        </Button>
+      </div>
+      {showApprove && (
+        <ConfirmationModal
+          title={t(
+            isExtension
+              ? 'reservas.approve.extensionTitle'
+              : 'rentador.reservas.aprobar.confirmTitle',
+          )}
+          body={t(
+            isExtension
+              ? 'reservas.approve.extensionBody'
+              : 'rentador.reservas.aprobar.confirmBody',
+          )}
+          confirmLabel={t('rentador.reservas.aprobar.confirmar')}
+          submittingLabel={t('rentador.reservas.detalle.aprobando')}
+          submitting={approveMutation.isPending}
+          onConfirm={handleApprove}
+          onCancel={() => setShowApprove(false)}
+        />
+      )}
+      {showReject && (
+        <RejectReasonModal
+          submitting={rejectMutation.isPending}
+          onSubmit={handleReject}
+          onCancel={() => setShowReject(false)}
+        />
+      )}
+    </>
   )
 }
 
