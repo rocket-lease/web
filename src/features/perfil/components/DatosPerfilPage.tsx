@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Save } from 'lucide-react'
 import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
@@ -89,7 +88,7 @@ export function DatosPerfilPage() {
   }
 
   return (
-    <div className="flex flex-col pb-8">
+    <div className="flex flex-col pb-28">
       <PageHeader title={t('perfil.datos.title')} showBack />
 
       {/* Avatar */}
@@ -214,13 +213,13 @@ export function DatosPerfilPage() {
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button onClick={handleSave} disabled={isUpdating} className="w-full">
-            <Save className="h-4 w-4" />
-            {isUpdating ? t('perfil.saving') : t('general.save')}
-          </Button>
-        </div>
       </div>
+    </div>
+
+    <div className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-8 bg-surface-0/90 backdrop-blur-md border-t border-white/6">
+      <Button onClick={handleSave} disabled={isUpdating} className="w-full">
+        {isUpdating ? t('perfil.saving') : t('general.save')}
+      </Button>
     </div>
   )
 }
