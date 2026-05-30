@@ -285,7 +285,13 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
   const handleApprove = async () => {
     try {
       await approveMutation.mutateAsync(reservationId)
-      toast.success(t('rentador.reservas.aprobada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.aprobada'
+            : 'rentador.reservas.aprobada',
+        ),
+      )
       setShowApproveConfirm(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
@@ -298,7 +304,13 @@ function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
         reservationId,
         reason: reason.trim().length > 0 ? reason.trim() : undefined,
       })
-      toast.success(t('rentador.reservas.rechazada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.rechazada'
+            : 'rentador.reservas.rechazada',
+        ),
+      )
       setShowRejectModal(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
