@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
 import { ReservaStatusBadge } from '@/features/reservas/components/ReservaStatusBadge'
 import { fmt } from '@/lib/formatters'
-import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { t } from '@/i18n/es'
 
 const stats = [
@@ -19,8 +19,8 @@ const mockReservas = [
 ]
 
 export function DashboardPage() {
-  const { user } = useAuth()
-  const name = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0] ?? 'Rentador'
+  const { data: profile } = useMyProfile()
+  const name = profile?.name?.split(' ')[0] ?? '...'
 
   return (
     <div className="flex flex-col">
