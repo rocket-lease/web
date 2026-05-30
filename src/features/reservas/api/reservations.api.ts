@@ -3,11 +3,14 @@ import {
   ApproveReservationResponseSchema,
   ConfirmPickupResponseSchema,
   ConfirmReturnResponseSchema,
+  ExtendReservationResponseSchema,
   RejectReservationResponseSchema,
   ReservationsListResponseSchema,
   type ApproveReservationResponse,
   type ConfirmPickupResponse,
   type ConfirmReturnResponse,
+  type ExtendReservationRequest,
+  type ExtendReservationResponse,
   type RejectReservationRequest,
   type RejectReservationResponse,
   type ReservationsListRequest,
@@ -82,6 +85,57 @@ export async function rejectReservation(
     body,
   )
   return RejectReservationResponseSchema.parse(raw)
+}
+
+/**
+ * Solicita extender una reserva en curso hasta un nuevo `endAt`.
+ *
+ * Crea una reserva contigua con `parentReservationId` apuntando al padre.
+ * El estado resultante depende de la configuración del vehículo y del max
+ * acumulado del chain:
+ * - `pending_payment` con hold de 10min cuando el rentador tiene autoAccept
+ *   y el chain entra en `maxDays` del set actual.
+ * - `pending_approval` cuando el rentador requiere aprobación o el chain
+ *   excede `maxDays`.
+ *
+ * @param reservationId - UUID del padre o de un eslabón del chain. El backend
+ *   resuelve la "punta" del chain y cuelga la extensión de ese eslabón.
+ * @param newEndAt - Nuevo `endAt` ISO 8601 UTC. Debe ser mayor al `endAt`
+ *   actual de la punta del chain.
+ * @returns Respuesta validada con `id`, `status`, `holdExpiresAt`,
+ *   `totalCents`, `currency` y `requiresApproval`.
+ * @throws ProblemDetails si la API rechaza la acción (403, 409, etc.).
+ */
+export async function extendReservation(
+  reservationId: string,
+  newEndAt: string,
+): Promise<ExtendReservationResponse> {
+  const body: ExtendReservationRequest = { newEndAt }
+  const raw = await apiClient.post<unknown>(
+    `/reservations/${reservationId}/extend`,
+    body,
+  )
+  return ExtendReservationResponseSchema.parse(raw)
+}
+
+/**
+ * Modifica una extensión todavía pendiente cambiando su fecha de devolución.
+ *
+ * @param extensionId - UUID del eslabón de extensión pendiente a modificar.
+ * @param newEndAt - Nueva fecha de devolución ISO 8601 UTC.
+ * @returns Respuesta validada con el estado y total recalculados.
+ * @throws ProblemDetails si la API rechaza la acción (403, 409, etc.).
+ */
+export async function modifyExtension(
+  extensionId: string,
+  newEndAt: string,
+): Promise<ExtendReservationResponse> {
+  const body: ExtendReservationRequest = { newEndAt }
+  const raw = await apiClient.patch<unknown>(
+    `/reservations/${extensionId}/extend`,
+    body,
+  )
+  return ExtendReservationResponseSchema.parse(raw)
 }
 
 export async function confirmPickup(

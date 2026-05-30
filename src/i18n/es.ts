@@ -226,6 +226,8 @@ export const es = {  // --- App ---
 
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
+  'reservas.list.pendingExtension': 'Extensión pendiente',
+  'reservas.list.extensionBadge': 'Extensión',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
@@ -421,6 +423,8 @@ export const es = {  // --- App ---
   'rentador.reservas.errorAccion': 'No pudimos completar la acción. Intentá de nuevo.',
   'rentador.reservas.aprobada': 'Solicitud aprobada',
   'rentador.reservas.rechazada': 'Solicitud rechazada',
+  'rentador.reservas.extension.aprobada': 'Extensión aprobada',
+  'rentador.reservas.extension.rechazada': 'Extensión rechazada',
   'reservas.estado.pending_approval': 'En revisión',
   'reservas.detail.pagar': 'Pagar',
   'reservas.pago.title': 'Pagar reserva',
@@ -1025,6 +1029,55 @@ export const es = {  // --- App ---
   'paymentMethods.form.walletProvider': 'Billetera',
   'paymentMethods.form.walletAlias': 'Alias / CVU',
   'paymentMethods.form.cancel': 'Cancelar',
+
+  'reservas.detail.extend.cta': 'Extender alquiler',
+  'reservas.detail.extend.modalTitle': 'Extender alquiler',
+  'reservas.detail.extend.modifyTitle': 'Modificar extensión',
+  'reservas.detail.extend.saveChanges': 'Guardar cambios',
+  'reservas.detail.extend.cancelPedido.cta': 'Cancelar pedido pendiente',
+  'reservas.detail.extend.cancelPedido.success': 'Pedido de extensión cancelado',
+  'reservas.detail.extend.currentEndAt': 'Devolución actual',
+  'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
+  'reservas.detail.extend.hourLabel': 'Hora',
+  'reservas.detail.extend.minuteLabel': 'Min',
+  'reservas.detail.extend.totalPreview': 'Costo',
+  'reservas.detail.extend.pendingApproval': 'Extensión pendiente de aprobación',
+  'reservas.detail.extend.pendingPayment': 'Extensión pendiente de pago',
+  'reservas.detail.extend.pendingUntil': 'hasta',
+  'reservas.detail.extend.infoInmediato':
+    'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
+  'reservas.detail.extend.infoSolicitud':
+    'Esta extensión necesita aprobación del rentador. Vas a recibir una respuesta dentro de las próximas 24 horas.',
+  'reservas.detail.extend.infoLoading':
+    'Calculando las condiciones de la extensión...',
+  'reservas.detail.extend.infoVehicleError':
+    'No pudimos cargar las condiciones del vehículo. Si confirmás, la extensión se enviará como solicitud para que el rentador la apruebe.',
+  'reservas.detail.extend.confirmInmediato': 'Extender y pagar',
+  'reservas.detail.extend.confirmSolicitud': 'Enviar solicitud',
+  'reservas.detail.extend.cancel': 'Cancelar',
+  'reservas.detail.extend.submitting': 'Enviando...',
+  'reservas.detail.extend.success.inmediato':
+    'Extensión aplicada. Estamos procesando el pago.',
+  'reservas.detail.extend.success.solicitud':
+    'Solicitud enviada. El rentador tiene 24 horas para responder.',
+  'reservas.detail.extend.error.invalidEndAt':
+    'La nueva fecha debe ser posterior a la devolución actual.',
+  'reservas.detail.extend.error.generic':
+    'No pudimos procesar la extensión. Intentalo nuevamente.',
+  'reservas.detail.extend.error.vehicleNotAvailable':
+    'El vehículo no está disponible en esas fechas. Elegí una fecha anterior.',
+  'reservas.detail.extend.availableUntil': 'Disponible hasta el',
+
+  'reservas.approve.extensionTitle': 'Aprobar solicitud de extensión',
+  'reservas.approve.extensionSubtitle':
+    'El conductor pidió extender un alquiler en curso. Revisá las nuevas fechas antes de aprobar.',
+  'reservas.approve.extensionBody':
+    'El conductor recibirá 10 minutos para pagar la extensión. Las solicitudes solapadas se van a rechazar automáticamente.',
+
+  'reservar.errors.RESERVATION_EXTENSION_NOT_IN_PROGRESS':
+    'Solo podés extender un alquiler en curso.',
+  'reservar.errors.RESERVATION_EXTENSION_INVALID_END_AT':
+    'La nueva fecha no es válida — tiene que ser posterior a la devolución actual.',
 } as const
 
 export type I18nKey = keyof typeof es

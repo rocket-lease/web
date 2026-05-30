@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX } from '@phosphor-icons/react'
-import { AlertOctagon, CalendarDays, Check, ChevronRight, MessageSquare, User, X } from 'lucide-react'
+import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -17,6 +17,14 @@ import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ReservaUbicacion } from './ReservaUbicacion'
+import { ConfirmationModal } from '../modals/ConfirmationModal'
+import { RejectReasonModal } from '../modals/RejectReasonModal'
+import {
+  getChainStartAt,
+  getCommittedChainEndAt,
+  getCommittedChainTotalCents,
+  getPendingExtension,
+} from '../../utils/chain'
 import { useApproveReservation } from '../../hooks/useApproveReservation'
 import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
@@ -48,6 +56,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
   const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
 
   const photo = reservation.vehicle.photo
+  const pendingExtension = getPendingExtension(reservation)
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -94,7 +103,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               </span>
             </div>
             <p className="font-semibold text-text-primary">
-              {fmt.dateTime(reservation.startAt)}
+              {fmt.dateTime(getChainStartAt(reservation))}
             </p>
           </div>
           <div className="flex-1 rounded-xl bg-surface-2 p-3">
@@ -105,10 +114,23 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               </span>
             </div>
             <p className="font-semibold text-text-primary">
-              {fmt.dateTime(reservation.endAt)}
+              {fmt.dateTime(getCommittedChainEndAt(reservation))}
             </p>
           </div>
         </div>
+        {pendingExtension && (
+          <p className="flex items-center gap-2 text-xs text-warning">
+            <Clock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {pendingExtension.status === RESERVATION_STATUS.pending_payment
+                ? t('reservas.detail.extend.pendingPayment')
+                : t('reservas.detail.extend.pendingApproval')}
+              {' · '}
+              {t('reservas.detail.extend.pendingUntil')}{' '}
+              {fmt.dayMonth(pendingExtension.endAt)}
+            </span>
+          </p>
+        )}
       </div>
 
       <Separator />
@@ -158,7 +180,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           {t('rentador.reservas.detalle.total')}
         </p>
         <p className="text-xl font-bold text-brand-400">
-          {fmt.currency(reservation.totalCents)}
+          {fmt.currency(getCommittedChainTotalCents(reservation))}
         </p>
       </div>
 
@@ -187,7 +209,10 @@ export function RentadorView({ reservation }: RentadorViewProps) {
       )}
 
       {reservation.status === RESERVATION_STATUS.pending_approval && (
-        <ApprovalActions reservationId={reservation.id} />
+        <ApprovalActions
+          reservationId={reservation.id}
+          isExtension={!!reservation.parentReservationId}
+        />
       )}
 
       {reservation.status === RESERVATION_STATUS.confirmed && (
@@ -238,6 +263,7 @@ function RejectionReasonCard({ reason }: { reason: string }) {
 
 interface ApprovalActionsProps {
   reservationId: string
+  isExtension: boolean
 }
 
 /**
@@ -247,8 +273,12 @@ interface ApprovalActionsProps {
  * El click en "Aprobar" abre un confirm corto que recuerda al rentador
  * que se dispara la cascada de auto-rechazo. El click en "Rechazar" abre
  * un modal con textarea opcional (max 280 chars) para dejar la razón.
+ *
+ * Cuando `isExtension` es `true`, el copy del modal de aprobación y del
+ * banner informativo se ajusta para dejar claro que se trata de una
+ * solicitud de extensión de un alquiler en curso, no una reserva nueva.
  */
-function ApprovalActions({ reservationId }: ApprovalActionsProps) {
+function ApprovalActions({ reservationId, isExtension }: ApprovalActionsProps) {
   const approveMutation = useApproveReservation()
   const rejectMutation = useRejectReservation()
   const [showRejectModal, setShowRejectModal] = useState(false)
@@ -257,7 +287,13 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
   const handleApprove = async () => {
     try {
       await approveMutation.mutateAsync(reservationId)
-      toast.success(t('rentador.reservas.aprobada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.aprobada'
+            : 'rentador.reservas.aprobada',
+        ),
+      )
       setShowApproveConfirm(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
@@ -270,7 +306,13 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
         reservationId,
         reason: reason.trim().length > 0 ? reason.trim() : undefined,
       })
-      toast.success(t('rentador.reservas.rechazada'))
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.rechazada'
+            : 'rentador.reservas.rechazada',
+        ),
+      )
       setShowRejectModal(false)
     } catch {
       toast.error(t('rentador.reservas.errorAccion'))
@@ -282,7 +324,9 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
   return (
     <>
       <div className="rounded-xl bg-brand-500/10 border border-brand-500/20 px-3 py-2 text-sm text-text-secondary">
-        {t('rentador.reservas.detalle.solicitudInfo')}
+        {isExtension
+          ? t('reservas.approve.extensionSubtitle')
+          : t('rentador.reservas.detalle.solicitudInfo')}
       </div>
       <div className="flex gap-2">
         <Button
@@ -307,7 +351,19 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
       </div>
 
       {showApproveConfirm && (
-        <ApproveConfirmModal
+        <ConfirmationModal
+          title={t(
+            isExtension
+              ? 'reservas.approve.extensionTitle'
+              : 'rentador.reservas.aprobar.confirmTitle',
+          )}
+          body={t(
+            isExtension
+              ? 'reservas.approve.extensionBody'
+              : 'rentador.reservas.aprobar.confirmBody',
+          )}
+          confirmLabel={t('rentador.reservas.aprobar.confirmar')}
+          submittingLabel={t('rentador.reservas.detalle.aprobando')}
           submitting={approveMutation.isPending}
           onConfirm={handleApprove}
           onCancel={() => setShowApproveConfirm(false)}
@@ -322,114 +378,6 @@ function ApprovalActions({ reservationId }: ApprovalActionsProps) {
         />
       )}
     </>
-  )
-}
-
-interface ApproveConfirmModalProps {
-  submitting: boolean
-  onConfirm: () => void
-  onCancel: () => void
-}
-
-function ApproveConfirmModal({ submitting, onConfirm, onCancel }: ApproveConfirmModalProps) {
-  useLockBodyScroll()
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {t('rentador.reservas.aprobar.confirmTitle')}
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          {t('rentador.reservas.aprobar.confirmBody')}
-        </p>
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button onClick={onConfirm} disabled={submitting}>
-            {submitting
-              ? t('rentador.reservas.detalle.aprobando')
-              : t('rentador.reservas.aprobar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-interface RejectReasonModalProps {
-  submitting: boolean
-  onSubmit: (reason: string) => void
-  onCancel: () => void
-}
-
-const REJECT_REASON_MAX = 280
-
-function RejectReasonModal({ submitting, onSubmit, onCancel }: RejectReasonModalProps) {
-  const [reason, setReason] = useState('')
-  useLockBodyScroll()
-  const overLimit = reason.length > REJECT_REASON_MAX
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-6 overflow-y-auto"
-      style={{ minHeight: '100dvh' }}
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl bg-surface-1 border border-white/8 p-6 shadow-elevated my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold text-text-primary">
-          {t('rentador.reservas.rechazar.modalTitle')}
-        </h2>
-
-        <label className="mt-4 mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
-          {t('rentador.reservas.rechazar.razonLabel')}
-        </label>
-        <textarea
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder={t('rentador.reservas.rechazar.razonPlaceholder')}
-          rows={4}
-          maxLength={REJECT_REASON_MAX}
-          className="w-full rounded-xl border border-white/8 bg-surface-2 px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-brand-500"
-          disabled={submitting}
-        />
-        <p
-          className={`mt-1 text-right text-xs ${
-            overLimit ? 'text-danger-400' : 'text-text-muted'
-          }`}
-        >
-          {t('rentador.reservas.rechazar.charCounter').replace(
-            '{count}',
-            String(reason.length),
-          )}
-        </p>
-
-        <div className="mt-5 flex gap-2 justify-end">
-          <Button variant="ghost" onClick={onCancel} disabled={submitting}>
-            {t('rentador.reservas.rechazar.cancelar')}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => onSubmit(reason)}
-            disabled={submitting || overLimit}
-          >
-            {submitting
-              ? t('rentador.reservas.detalle.rechazando')
-              : t('rentador.reservas.rechazar.confirmar')}
-          </Button>
-        </div>
-      </div>
-    </div>
   )
 }
 
