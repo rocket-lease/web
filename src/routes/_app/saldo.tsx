@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { AuthGate } from '@/features/auth/components/AuthGate'
-import { WalletPage } from '@/features/wallet/components/WalletPage'
+import { CreditsPage } from '@/features/perfil/components/CreditsPage'
 
 function WalletRoute() {
   return (
     <AuthGate>
-      <WalletPage />
+      <CreditsPage />
     </AuthGate>
   )
 }

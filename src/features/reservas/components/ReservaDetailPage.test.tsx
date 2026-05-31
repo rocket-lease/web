@@ -276,7 +276,7 @@ describe('ReservaDetailPage (conductor) — confirmed cancellation', () => {
       screen.getByText(
         (_, element) =>
           element?.tagName === 'P' &&
-          element.textContent?.includes(`Sí, vas a recibir ${fmt.currency(100000)} Rocketokens de reembolso.`) === true,
+          element.textContent?.includes(`Sí, vas a recibir ${fmt.currency(100000)} RocketTokens de reembolso.`) === true,
       ),
     ).toBeInTheDocument()
     fireEvent.click(screen.getAllByRole('button', { name: /Cancelar reserva/i })[1])

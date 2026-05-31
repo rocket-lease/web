@@ -18,8 +18,9 @@ function RootLayout() {
         <Toaster
           position="bottom-center"
           richColors
-          offset={'calc(env(safe-area-inset-bottom, 0px) + 88px)'}
-          mobileOffset={'calc(env(safe-area-inset-bottom, 0px) + 88px)'}
+          offset={'calc(env(safe-area-inset-bottom, 0px) + 76px)'}
+          mobileOffset={'calc(env(safe-area-inset-bottom, 0px) + 76px)'}
+          style={{ '--width': 'calc(100vw - 32px)', left: '16px', transform: 'none' } as React.CSSProperties}
           toastOptions={{
             style: {
               background: 'var(--color-surface-2)',
@@ -27,6 +28,7 @@ function RootLayout() {
               color: 'var(--color-text-primary)',
               width: 'calc(100vw - 32px)',
               maxWidth: 'none',
+              borderRadius: '16px',
             },
           }}
         />
