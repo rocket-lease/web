@@ -68,6 +68,15 @@ export function getCancellationRefundSummary(
   nowMs = Date.now(),
 ): CancellationRefundSummary {
   const policy = getEffectiveReservationRules(reservation).cancellationPolicy
+  // US-26: en una reserva señada (pending_balance) el conductor solo abonó la
+  // seña, así que el reembolso se calcula sobre ella y la fecha de su pago.
+  const isPendingBalance = reservation.status === 'pending_balance'
+  const refundBaseCents = isPendingBalance
+    ? reservation.depositPaidCents ?? 0
+    : reservation.totalCents
+  const effectivePaidAtIso = isPendingBalance
+    ? reservation.depositPaidAt ?? null
+    : reservation.paidAt
   const startAt = parseIsoDate(reservation.startAt)
   if (!startAt) {
     return {
@@ -86,7 +95,7 @@ export function getCancellationRefundSummary(
       policy,
       deadlineAt,
       refundPercent,
-      refundCents: Math.floor((reservation.totalCents * refundPercent) / 100),
+      refundCents: Math.floor((refundBaseCents * refundPercent) / 100),
     }
   }
 
@@ -98,11 +107,11 @@ export function getCancellationRefundSummary(
       policy,
       deadlineAt,
       refundPercent,
-      refundCents: Math.floor((reservation.totalCents * refundPercent) / 100),
+      refundCents: Math.floor((refundBaseCents * refundPercent) / 100),
     }
   }
 
-  const paidAt = parseIsoDate(reservation.paidAt)
+  const paidAt = parseIsoDate(effectivePaidAtIso)
   if (!paidAt) {
     return {
       state: 'invalid_dates',
@@ -123,7 +132,7 @@ export function getCancellationRefundSummary(
     policy,
     deadlineAt,
     refundPercent,
-    refundCents: Math.floor((reservation.totalCents * refundPercent) / 100),
+    refundCents: Math.floor((refundBaseCents * refundPercent) / 100),
   }
 }
 

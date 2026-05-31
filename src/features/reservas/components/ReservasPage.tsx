@@ -31,20 +31,46 @@ type TabKey =
   | 'all'
   | 'solicitudes'
   | 'pending'
+  | 'pendingBalance'
   | 'confirmed'
   | 'inProgress'
   | 'completed'
   | 'cancelled'
 
-/** `undefined` = sin filtro de estado (el endpoint devuelve todas). */
-const TAB_TO_STATUSES: Record<TabKey, ReservationStatus[] | undefined> = {
-  all: undefined,
-  solicitudes: [RESERVATION_STATUS.pending_approval],
-  pending: [RESERVATION_STATUS.pending_payment],
-  confirmed: [RESERVATION_STATUS.confirmed],
-  inProgress: [RESERVATION_STATUS.in_progress],
-  completed: [RESERVATION_STATUS.completed],
-  cancelled: [RESERVATION_STATUS.cancelled, RESERVATION_STATUS.rejected, RESERVATION_STATUS.expired],
+/**
+ * Mapea cada tab a los estados que filtra. Es role-aware para `pending_balance`
+ * (reservas señadas, US-26): el conductor las ve en su propio tab "Pendientes
+ * de saldo" (accionable), mientras que para el rentador se agrupan bajo
+ * "Confirmadas" (no requieren acción suya). `undefined` = sin filtro.
+ */
+function getTabStatuses(
+  tab: TabKey,
+  role: ReservationRole,
+): ReservationStatus[] | undefined {
+  switch (tab) {
+    case 'all':
+      return undefined
+    case 'solicitudes':
+      return [RESERVATION_STATUS.pending_approval]
+    case 'pending':
+      return [RESERVATION_STATUS.pending_payment]
+    case 'pendingBalance':
+      return [RESERVATION_STATUS.pending_balance]
+    case 'confirmed':
+      return role === 'owner'
+        ? [RESERVATION_STATUS.confirmed, RESERVATION_STATUS.pending_balance]
+        : [RESERVATION_STATUS.confirmed]
+    case 'inProgress':
+      return [RESERVATION_STATUS.in_progress]
+    case 'completed':
+      return [RESERVATION_STATUS.completed]
+    case 'cancelled':
+      return [
+        RESERVATION_STATUS.cancelled,
+        RESERVATION_STATUS.rejected,
+        RESERVATION_STATUS.expired,
+      ]
+  }
 }
 
 /**
@@ -63,6 +89,10 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
           : t('reservas.tabs.enRevision'),
     },
     { key: 'pending', label: t('reservas.tabs.pendientes') },
+    // US-26/US-30: las reservas señadas son accionables solo por el conductor.
+    ...(role === 'conductor'
+      ? [{ key: 'pendingBalance' as TabKey, label: t('reservas.tabs.pendientesSaldo') }]
+      : []),
     { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
     { key: 'inProgress', label: t('reservas.tabs.enCurso') },
     { key: 'completed', label: t('reservas.tabs.completadas') },
@@ -132,7 +162,7 @@ export function ReservasPage() {
   const tabQuery = useReservations(
     {
       role,
-      status: TAB_TO_STATUSES[tab],
+      status: getTabStatuses(tab, role),
       from: fromIso,
       to: toIso,
       page,
@@ -144,7 +174,7 @@ export function ReservasPage() {
   const data = (() => {
     if (isProbeMatch) return probeQuery.data
     if (canFilterFromCache) {
-      const statuses = TAB_TO_STATUSES[tab]
+      const statuses = getTabStatuses(tab, role)
       const items = (probeQuery.data?.items ?? []).filter(
         (r) => !statuses || statuses.includes(r.status),
       )

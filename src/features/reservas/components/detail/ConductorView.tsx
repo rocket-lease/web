@@ -37,6 +37,7 @@ import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
@@ -94,6 +95,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
     }
   }, [showVoucher, voucherToken])
   const canPay = status === RESERVATION_STATUS.pending_payment
+  const isPendingBalance = status === RESERVATION_STATUS.pending_balance
   const isPendingApproval = status === RESERVATION_STATUS.pending_approval
   const isRejected = status === RESERVATION_STATUS.rejected
   /**
@@ -233,6 +235,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
           holdExpiresAt={holdExpiresAt}
         />
       )}
+
+      {isPendingBalance && <PendingBalanceSection reservation={reservation} />}
 
       {isPendingApproval && (
         <PendingApprovalSection
@@ -690,7 +694,7 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
     if (!method) return
     try {
       if (method === 'bank_transfer') {
-        await initiateTransfer.mutateAsync()
+        await initiateTransfer.mutateAsync({})
         navigate({
           to: '/reservas-transferencia/$id',
           params: { id: reservationId },
@@ -781,6 +785,61 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
           onCancel={() => setShowCancelModal(false)}
         />
       )}
+    </>
+  )
+}
+
+/**
+ * US-30: bloque para reservas señadas (`pending_balance`). Muestra la seña
+ * pagada, el saldo restante y la fecha límite, con un CTA para completar el
+ * pago. Si faltan menos de 24h, el aviso se vuelve de urgencia.
+ */
+function PendingBalanceSection({ reservation }: { reservation: GetReservationResponse }) {
+  const navigate = useNavigate()
+  const depositPaidCents = reservation.depositPaidCents ?? 0
+  const balanceCents = reservation.totalCents - depositPaidCents
+  const balanceDueAt = reservation.balanceDueAt ?? null
+  const now = useCurrentTime()
+  const dueSoon =
+    !!balanceDueAt &&
+    new Date(balanceDueAt).getTime() - now < 24 * 60 * 60 * 1000
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-3">
+        <div
+          className={`rounded-xl border p-4 space-y-2 ${
+            dueSoon ? 'border-danger/30 bg-danger/5' : 'border-amber-400/20 bg-amber-400/5'
+          }`}
+        >
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-text-muted">{t('reservas.saldo.depositPaid')}</span>
+            <span className="text-text-secondary">{fmt.currency(depositPaidCents)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-text-muted">{t('reservas.saldo.remaining')}</span>
+            <span className="text-lg font-bold text-brand-400">{fmt.currency(balanceCents)}</span>
+          </div>
+          {balanceDueAt && (
+            <p className={`text-xs ${dueSoon ? 'text-danger' : 'text-amber-400'}`}>
+              {dueSoon
+                ? t('reservas.saldo.alert24h')
+                : t('reservas.saldo.dueAt').replace('{date}', fmt.dateTime(balanceDueAt))}
+            </p>
+          )}
+        </div>
+        <Button
+          size="lg"
+          className="w-full"
+          onClick={() =>
+            navigate({ to: '/reservas/$id/pago', params: { id: reservation.id } })
+          }
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          {t('reservas.saldo.cta')}
+        </Button>
+      </div>
     </>
   )
 }

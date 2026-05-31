@@ -56,6 +56,12 @@ export function TransferenciaPage() {
       setConfirmed(true)
       return
     }
+    // US-26: si la transferencia cubría solo la seña, la reserva queda señada
+    // (pending_balance). Redirigimos al detalle para completar el saldo.
+    if (status === RESERVATION_STATUS.pending_balance) {
+      navigate({ to: '/reservas/$id', params: { id } })
+      return
+    }
     if (!status) return
 
     const fallback = setTimeout(() => {

@@ -26,6 +26,7 @@ import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMe
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { estimateReservationTotalCents } from '../utils/pricing'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
 
@@ -405,6 +406,7 @@ export function ReservarVehiculoPage() {
   const [contractAccepted, setContractAccepted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [walletProvider, setWalletProvider] = useState<string | null>(null)
+  const [paymentMode, setPaymentMode] = useState<'full' | 'deposit'>('full')
   const [holdExpired, setHoldExpired] = useState(false)
   const [rulesCollapsed, setRulesCollapsed] = useState(false)
   const [rulesAcknowledged, setRulesAcknowledged] = useState(false)
@@ -425,6 +427,20 @@ export function ReservarVehiculoPage() {
     }
     return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt)
   }, [vehicle, startAtLocal, endAtLocal])
+
+  // US-26: opción de pagar seña. Solo se ofrece si el rentador la habilitó
+  // (depositPercentage en el set del vehículo) y el retiro es lo bastante
+  // futuro como para que la fecha límite del saldo (piso de 1h en el backend)
+  // quede antes del retiro. Con un margen de 2h alcanza.
+  const depositPercentage = vehicle?.reservationRuleSet?.depositPercentage ?? null
+  const payableTotal = createReservation.data?.totalCents ?? estimatedTotal
+  const depositCents =
+    depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
+  const now = useCurrentTime()
+  const startFarEnough =
+    !!startAtLocal &&
+    new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
+  const depositAvailable = depositPercentage !== null && startFarEnough
 
   const rentalDurationViolation = useMemo(() => {
     return getRentalDurationViolation(
@@ -514,15 +530,21 @@ export function ReservarVehiculoPage() {
 
   async function onPay() {
     if (!paymentMethod || !reservationId) return
+    // El modo seña solo aplica si está disponible para esta reserva.
+    const mode = depositAvailable ? paymentMode : 'full'
     try {
       if (paymentMethod === 'bank_transfer') {
-        await initiateTransfer.mutateAsync()
+        await initiateTransfer.mutateAsync({ paymentMode: mode })
         navigate({
           to: '/reservas-transferencia/$id',
           params: { id: reservationId },
         })
       } else {
-        await confirmPayment.mutateAsync({ paymentMethod, walletProvider: walletProvider || undefined })
+        await confirmPayment.mutateAsync({
+          paymentMethod,
+          walletProvider: walletProvider || undefined,
+          paymentMode: mode,
+        })
         navigate({
           to: '/reservas/$id',
           params: { id: reservationId },
@@ -789,12 +811,57 @@ export function ReservarVehiculoPage() {
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">{t('reservar.total')}</span>
                 <span className="font-semibold text-text-primary">
-                  {fmt.currency(
-                    createReservation.data?.totalCents ?? estimatedTotal,
-                  )}
+                  {fmt.currency(payableTotal)}
                 </span>
               </div>
             </div>
+
+            {depositAvailable && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-text-primary">
+                  {t('reserva.breakdown.chooseMode')}
+                </p>
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMode('full')}
+                    className={`rounded-xl border p-3 text-left transition-all ${
+                      paymentMode === 'full'
+                        ? 'border-brand-400 bg-brand-400/10 ring-1 ring-brand-400'
+                        : 'border-white/10 bg-surface-2 hover:border-white/20'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-text-primary">
+                      {t('reserva.breakdown.fullOption').replace('{amount}', fmt.currency(payableTotal))}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      {t('reserva.breakdown.fullOptionHint')}
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMode('deposit')}
+                    className={`rounded-xl border p-3 text-left transition-all ${
+                      paymentMode === 'deposit'
+                        ? 'border-brand-400 bg-brand-400/10 ring-1 ring-brand-400'
+                        : 'border-white/10 bg-surface-2 hover:border-white/20'
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-text-primary">
+                      {t('reserva.breakdown.depositOption')
+                        .replace('{percentage}', String(depositPercentage))
+                        .replace('{amount}', fmt.currency(depositCents))}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">
+                      {t('reserva.breakdown.depositOptionHint').replace(
+                        '{amount}',
+                        fmt.currency(payableTotal - depositCents),
+                      )}
+                    </p>
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div>
               <p className="text-sm font-medium text-text-primary mb-2">
