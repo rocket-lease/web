@@ -80,7 +80,8 @@ export function usePushNotifications() {
       await apiClient.post(apiEndpoints.pushSubscriptions.register, json)
       setIsSubscribed(true)
     } catch (err) {
-      toast.error(`Error al activar notificaciones: ${String(err)}`)
+      const msg = err instanceof Error ? err.message : JSON.stringify(err)
+      toast.error(`Push error: ${msg}`)
     } finally {
       setIsLoading(false)
     }
