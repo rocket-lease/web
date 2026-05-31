@@ -5,6 +5,7 @@ import type { ReservationStatus } from '@rocket-lease/contracts'
 const statusMap: Record<ReservationStatus, { className: string; label: string }> = {
   pending_approval: { className: 'bg-brand-500 text-white border-brand-500', label: 'reservas.estado.pending_approval' },
   pending_payment: { className: 'bg-warning text-black border-warning', label: 'reservas.estado.pending_payment' },
+  pending_balance: { className: 'bg-amber-500 text-black border-amber-500', label: 'reservas.estado.pending_balance' },
   confirmed: { className: 'bg-info text-white border-info', label: 'reservas.estado.confirmed' },
   in_progress: { className: 'bg-success text-white border-success', label: 'reservas.estado.in_progress' },
   completed: { className: 'bg-surface-3 text-text-primary border-white/10', label: 'reservas.estado.completed' },

@@ -10,6 +10,9 @@ function PagarReservaRoute() {
   )
 }
 
-export const Route = createFileRoute('/_app/reservas/$id/pago')({
+// `reservas_` y `$id_` (con guión bajo) hacen que esta ruta sea standalone y no
+// se anide bajo el listado (`reservas.tsx`) ni el detalle (`reservas_.$id.tsx`),
+// que no renderizan <Outlet/>. La URL sigue siendo /reservas/$id/pago.
+export const Route = createFileRoute('/_app/reservas_/$id_/pago')({
   component: PagarReservaRoute,
 })

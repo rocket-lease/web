@@ -4,6 +4,9 @@ import {
   CreateReservationResponseSchema,
   ConfirmReservationPaymentResponseSchema,
   ConfirmTransferResponseSchema,
+  ConfirmReservationBalanceResponseSchema,
+  InitiateBalanceTransferResponseSchema,
+  ConfirmBalanceTransferResponseSchema,
   GetReservationResponseSchema,
   InitiateTransferResponseSchema,
   VehicleBusyRangesResponseSchema,
@@ -13,6 +16,11 @@ import {
   type ConfirmReservationPaymentRequest,
   type ConfirmReservationPaymentResponse,
   type ConfirmTransferResponse,
+  type ConfirmReservationBalanceRequest,
+  type ConfirmReservationBalanceResponse,
+  type InitiateBalanceTransferResponse,
+  type ConfirmBalanceTransferResponse,
+  type InitiateTransferRequest,
   type GetReservationResponse,
   type InitiateTransferResponse,
   type VehicleBusyRangesResponse,
@@ -41,10 +49,11 @@ export const reservarApi = {
 
   async initiateTransfer(
     reservationId: string,
+    data: InitiateTransferRequest = {},
   ): Promise<InitiateTransferResponse> {
     const res = await apiClient.post<unknown>(
       `/reservations/${reservationId}/transfer`,
-      {},
+      data,
     )
     return InitiateTransferResponseSchema.parse(res)
   },
@@ -57,6 +66,38 @@ export const reservarApi = {
       {},
     )
     return ConfirmTransferResponseSchema.parse(res)
+  },
+
+  // US-30: pago del saldo de una reserva señada.
+  async payBalance(
+    reservationId: string,
+    data: ConfirmReservationBalanceRequest,
+  ): Promise<ConfirmReservationBalanceResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/balance`,
+      data,
+    )
+    return ConfirmReservationBalanceResponseSchema.parse(res)
+  },
+
+  async initiateBalanceTransfer(
+    reservationId: string,
+  ): Promise<InitiateBalanceTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/balance/transfer`,
+      {},
+    )
+    return InitiateBalanceTransferResponseSchema.parse(res)
+  },
+
+  async confirmBalanceTransfer(
+    reservationId: string,
+  ): Promise<ConfirmBalanceTransferResponse> {
+    const res = await apiClient.post<unknown>(
+      `/reservations/${reservationId}/balance/transfer/confirm`,
+      {},
+    )
+    return ConfirmBalanceTransferResponseSchema.parse(res)
   },
 
   async getById(reservationId: string): Promise<GetReservationResponse> {

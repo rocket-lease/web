@@ -9,6 +9,8 @@ vi.mock('@/features/reservar/api/reservar.api', () => ({
     getById: vi.fn(),
     confirmPayment: vi.fn(),
     initiateTransfer: vi.fn(),
+    payBalance: vi.fn(),
+    initiateBalanceTransfer: vi.fn(),
   },
 }))
 
@@ -95,5 +97,28 @@ describe('PagarReservaPage — breakdown de seña (US-49)', () => {
     const breakdown = await screen.findByTestId('payment-breakdown')
     expect(breakdown).toHaveTextContent(/50%/)
     expect(breakdown).toHaveTextContent(/\$ 1\.000/)
+  })
+})
+
+describe('PagarReservaPage — modo saldo (US-30)', () => {
+  it('muestra el saldo pendiente y la fecha límite cuando la reserva está señada', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'pending_balance',
+        totalCents: 100000,
+        depositPercentageSnapshot: 30,
+        depositPaidCents: 30000,
+        depositPaidAt: '2026-05-20T10:00:00.000Z',
+        balanceDueAt: '2026-12-01T10:00:00.000Z',
+      }),
+    )
+    render(<PagarReservaPage />, { wrapper: createWrapper() })
+
+    // El saldo a pagar es total - seña = 70000.
+    const deadline = await screen.findByTestId('balance-deadline')
+    expect(deadline).toBeInTheDocument()
+    expect(screen.getByText('$ 700')).toBeInTheDocument()
+    // No muestra el aviso de seña del flujo de pago total.
+    expect(screen.queryByTestId('payment-breakdown')).not.toBeInTheDocument()
   })
 })
