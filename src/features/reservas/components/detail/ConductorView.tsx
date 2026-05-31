@@ -158,7 +158,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       <Separator />
 
       <div className="space-y-3">
-        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+        <p className="text-sm font-medium text-text-secondary">
           {t('reservas.detail.dates')}
         </p>
         <div className="flex gap-3">
@@ -448,7 +448,7 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
       <div className="flex items-start gap-3">
         <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-info">
+          <p className="text-xs font-semibold text-info">
             {t('reservas.detail.cancellation.title')}
           </p>
           <p className="mt-1 text-sm font-semibold text-text-primary">
@@ -459,7 +459,7 @@ function CancellationPolicyCard({ reservation }: { reservation: GetReservationRe
       </div>
 
       <div className="rounded-lg bg-surface-1/70 px-3 py-2">
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wider">
+        <p className="text-xs font-medium text-text-muted">
           {t('reservas.detail.cancellation.rulesTitle')}
         </p>
         <ul className="mt-2 space-y-1 text-sm text-text-secondary">
@@ -656,7 +656,7 @@ function RejectedSection({ reason }: { reason: string | null }) {
       <div className="rounded-xl border border-danger/20 bg-danger/10 p-3 flex gap-3">
         <AlertOctagon className="h-4 w-4 text-danger-400 shrink-0 mt-0.5" />
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-danger-400 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-danger-400">
             {t('conductor.reservas.rechazoTitulo')}
           </p>
           <p className="mt-1 text-sm text-text-secondary wrap-break-word">{display}</p>
@@ -723,7 +723,7 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
     <>
       <Separator />
       <div className="space-y-3">
-        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+        <p className="text-sm font-medium text-text-secondary">
           {t('reservar.paymentMethod')}
         </p>
         <PaymentMethodPicker

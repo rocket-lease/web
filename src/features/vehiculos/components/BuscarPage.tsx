@@ -1,5 +1,6 @@
-import { MagnifyingGlass, SlidersHorizontal, MapPin, X } from '@phosphor-icons/react'
+import { MagnifyingGlass, SlidersHorizontal, MapPin, X, Bell } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
@@ -91,9 +92,21 @@ export function BuscarPage() {
   return (
     <div className="flex flex-col">
       <div
-        className="sticky z-30 bg-surface-0/95 backdrop-blur-xl px-4 pt-4 pb-3 border-b border-white/5"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
+        className="sticky top-0 z-30 bg-surface-0/95 backdrop-blur-xl px-4 pb-3 border-b border-white/5"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
       >
+        {/* Título + notificaciones */}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-text-primary">{t('nav.buscar')}</h1>
+          <Link
+            to="/notificaciones"
+            aria-label={t('nav.notificaciones')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+          >
+            <Bell size={22} />
+          </Link>
+        </div>
+
         {/* Fila ciudad + fechas */}
         <div className="flex items-center gap-2 mb-3">
           <button
@@ -168,7 +181,7 @@ export function BuscarPage() {
                   ...f,
                   [chip.key]: f[chip.key as keyof VehiculoFilters] === chip.value ? undefined : chip.value,
                 }))}
-                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 border ${
+                className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition duration-150 active:scale-95 border ${
                   active
                     ? 'bg-gradient-to-br from-client to-brand-500 text-white border-transparent'
                     : 'bg-surface-1 text-text-secondary border-white/10'
@@ -182,13 +195,13 @@ export function BuscarPage() {
       </div>
 
       {/* Resultados */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-5 pt-4 pb-2">
         {isError && (
           <p className="text-sm text-danger text-center py-8">{t('buscar.error')}</p>
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (
               <VehiculoCardSkeleton key={i} />
             ))}
@@ -234,7 +247,7 @@ export function BuscarPage() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                 {sorted.map(v => (
                   <VehiculoCard key={v.id} vehiculo={v} from={startDate} to={endDate} />
                 ))}

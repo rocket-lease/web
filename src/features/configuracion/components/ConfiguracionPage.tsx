@@ -1,17 +1,14 @@
 import { useState, type ReactNode } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
-  CheckCircle,
   ChevronRight,
   LogOut,
-  Mail,
   Trash2,
   Zap,
 } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { useToggleAutoAccept } from '@/features/configuracion/hooks/useToggleAutoAccept'
 import { t } from '@/i18n/es'
@@ -30,7 +27,6 @@ import { t } from '@/i18n/es'
 export function ConfiguracionPage() {
   const { signOut } = useAuth()
   const { data: profile, isLoading } = useMyProfile()
-  const { status: verification, loading: verificationLoading } = useVerificationStatus()
   const { toggle: toggleAutoAccept } = useToggleAutoAccept()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -46,36 +42,6 @@ export function ConfiguracionPage() {
   return (
     <div className="flex flex-col pb-6">
       <PageHeader title={t('configuracion.title')} showBack />
-
-      <Section title={t('configuracion.section.seguridad')}>
-        {verificationLoading ? (
-          <div className="h-12 rounded-xl bg-surface-1 animate-pulse" />
-        ) : verification?.email ? (
-          <SettingsRow
-            leading={<Mail className="h-5 w-5" />}
-            label={t('auth.verify.emailSection')}
-            trailing={
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-success">
-                <CheckCircle className="h-3.5 w-3.5" />
-                {t('auth.verify.verified')}
-              </span>
-            }
-          />
-        ) : (
-          <SettingsRow
-            asLink="/verificar"
-            linkSearch={{ channel: 'email' as const }}
-            leading={<Mail className="h-5 w-5" />}
-            label={t('auth.verify.emailSection')}
-            trailing={
-              <span className="text-xs font-semibold text-warning">
-                {t('configuracion.verify.pending')}
-              </span>
-            }
-            showChevron
-          />
-        )}
-      </Section>
 
       <Section title={t('configuracion.section.rentador')}>
         <SettingsRow

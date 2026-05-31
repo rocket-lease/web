@@ -53,7 +53,7 @@ export function PaymentMethodsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-full">
       <PageHeader title={t('paymentMethods.title' as I18nKey)} showBack />
 
       <div className="flex-1 p-4 flex flex-col gap-4">
