@@ -799,7 +799,7 @@ export function ReservarVehiculoPage() {
                               setDeliveryAddress(null)
                             }
                           }}
-                          placeholder="Ej: Av. Corrientes 1234, CABA"
+                          placeholder={t('reservar.homeDelivery.addressPlaceholder')}
                           className="w-full rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
                         />
                       </div>
@@ -870,7 +870,7 @@ export function ReservarVehiculoPage() {
                                   setReturnAddress(null)
                                 }
                               }}
-                              placeholder="Ej: Av. Corrientes 1234, CABA"
+                              placeholder={t('reservar.homeReturn.addressPlaceholder')}
                               className="w-full rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
                             />
                           </>
