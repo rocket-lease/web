@@ -1,10 +1,10 @@
-import { MagnifyingGlass, SlidersHorizontal } from '@phosphor-icons/react'
+import { SlidersHorizontal } from '@phosphor-icons/react'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { FilterSheet } from './FilterSheet'
 import { SearchPill } from './SearchPill'
 import { SearchOverlay } from './SearchOverlay'
+import { VehicleResultsList } from './VehicleResultsList'
 import { t } from '@/i18n/es'
 import type { SortCriteria, VehiculoFilters } from '../types'
 import { vehiclesApi } from '../api/vehiculos.api'
@@ -196,62 +196,16 @@ export function BuscarPage() {
 
       </div>
 
-      {/* Resultados */}
-      <div className="px-5 pt-4 pb-2">
-        {isError && (
-          <p className="text-sm text-danger text-center py-8">{t('buscar.error')}</p>
-        )}
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <VehiculoCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 mb-4">
-              <p className="text-xs text-text-muted">
-                <span className="font-semibold text-text-primary">{sorted.length}</span>{' '}
-                {t('buscar.results')}
-              </p>
-              {activeFiltersCount > 0 && (
-                <>
-                  <span className="text-xs text-text-muted">·</span>
-                  <button onClick={clearAllFilters} className="text-xs text-client font-semibold">
-                    {t('buscar.filter.clearAll')}
-                  </button>
-                </>
-              )}
-            </div>
-
-            {sorted.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-                <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
-                <div>
-                  <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-                  <p className="text-xs text-text-muted mt-1">
-                    {search.start ?? search.end
-                      ? t('buscar.noResultsDatesHint')
-                      : t('buscar.noResultsHint')}
-                  </p>
-                </div>
-                {activeFiltersCount > 0 && (
-                  <button onClick={clearAllFilters} className="text-xs font-semibold text-text-primary">
-                    {t('buscar.filter.clearAll')}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-                {sorted.map(v => (
-                  <VehiculoCard key={v.id} vehiculo={v} from={search.start} to={search.end} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      <VehicleResultsList
+        vehicles={sorted}
+        isLoading={isLoading}
+        isError={isError}
+        from={search.start}
+        to={search.end}
+        hasDateFilter={!!(search.start ?? search.end)}
+        hasActiveFilter={activeFiltersCount > 0}
+        onClearFilters={clearAllFilters}
+      />
 
       <SearchOverlay
         open={searchOpen}

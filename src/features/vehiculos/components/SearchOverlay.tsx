@@ -307,6 +307,7 @@ const COLLAPSE_THRESHOLD_PX = 100
 function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCollapse }: WhereExpandedProps) {
   const [query, setQuery] = useState('')
   const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const dragStartY = useRef<number | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -340,6 +341,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
     const targetIsList = list?.contains(e.target as Node) ?? false
     if (targetIsList && list && list.scrollTop > 0) return
     dragStartY.current = e.clientY
+    setIsDragging(true)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -352,14 +354,13 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
     if (dragStartY.current === null) return
     const finalDelta = dragOffset
     dragStartY.current = null
+    setIsDragging(false)
     if (finalDelta > COLLAPSE_THRESHOLD_PX) {
       onCollapse()
     } else {
       setDragOffset(0)
     }
   }
-
-  const isDragging = dragStartY.current !== null
 
   return (
     <div
