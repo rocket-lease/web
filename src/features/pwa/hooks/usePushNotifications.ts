@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { apiClient } from '@/lib/api-client'
 import { apiEndpoints } from '@rocket-lease/contracts'
 
@@ -78,6 +79,8 @@ export function usePushNotifications() {
 
       await apiClient.post(apiEndpoints.pushSubscriptions.register, json)
       setIsSubscribed(true)
+    } catch (err) {
+      toast.error(`Error al activar notificaciones: ${String(err)}`)
     } finally {
       setIsLoading(false)
     }
