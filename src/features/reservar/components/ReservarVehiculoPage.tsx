@@ -26,6 +26,7 @@ import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMe
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { estimateReservationTotalCents } from '../utils/pricing'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
 
@@ -435,9 +436,10 @@ export function ReservarVehiculoPage() {
   const payableTotal = createReservation.data?.totalCents ?? estimatedTotal
   const depositCents =
     depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
+  const now = useCurrentTime()
   const startFarEnough =
     !!startAtLocal &&
-    new Date(startAtLocal).getTime() - Date.now() >= 2 * 60 * 60 * 1000
+    new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
   const depositAvailable = depositPercentage !== null && startFarEnough
 
   const rentalDurationViolation = useMemo(() => {
