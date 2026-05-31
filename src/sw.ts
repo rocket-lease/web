@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
 import { NetworkFirst, StaleWhileRevalidate, CacheFirst } from 'workbox-strategies'
 
@@ -29,16 +29,10 @@ registerRoute(
   new CacheFirst({ cacheName: 'font-cache' }),
 )
 
-// SPA fallback: cualquier navegación sirve index.html del precache
 registerRoute(
-  new NavigationRoute(
-    async () => {
-      const cache = await caches.open('workbox-precache-v2')
-      const cached = await cache.match('/index.html')
-      return cached ?? Response.error()
-    },
-    { denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/] },
-  ),
+  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+    denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+  }),
 )
 
 // ─── Push Notifications ────────────────────────────────────────────────────
