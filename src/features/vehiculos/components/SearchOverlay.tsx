@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { X, MagnifyingGlass, MapPin, NavigationArrow } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { ScrollingCalendar } from './ScrollingCalendar'
@@ -61,6 +61,7 @@ function formatRange(start?: string, end?: string): string | null {
  */
 export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchOverlayProps) {
   const [step, setStep] = useState<Step>('where')
+  const [whereExpanded, setWhereExpanded] = useState(false)
   const [cityDraft, setCityDraft] = useState<string | undefined>(initial.city)
   const [startDraft, setStartDraft] = useState<string | undefined>(initial.start)
   const [endDraft, setEndDraft] = useState<string | undefined>(initial.end)
@@ -71,12 +72,14 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
     setStartDraft(initial.start)
     setEndDraft(initial.end)
     setStep(initial.city ? 'when' : 'where')
+    setWhereExpanded(false)
   }, [open, initial.city, initial.start, initial.end])
 
   const close = () => onOpenChange(false)
 
   const pickCity = (value: string) => {
     setCityDraft(value)
+    setWhereExpanded(false)
     setStep('when')
   }
 
@@ -117,6 +120,8 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
       <OverlayBody
         step={step}
         setStep={setStep}
+        whereExpanded={whereExpanded}
+        setWhereExpanded={setWhereExpanded}
         cityDraft={cityDraft}
         startDraft={startDraft}
         endDraft={endDraft}
@@ -162,35 +167,45 @@ function OverlayShell({ children, close }: { children: React.ReactNode; close: (
 }
 
 interface OverlayBodyProps {
-  step:       Step
-  setStep:    (s: Step) => void
-  cityDraft?: string
-  startDraft?: string
-  endDraft?:  string
-  cityLabel?: string
-  datesLabel: string | null
-  pickCity:   (v: string) => void
-  onNearby:   () => void
-  setRange:   (r: { from?: string; to?: string }) => void
-  clearAll:   () => void
-  submit:     () => void
+  step:             Step
+  setStep:          (s: Step) => void
+  whereExpanded:    boolean
+  setWhereExpanded: (v: boolean) => void
+  cityDraft?:       string
+  startDraft?:      string
+  endDraft?:        string
+  cityLabel?:       string
+  datesLabel:       string | null
+  pickCity:         (v: string) => void
+  onNearby:         () => void
+  setRange:         (r: { from?: string; to?: string }) => void
+  clearAll:         () => void
+  submit:           () => void
 }
 
 function OverlayBody({
-  step, setStep, cityDraft, startDraft, endDraft, cityLabel, datesLabel,
+  step, setStep, whereExpanded, setWhereExpanded,
+  cityDraft, startDraft, endDraft, cityLabel, datesLabel,
   pickCity, onNearby, setRange, clearAll, submit,
 }: OverlayBodyProps) {
+  // En modo expanded el card de Dónde toma toda la pantalla y el de
+  // Cuándo se oculta temporalmente para no distraer del search.
+  const hideOthers = step === 'where' && whereExpanded
+
   return (
     <div
       className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
-      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto pr-1 -mr-1">
+      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
         {step === 'where' ? (
           <WhereExpanded
             currentCity={cityDraft}
             onPick={pickCity}
             onNearby={onNearby}
+            expanded={whereExpanded}
+            onExpand={() => setWhereExpanded(true)}
+            onCollapse={() => setWhereExpanded(false)}
           />
         ) : (
           <CardCollapsed
@@ -200,18 +215,20 @@ function OverlayBody({
           />
         )}
 
-        {step === 'when' ? (
-          <WhenExpanded
-            start={startDraft}
-            end={endDraft}
-            onChange={setRange}
-          />
-        ) : (
-          <CardCollapsed
-            label="Cuándo"
-            value={datesLabel ?? 'Agregar fechas'}
-            onClick={() => setStep('when')}
-          />
+        {!hideOthers && (
+          step === 'when' ? (
+            <WhenExpanded
+              start={startDraft}
+              end={endDraft}
+              onChange={setRange}
+            />
+          ) : (
+            <CardCollapsed
+              label="Cuándo"
+              value={datesLabel ?? 'Agregar fechas'}
+              onClick={() => setStep('when')}
+            />
+          )
         )}
       </div>
 
@@ -272,42 +289,135 @@ interface WhereExpandedProps {
   currentCity?: string
   onPick:       (city: string) => void
   onNearby:     () => void
+  expanded:     boolean
+  onExpand:     () => void
+  onCollapse:   () => void
 }
 
-function WhereExpanded({ currentCity, onPick, onNearby }: WhereExpandedProps) {
+/**
+ * Card "Dónde" con dos modos:
+ *  - **collapsed** (default): título + search bar inerte + top 3 destinos.
+ *    Tocar el search bar dispara `onExpand`.
+ *  - **expanded**: card toma toda la altura, search arriba con focus, lista
+ *    scrolleable con todos los destinos. Swipe-down desde el handle vuelve
+ *    a collapsed.
+ */
+const COLLAPSE_THRESHOLD_PX = 100
+
+function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCollapse }: WhereExpandedProps) {
   const [query, setQuery] = useState('')
+  const [dragOffset, setDragOffset] = useState(0)
+  const dragStartY = useRef<number | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!expanded) {
+      setQuery('')
+      setDragOffset(0)
+    }
+  }, [expanded])
 
   const trimmed = query.trim().toLowerCase()
   const matches = trimmed
     ? SUGGESTED_DESTINATIONS.filter(
         d => d.label.toLowerCase().includes(trimmed) || d.hint.toLowerCase().includes(trimmed),
       )
-    : SUGGESTED_DESTINATIONS.slice(0, TOP_DESTINATIONS_COUNT)
+    : expanded
+      ? SUGGESTED_DESTINATIONS
+      : SUGGESTED_DESTINATIONS.slice(0, TOP_DESTINATIONS_COUNT)
+
+  /**
+   * Drag-down desde cualquier parte del card para colapsar. Respeta el
+   * scroll de la lista: si el usuario empieza a arrastrar dentro de la
+   * lista pero ya hay scroll, dejamos pasar el gesto para que scrollee
+   * normalmente. Solo cuando la lista está en top (scrollTop === 0) el
+   * drag toma el control del card.
+   */
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!expanded) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    const list = listRef.current
+    const targetIsList = list?.contains(e.target as Node) ?? false
+    if (targetIsList && list && list.scrollTop > 0) return
+    dragStartY.current = e.clientY
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStartY.current === null) return
+    const delta = e.clientY - dragStartY.current
+    setDragOffset(Math.max(0, delta))
+  }
+
+  const onPointerEnd = () => {
+    if (dragStartY.current === null) return
+    const finalDelta = dragOffset
+    dragStartY.current = null
+    if (finalDelta > COLLAPSE_THRESHOLD_PX) {
+      onCollapse()
+    } else {
+      setDragOffset(0)
+    }
+  }
+
+  const isDragging = dragStartY.current !== null
 
   return (
-    <div className="rounded-3xl bg-surface-1 border border-white/8 shadow-2xl overflow-hidden shrink-0">
-      <div className="px-5 pt-5 pb-3">
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      className={cn(
+        'bg-surface-1 shadow-2xl flex flex-col will-change-transform',
+        expanded
+          ? 'flex-1 min-h-0 -mx-3 border-x-0 rounded-none touch-none'
+          : 'rounded-3xl border border-white/8 shrink-0',
+      )}
+      style={
+        expanded
+          ? {
+              transform: `translateY(${dragOffset}px)`,
+              transition: isDragging ? 'none' : 'transform 220ms cubic-bezier(0.23, 1, 0.32, 1)',
+            }
+          : undefined
+      }
+    >
+      <div className={cn('px-5 shrink-0', expanded ? 'pt-5 pb-3' : 'pt-5 pb-3')}>
         <h2 className="text-base font-semibold text-text-primary">Dónde</h2>
       </div>
 
-      <div className="px-5 pb-3">
-        <div className="relative">
-          <MagnifyingGlass
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-          />
-          <input
-            type="search"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar ciudad"
-            autoFocus
-            className="w-full h-11 rounded-full bg-surface-2 border border-white/8 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
-          />
-        </div>
+      <div className="px-5 pb-3 shrink-0">
+        {expanded ? (
+          <div className="relative">
+            <MagnifyingGlass
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar ciudad"
+              autoFocus
+              className="w-full h-11 rounded-full bg-surface-2 border border-white/8 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onExpand}
+            className="w-full h-11 rounded-full bg-surface-2 border border-white/8 px-4 flex items-center gap-2 text-sm text-text-muted hover:border-brand-500/40 transition-colors"
+          >
+            <MagnifyingGlass size={16} className="text-text-muted shrink-0" />
+            <span>Buscar ciudad</span>
+          </button>
+        )}
       </div>
 
-      <div className="px-3 pb-4 space-y-1">
+      <div
+        ref={listRef}
+        className={cn('px-3 pb-4 space-y-1', expanded ? 'flex-1 min-h-0 overflow-y-auto touch-pan-y' : '')}
+      >
         {!trimmed && (
           <DestinationRow
             icon={<NavigationArrow size={18} weight="fill" className="text-brand-400" />}
