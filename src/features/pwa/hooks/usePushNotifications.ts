@@ -16,6 +16,11 @@ function isStandalone() {
   )
 }
 
+function bufferToBase64(buffer: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+
 function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -71,13 +76,18 @@ export function usePushNotifications() {
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       })
 
-      const json = sub.toJSON() as {
-        endpoint: string
-        expirationTime: number | null
-        keys: { auth: string; p256dh: string }
-      }
+      const p256dh = sub.getKey('p256dh')
+      const auth = sub.getKey('auth')
+      if (!p256dh || !auth) throw new Error('No se pudieron obtener las claves de suscripción')
 
-      await apiClient.post(apiEndpoints.pushSubscriptions.register, json)
+      await apiClient.post(apiEndpoints.pushSubscriptions.register, {
+        endpoint: sub.endpoint,
+        expirationTime: sub.expirationTime,
+        keys: {
+          p256dh: bufferToBase64(p256dh),
+          auth: bufferToBase64(auth),
+        },
+      })
       setIsSubscribed(true)
     } catch (err) {
       const msg = err instanceof Error ? err.message : JSON.stringify(err)
