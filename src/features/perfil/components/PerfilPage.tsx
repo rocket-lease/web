@@ -7,7 +7,6 @@ import {
   Settings,
   UserCircle,
   CreditCard,
-  Wallet,
   ArrowLeftRight,
   ShieldCheck,
 } from 'lucide-react'
@@ -143,23 +142,6 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           <OwnerVehiclesSection ownerId={profile.id} />
           <OwnerReviewsSection />
         </>
-      )}
-
-      {canEdit && (
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/saldo' })}
-          className="mx-4 mt-4 rounded-2xl bg-linear-to-r from-emerald-700 to-emerald-600 border border-emerald-500/30 p-4 flex items-center gap-3 w-[calc(100%-2rem)] text-left"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600">
-            <Wallet className="h-5 w-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary">{t('wallet.title')}</p>
-            <p className="text-xs text-white/60 mt-0.5">{t('wallet.shortcut')}</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-brand-400 shrink-0" />
-        </button>
       )}
 
       {/* Settings menu (solo perfil propio) */}
