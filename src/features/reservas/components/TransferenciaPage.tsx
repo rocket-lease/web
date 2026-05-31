@@ -77,7 +77,7 @@ export function TransferenciaPage() {
   if (confirmed) {
     return (
       <div className="flex flex-col min-h-screen">
-        <PageHeader title={t('reservas.transfer.title')} showBack />
+        <PageHeader title={t('reservas.transfer.title')} showBack sticky />
         <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 text-center">
           <div className="rounded-full bg-green-500/15 p-4">
             <CheckCircle className="h-10 w-10 text-green-400" weight="fill" />
@@ -94,6 +94,7 @@ export function TransferenciaPage() {
       <PageHeader
         title={t('reservas.transfer.title')}
         showBack
+        sticky
       />
 
       <div className="px-4 py-5 space-y-6 flex-1">

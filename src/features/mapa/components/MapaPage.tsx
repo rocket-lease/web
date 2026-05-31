@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   APIProvider,
   Map,
@@ -6,7 +7,7 @@ import {
   useMap,
   type MapCameraChangedEvent,
 } from '@vis.gl/react-google-maps'
-import { Crosshair, Warning } from '@phosphor-icons/react'
+import { Crosshair, Warning, Bell } from '@phosphor-icons/react'
 import type { MapMarker } from '@rocket-lease/contracts'
 import {
   GOOGLE_MAPS_API_KEY,
@@ -105,6 +106,7 @@ export function MapaPage() {
   const [filters, setFilters] = useState<Filters>({ isAccessible: false })
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [radiusKm, setRadiusKm] = useState<number>(RADIUS_OPTIONS_KM[1])
+  const [showPriceInput, setShowPriceInput] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const nearMe = useNearMe()
 
@@ -171,72 +173,115 @@ export function MapaPage() {
   return (
     <div
       className="relative flex flex-col"
-      style={{ height: 'calc(100dvh - 8.5rem)' }}
+      style={{ height: 'calc(100dvh - 5rem)' }}
     >
-      {/* Barra de filtros — al cambiar, el queryKey cambia y refetchea. */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-white/5 bg-surface-0 px-4 py-2">
-        <select
-          aria-label={t('mapa.filter.transmission')}
-          value={filters.transmission ?? ''}
-          onChange={(e) =>
-            setFilters((f) => ({
-              ...f,
-              transmission: (e.target.value || undefined) as
-                | Transmission
-                | undefined,
-            }))
-          }
-          className="rounded-full bg-surface-2 px-3 py-1.5 text-xs text-text-primary"
-        >
-          <option value="">{t('mapa.filter.transmissionAny')}</option>
-          <option value="Manual">Manual</option>
-          <option value="Automatico">Automatico</option>
-          <option value="Semiautomatico">Semiautomatico</option>
-        </select>
+      {/* Header: título + filtros como chips horizontales */}
+      <div
+        className="border-b border-white/5 bg-surface-0 px-4 pb-3"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
+      >
+        {/* Título + bell */}
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-text-primary">{t('nav.mapa')}</h1>
+          <Link
+            to="/notificaciones"
+            aria-label={t('nav.notificaciones')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
+          >
+            <Bell size={22} />
+          </Link>
+        </div>
 
-        <input
-          type="number"
-          inputMode="numeric"
-          min={0}
-          placeholder={t('mapa.filter.maxPrice')}
-          value={filters.maxPriceDaily ?? ''}
-          onChange={(e) =>
-            setFilters((f) => ({
-              ...f,
-              maxPriceDaily: e.target.value
-                ? Number(e.target.value)
-                : undefined,
-            }))
-          }
-          className="w-32 rounded-full bg-surface-2 px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted"
-        />
+        {/* Chips de filtro — scroll horizontal */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <button
+            type="button"
+            onClick={() => nearMe.locate()}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              nearMeActive ? 'bg-client text-white' : 'bg-surface-2 text-text-secondary'
+            }`}
+          >
+            <Crosshair size={12} weight="bold" />
+            {t('mapa.nearMe')}
+          </button>
 
-        <button
-          type="button"
-          onClick={() =>
-            setFilters((f) => ({ ...f, isAccessible: !f.isAccessible }))
-          }
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            filters.isAccessible
-              ? 'bg-brand-500 text-white'
-              : 'bg-surface-2 text-text-secondary'
-          }`}
-        >
-          {t('mapa.filter.accessible')}
-        </button>
+          {(['Manual', 'Automatico', 'Semiautomatico'] as Transmission[]).map((tx) => (
+            <button
+              key={tx}
+              type="button"
+              onClick={() =>
+                setFilters((f) => ({
+                  ...f,
+                  transmission: f.transmission === tx ? undefined : tx,
+                }))
+              }
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                filters.transmission === tx
+                  ? 'bg-brand-500 text-white'
+                  : 'bg-surface-2 text-text-secondary'
+              }`}
+            >
+              {tx === 'Automatico' ? 'Auto' : tx === 'Semiautomatico' ? 'Semi' : tx}
+            </button>
+          ))}
 
-        <button
-          type="button"
-          onClick={() => nearMe.locate()}
-          className={`ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-            nearMeActive
-              ? 'bg-client text-white'
-              : 'bg-surface-2 text-text-secondary'
-          }`}
-        >
-          <Crosshair size={14} weight="bold" />
-          {t('mapa.nearMe')}
-        </button>
+          <button
+            type="button"
+            onClick={() => setFilters((f) => ({ ...f, isAccessible: !f.isAccessible }))}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              filters.isAccessible ? 'bg-brand-500 text-white' : 'bg-surface-2 text-text-secondary'
+            }`}
+          >
+            {t('mapa.filter.accessible')}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowPriceInput((v) => !v)}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+              filters.maxPriceDaily !== undefined || showPriceInput
+                ? 'bg-brand-500 text-white'
+                : 'bg-surface-2 text-text-secondary'
+            }`}
+          >
+            {filters.maxPriceDaily !== undefined
+              ? `Hasta $${filters.maxPriceDaily.toLocaleString('es-AR')}`
+              : t('mapa.filter.maxPrice')}
+          </button>
+        </div>
+
+        {/* Input de precio — aparece al tocar el chip */}
+        {showPriceInput && (
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              autoFocus
+              placeholder="Precio máximo por día"
+              value={filters.maxPriceDaily ?? ''}
+              onChange={(e) =>
+                setFilters((f) => ({
+                  ...f,
+                  maxPriceDaily: e.target.value ? Number(e.target.value) : undefined,
+                }))
+              }
+              className="h-9 flex-1 rounded-xl bg-surface-2 px-3 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-500/50"
+            />
+            {filters.maxPriceDaily !== undefined && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters((f) => ({ ...f, maxPriceDaily: undefined }))
+                  setShowPriceInput(false)
+                }}
+                className="shrink-0 rounded-xl bg-surface-2 px-3 h-9 text-xs text-text-secondary hover:text-text-primary transition-colors"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Selector de radio — visible en modo "Cerca de mí". */}

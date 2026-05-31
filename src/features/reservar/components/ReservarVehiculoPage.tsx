@@ -462,7 +462,7 @@ export function ReservarVehiculoPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col min-h-full">
-        <PageHeader title={t('reservar.title')} showBack />
+        <PageHeader title={t('reservar.title')} showBack sticky />
         <div className="px-4 py-6">
           <div className="h-6 w-1/2 rounded bg-surface-2 animate-pulse" />
         </div>
@@ -473,7 +473,7 @@ export function ReservarVehiculoPage() {
   if (isError || !vehicle) {
     return (
       <div className="flex min-h-full flex-col">
-        <PageHeader title={t('reservar.title')} showBack />
+        <PageHeader title={t('reservar.title')} showBack sticky />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">
           <p className="text-text-secondary">{t('error.default')}</p>
           <Button variant="secondary" onClick={() => refetchVehicle()}>
@@ -538,7 +538,7 @@ export function ReservarVehiculoPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <PageHeader title={t('reservar.title')} showBack />
+      <PageHeader title={t('reservar.title')} showBack sticky />
 
       <div className="px-4 py-5 space-y-5">
         <div className="rounded-2xl border border-white/8 bg-surface-1 p-4">
@@ -640,62 +640,59 @@ export function ReservarVehiculoPage() {
                 </div>
 
                 {!rulesCollapsed && (
-                  <>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-xl bg-surface-2 p-3">
-                        <p className="text-xs uppercase tracking-wider text-text-muted">
-                          {t('reservar.rules.deposit')}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-surface-2 p-3">
-                        <p className="text-xs uppercase tracking-wider text-text-muted">
-                          {t('reservar.rules.maxKilometrage')}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-surface-2 p-3">
-                        <p className="text-xs uppercase tracking-wider text-text-muted">
-                          {t('reservar.rules.minDuration')}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {vehicle.reservationRuleSet.rentalTimeConstraints.minDays
-                            ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.minDays)
-                            : t('reservar.rules.noMinimum')}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-surface-2 p-3">
-                        <p className="text-xs uppercase tracking-wider text-text-muted">
-                          {t('reservar.rules.maxDuration')}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {vehicle.reservationRuleSet.rentalTimeConstraints.maxDays
-                            ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.maxDays)
-                            : t('reservar.rules.noMaximum')}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-surface-2 p-3 sm:col-span-2">
-                        <p className="text-xs uppercase tracking-wider text-text-muted">
-                          {t('reservar.rules.cancellationPolicy')}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-text-primary">
-                          {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
-                        </p>
-                        <p className="mt-1 text-xs text-text-secondary">
-                          {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
-                        </p>
-                      </div>
+                  <dl className="grid grid-cols-2 gap-x-4 gap-y-4 pt-1">
+                    <div>
+                      <dt className="text-xs text-text-secondary">
+                        {t('reservar.rules.deposit')}
+                      </dt>
+                      <dd className="mt-1 text-sm font-semibold text-text-primary">
+                        {getDepositLabel(vehicle.reservationRuleSet.depositPercentage)}
+                      </dd>
                     </div>
 
-                  </>
+                    <div>
+                      <dt className="text-xs text-text-secondary">
+                        {t('reservar.rules.maxKilometrage')}
+                      </dt>
+                      <dd className="mt-1 text-sm font-semibold text-text-primary">
+                        {formatMaxKilometrage(vehicle.reservationRuleSet.maxKilometrage)}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt className="text-xs text-text-secondary">
+                        {t('reservar.rules.minDuration')}
+                      </dt>
+                      <dd className="mt-1 text-sm font-semibold text-text-primary">
+                        {vehicle.reservationRuleSet.rentalTimeConstraints.minDays
+                          ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.minDays)
+                          : t('reservar.rules.noMinimum')}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt className="text-xs text-text-secondary">
+                        {t('reservar.rules.maxDuration')}
+                      </dt>
+                      <dd className="mt-1 text-sm font-semibold text-text-primary">
+                        {vehicle.reservationRuleSet.rentalTimeConstraints.maxDays
+                          ? formatRentalDays(vehicle.reservationRuleSet.rentalTimeConstraints.maxDays)
+                          : t('reservar.rules.noMaximum')}
+                      </dd>
+                    </div>
+
+                    <div className="col-span-2">
+                      <dt className="text-xs text-text-secondary">
+                        {t('reservar.rules.cancellationPolicy')}
+                      </dt>
+                      <dd className="mt-1 text-sm font-semibold text-text-primary">
+                        {getCancellationPolicyLabel(vehicle.reservationRuleSet.cancellationPolicy)}
+                      </dd>
+                      <dd className="mt-0.5 text-xs text-text-secondary">
+                        {getCancellationPolicyDescription(vehicle.reservationRuleSet.cancellationPolicy)}
+                      </dd>
+                    </div>
+                  </dl>
                 )}
 
                 {rulesCollapsed && (

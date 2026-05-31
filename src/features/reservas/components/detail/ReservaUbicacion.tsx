@@ -22,7 +22,7 @@ export function ReservaUbicacion({ vehicleId }: { vehicleId: string }) {
     <>
       <Separator />
       <div className="space-y-2">
-        <p className="text-sm font-medium text-text-secondary uppercase tracking-wider">
+        <p className="text-sm font-medium text-text-secondary">
           {t('vehiculo.location')}
         </p>
         <VehicleLocationMap

@@ -1,4 +1,4 @@
-import { useParams, useSearch } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -22,7 +22,7 @@ import { RentadorView } from './detail/RentadorView'
  */
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
-  const { role: roleSearch } = useSearch({ strict: false }) as { role?: 'conductor' | 'owner' }
+
   const { user } = useAuth()
 
   const { data: reservation, isLoading, isError } = useQuery({
@@ -36,7 +36,7 @@ export function ReservaDetailPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('reservas.detail.title')} showBack />
+        <PageHeader title={t('reservas.detail.title')} showBack sticky />
         <div className="px-4 py-5 space-y-4">
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="h-40 rounded-2xl" />
@@ -49,7 +49,7 @@ export function ReservaDetailPage() {
   if (isError || !reservation) {
     return (
       <div className="flex flex-col">
-        <PageHeader title={t('reservas.detail.title')} showBack />
+        <PageHeader title={t('reservas.detail.title')} showBack sticky />
         <div className="flex items-center justify-center flex-1 py-24">
           <p className="text-sm text-danger">
             {t('reservar.errors.RESERVATION_NOT_FOUND')}
@@ -60,15 +60,11 @@ export function ReservaDetailPage() {
   }
 
   const perspective: 'conductor' | 'owner' =
-    roleSearch === 'owner' || roleSearch === 'conductor'
-      ? roleSearch
-      : user?.id === reservation.rentadorId
-        ? 'owner'
-        : 'conductor'
+    user?.id === reservation.rentadorId ? 'owner' : 'conductor'
 
   return (
     <div className="flex flex-col">
-      <PageHeader title={t('reservas.detail.title')} showBack />
+      <PageHeader title={t('reservas.detail.title')} showBack sticky />
       {perspective === 'owner' ? (
         <RentadorView reservation={reservation} />
       ) : (

@@ -3,6 +3,8 @@ export const es = {  // --- App ---
   'app.tagline': 'Alquila el vehiculo que necesitas',
   'app.role.rentadorActive': 'Rentando',
   'app.role.conductorActive': 'Conduciendo',
+  'app.role.switchToRentador': 'Cambiar a modo rentador',
+  'app.role.switchToConductor': 'Cambiar a modo conductor',
 
   // --- Nav ---
   'nav.buscar': 'Buscar',
@@ -15,6 +17,29 @@ export const es = {  // --- App ---
   'nav.misVehiculos': 'Mis vehiculos',
   'nav.misReservas': 'Mis reservas',
   'nav.mapa': 'Mapa',
+
+  // --- Wallet / saldo ---
+  'wallet.title': 'Saldo y retiros',
+  'wallet.shortcut': 'Retirá tu saldo disponible o mirá los movimientos',
+  'wallet.balanceLabel': 'Saldo disponible',
+  'wallet.balanceHint': 'El saldo se acredita automáticamente cuando una reserva finaliza.',
+  'wallet.emptyAccounts.title': 'Necesitás una cuenta bancaria',
+  'wallet.emptyAccounts.description': 'Registrá una cuenta bancaria para retirar tu saldo disponible.',
+  'wallet.emptyAccounts.cta': 'Ir a cuentas bancarias',
+  'wallet.withdraw.title': 'Solicitar retiro',
+  'wallet.withdraw.subtitle': 'Elegí una cuenta bancaria registrada y pedí la transferencia.',
+  'wallet.withdraw.bankAccount': 'Cuenta bancaria destino',
+  'wallet.withdraw.amount': 'Monto a retirar',
+  'wallet.withdraw.amountHint': 'Ingresá el monto en pesos argentinos.',
+  'wallet.withdraw.submit': 'Retirar saldo',
+  'wallet.withdraw.processingHint': 'Cuando el retiro se procesa correctamente, queda en estado Procesada y luego depende de tu banco.',
+  'wallet.withdraw.success': 'Retiro procesado. Verás la transaccion en tu banco.',
+  'wallet.transactions.title': 'Movimientos',
+  'wallet.transactions.subtitle': 'Acreditaciones por reservas y retiros realizados.',
+  'wallet.transactions.empty': 'Todavía no tenés movimientos.',
+  'wallet.transactions.credit': 'Acreditación por reserva',
+  'wallet.transactions.debit': 'Retiro de saldo',
+  'wallet.transactions.balanceAfter': 'Saldo luego del movimiento',
 
   // --- Mapa de rentadoras ---
   'mapa.title': 'Mapa de rentadoras',
@@ -203,6 +228,8 @@ export const es = {  // --- App ---
 
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
+  'reservas.list.pendingExtension': 'Extensión pendiente',
+  'reservas.list.extensionBadge': 'Extensión',
   'reservas.role.aria': 'Cambiar perspectiva',
   'reservas.role.conductor': 'Como conductor',
   'reservas.role.owner': 'Como rentador',
@@ -234,8 +261,8 @@ export const es = {  // --- App ---
   'reservas.detail.cancel.canceling': 'Cancelando...',
   'reservas.detail.cancel.back': 'Volver',
   'reservas.detail.cancel.success': 'Reserva cancelada',
-  'reservas.detail.cancel.refund.success': 'Recibiste {amount} Rocketokens de reembolso.',
-  'reservas.detail.cancel.refund.preview': 'Sí, vas a recibir {amount} Rocketokens de reembolso.',
+  'reservas.detail.cancel.refund.success': 'Recibiste {amount} RocketTokens de reembolso.',
+  'reservas.detail.cancel.refund.preview': 'Sí, vas a recibir {amount} RocketTokens de reembolso.',
   'reservas.detail.cancel.noRefund.preview': 'No, esta cancelación no genera reembolso.',
   'reservas.detail.cancel.refund.unknown': 'No pudimos calcular un reembolso para esta reserva.',
   'reservas.detail.cancel.postPayUnavailable':
@@ -398,6 +425,8 @@ export const es = {  // --- App ---
   'rentador.reservas.errorAccion': 'No pudimos completar la acción. Intentá de nuevo.',
   'rentador.reservas.aprobada': 'Solicitud aprobada',
   'rentador.reservas.rechazada': 'Solicitud rechazada',
+  'rentador.reservas.extension.aprobada': 'Extensión aprobada',
+  'rentador.reservas.extension.rechazada': 'Extensión rechazada',
   'reservas.estado.pending_approval': 'En revisión',
   'reservas.detail.pagar': 'Pagar',
   'reservas.pago.title': 'Pagar reserva',
@@ -451,6 +480,22 @@ export const es = {  // --- App ---
   'perfil.settings': 'Configuracion',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
+
+  // --- Push notifications ---
+  'push.title': 'Notificaciones',
+  'push.subtitle': 'Recibí alertas de reservas y mensajes aunque no tengas la app abierta.',
+  'push.active': 'Notificaciones activas',
+  'push.active.hint': 'Te avisamos cuando tengas novedades sobre tus reservas o mensajes nuevos.',
+  'push.enable': 'Activar notificaciones',
+  'push.disable': 'Desactivar',
+  'push.denied': 'Permiso denegado',
+  'push.denied.hint': 'Habilitá las notificaciones desde Configuración del sistema.',
+  'push.unsupported': 'No disponible en este navegador',
+  'push.needsInstall': 'Instalá la app primero',
+  'push.needsInstall.hint': 'En iPhone, las notificaciones solo funcionan cuando agregás la app a tu pantalla de inicio.',
+  'push.needsInstall.step1': 'Tocá el botón',
+  'push.needsInstall.step2': 'Seleccioná "Agregar a pantalla de inicio"',
+  'push.needsInstall.step3': 'Abrí la app desde el ícono y volvé aquí',
   'perfil.language': 'Idioma',
   'perfil.deleteAccount': 'Eliminar cuenta',
   'perfil.deleteAccount.title': 'Eliminar tu cuenta?',
@@ -471,6 +516,26 @@ export const es = {  // --- App ---
   'perfil.level.platinum': 'Platino',
   'perfil.datos.title': 'Datos personales',
   'perfil.datos.subtitle': 'Tu información de contacto y preferencias',
+  'perfil.verificaciones.title': 'Verificaciones',
+  'perfil.verificaciones.row': 'Verificación',
+  'perfil.cuentas.row': 'Cuentas bancarias',
+  'perfil.beneficios.title': 'Beneficios',
+  'perfil.beneficios.creditos': 'RocketTokens',
+  'perfil.beneficios.cupones': 'Cupones',
+  'perfil.beneficios.lealtad': 'Lealtad y nivel',
+  'perfil.creditos.title': 'RocketTokens',
+  'perfil.creditos.howTitle': 'Cómo funcionan',
+  'perfil.creditos.earn': 'Ganás RocketTokens',
+  'perfil.creditos.earnHint': 'Por cada reserva completada, resena dejada o referido.',
+  'perfil.creditos.spend': 'Usalos en tu próxima reserva',
+  'perfil.creditos.spendHint': 'Aplicalos como descuento al momento de pagar.',
+  'perfil.creditos.bonus': 'Bonus por nivel',
+  'perfil.creditos.bonusHint': 'A mayor nivel de lealtad, más RocketTokens por reserva.',
+  'perfil.cupones.title': 'Cupones',
+  'perfil.cupones.empty': 'Sin cupones activos',
+  'perfil.cupones.emptyHint': 'Los cupones que recibas aparecerán acá.',
+  'perfil.lealtad.title': 'Lealtad y nivel',
+  'perfil.lealtad.allLevels': 'Todos los niveles',
   'perfil.form.name': 'Nombre completo',
   'perfil.form.phone': 'Telefono',
   'perfil.form.email': 'Email',
@@ -721,6 +786,7 @@ export const es = {  // --- App ---
   'favoritos.emptyHint': 'Toca el corazon en cualquier vehiculo para guardarlo aca',
   'favoritos.emptyAction': 'Explorar vehiculos',
   'favoritos.count': 'guardados',
+  'favoritos.countOne': 'guardado',
   'favoritos.add': 'Agregar a favoritos',
   'favoritos.remove': 'Quitar de favoritos',
   'favoritos.toast.added': 'Agregado a favoritos',
@@ -1002,6 +1068,55 @@ export const es = {  // --- App ---
   'paymentMethods.form.walletProvider': 'Billetera',
   'paymentMethods.form.walletAlias': 'Alias / CVU',
   'paymentMethods.form.cancel': 'Cancelar',
+
+  'reservas.detail.extend.cta': 'Extender alquiler',
+  'reservas.detail.extend.modalTitle': 'Extender alquiler',
+  'reservas.detail.extend.modifyTitle': 'Modificar extensión',
+  'reservas.detail.extend.saveChanges': 'Guardar cambios',
+  'reservas.detail.extend.cancelPedido.cta': 'Cancelar pedido pendiente',
+  'reservas.detail.extend.cancelPedido.success': 'Pedido de extensión cancelado',
+  'reservas.detail.extend.currentEndAt': 'Devolución actual',
+  'reservas.detail.extend.newEndAtLabel': 'Nueva fecha de devolución',
+  'reservas.detail.extend.hourLabel': 'Hora',
+  'reservas.detail.extend.minuteLabel': 'Min',
+  'reservas.detail.extend.totalPreview': 'Costo',
+  'reservas.detail.extend.pendingApproval': 'Extensión pendiente de aprobación',
+  'reservas.detail.extend.pendingPayment': 'Extensión pendiente de pago',
+  'reservas.detail.extend.pendingUntil': 'hasta',
+  'reservas.detail.extend.infoInmediato':
+    'Se aplicará inmediatamente. Se cobrará al medio de pago usado en el alquiler original.',
+  'reservas.detail.extend.infoSolicitud':
+    'Esta extensión necesita aprobación del rentador. Vas a recibir una respuesta dentro de las próximas 24 horas.',
+  'reservas.detail.extend.infoLoading':
+    'Calculando las condiciones de la extensión...',
+  'reservas.detail.extend.infoVehicleError':
+    'No pudimos cargar las condiciones del vehículo. Si confirmás, la extensión se enviará como solicitud para que el rentador la apruebe.',
+  'reservas.detail.extend.confirmInmediato': 'Extender y pagar',
+  'reservas.detail.extend.confirmSolicitud': 'Enviar solicitud',
+  'reservas.detail.extend.cancel': 'Cancelar',
+  'reservas.detail.extend.submitting': 'Enviando...',
+  'reservas.detail.extend.success.inmediato':
+    'Extensión aplicada. Estamos procesando el pago.',
+  'reservas.detail.extend.success.solicitud':
+    'Solicitud enviada. El rentador tiene 24 horas para responder.',
+  'reservas.detail.extend.error.invalidEndAt':
+    'La nueva fecha debe ser posterior a la devolución actual.',
+  'reservas.detail.extend.error.generic':
+    'No pudimos procesar la extensión. Intentalo nuevamente.',
+  'reservas.detail.extend.error.vehicleNotAvailable':
+    'El vehículo no está disponible en esas fechas. Elegí una fecha anterior.',
+  'reservas.detail.extend.availableUntil': 'Disponible hasta el',
+
+  'reservas.approve.extensionTitle': 'Aprobar solicitud de extensión',
+  'reservas.approve.extensionSubtitle':
+    'El conductor pidió extender un alquiler en curso. Revisá las nuevas fechas antes de aprobar.',
+  'reservas.approve.extensionBody':
+    'El conductor recibirá 10 minutos para pagar la extensión. Las solicitudes solapadas se van a rechazar automáticamente.',
+
+  'reservar.errors.RESERVATION_EXTENSION_NOT_IN_PROGRESS':
+    'Solo podés extender un alquiler en curso.',
+  'reservar.errors.RESERVATION_EXTENSION_INVALID_END_AT':
+    'La nueva fecha no es válida — tiene que ser posterior a la devolución actual.',
 } as const
 
 export type I18nKey = keyof typeof es

@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, CalendarDays, ClipboardList, Inbox, Loader2, User } from 'lucide-react'
+import { toast } from 'sonner'
+import { ArrowRight, CalendarDays, Check, ClipboardList, Clock, Inbox, Loader2, User, X } from 'lucide-react'
+import { Bell } from '@phosphor-icons/react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -17,9 +19,13 @@ import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
+import { useApproveReservation } from '../hooks/useApproveReservation'
+import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
-import { RoleSegmentedControl } from './RoleSegmentedControl'
+import { ConfirmationModal } from './modals/ConfirmationModal'
+import { RejectReasonModal } from './modals/RejectReasonModal'
 
 type TabKey =
   | 'all'
@@ -66,21 +72,11 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
 
 const PAGE_SIZE = 20
 
-interface ReservasPageSearch {
-  role?: ReservationRole
-}
-
 /**
- * Panel unificado de reservas con un segmented control "Como conductor |
- * Como rentador" siempre visible. El toggle no representa una identidad —
- * es solo qué perspectiva del listado mostrar (las reservas que vos hiciste
- * vs las que te hicieron sobre tus vehículos). Por eso se muestra incluso
- * para usuarios que nunca publicaron: si entran a "Como rentador" sin tener
- * flota, el empty state los invita a publicar.
- *
- * Selección persistida en URL (`?role=owner|conductor`). El toggle es local
- * a la pantalla — no modifica `activeRole` global. La UI global del switcher
- * de rol es trabajo aparte (web#38).
+ * Panel de reservas. La perspectiva (reservas que el usuario hizo como
+ * conductor vs las que le hicieron sobre sus vehículos como rentador) se
+ * deriva del `activeRole` global: en modo rentador muestra `owner`, en modo
+ * conductor muestra `conductor`. El cambio de rol vive en el switcher global.
  *
  * Optimización smart-cache: la primera request al endpoint trae todas las
  * reservas (sin filtro de estado). Si `total <= PAGE_SIZE` (caso común),
@@ -88,11 +84,8 @@ interface ReservasPageSearch {
  * tab dispara su propia request server-side.
  */
 export function ReservasPage() {
-  const navigate = useNavigate({ from: '/reservas' })
-  const { role: roleSearch } = useSearch({
-    from: '/_app/reservas',
-  }) as ReservasPageSearch
-  const role: ReservationRole = roleSearch === 'owner' ? 'owner' : 'conductor'
+  const { activeRole } = useAuth()
+  const role: ReservationRole = activeRole === 'rentador' ? 'owner' : 'conductor'
 
   const [tab, setTab] = useState<TabKey>('all')
   const [from, setFrom] = useState<string>('')
@@ -177,17 +170,6 @@ export function ReservasPage() {
     setPage(1)
   }
 
-  const onRoleChange = (next: ReservationRole) => {
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        role: next === 'owner' ? 'owner' : undefined,
-      }),
-    })
-    setTab('all')
-    setPage(1)
-  }
-
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1
 
   const badgeLabel =
@@ -200,23 +182,28 @@ export function ReservasPage() {
       <PageHeader
         title={t('reservas.title')}
         actions={
-          solicitudesCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => onTabChange('solicitudes')}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
-              aria-label={`${badgeLabel} (${solicitudesCount})`}
+          <div className="flex items-center gap-2">
+            {solicitudesCount > 0 && (
+              <button
+                type="button"
+                onClick={() => onTabChange('solicitudes')}
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm active:scale-[0.97]"
+                aria-label={`${badgeLabel} (${solicitudesCount})`}
+              >
+                <Inbox className="h-3.5 w-3.5" />
+                <span>{badgeLabel} ({solicitudesCount})</span>
+              </button>
+            )}
+            <Link
+              to="/notificaciones"
+              aria-label={t('nav.notificaciones')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
             >
-              <Inbox className="h-3.5 w-3.5" />
-              <span>
-                {badgeLabel} ({solicitudesCount})
-              </span>
-            </button>
-          ) : undefined
+              <Bell size={22} />
+            </Link>
+          </div>
         }
       />
-
-      <RoleSegmentedControl value={role} onChange={onRoleChange} />
 
       <div className="px-4 pt-3 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 pb-3">
@@ -259,17 +246,11 @@ export function ReservasPage() {
         )}
         {data && data.items.length === 0 && <EmptyTab role={role} />}
         {data && (
-          <div
-            className={
-              isRefetching
-                ? 'flex flex-col gap-3 opacity-50 pointer-events-none transition-opacity'
-                : 'flex flex-col gap-3 transition-opacity'
-            }
-          >
-            {data.items.map((reserva) => (
-              <ReservaCard key={reserva.id} reserva={reserva} role={role} />
-            ))}
-          </div>
+          <CollapsedReservasList
+            items={data.items}
+            role={role}
+            isRefetching={isRefetching}
+          />
         )}
         {isRefetching && (
           <div className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center">
@@ -306,23 +287,217 @@ export function ReservasPage() {
   )
 }
 
+interface CollapsedReservasListProps {
+  items: ReservationListItem[]
+  role: ReservationRole
+  isRefetching: boolean
+}
+
+/**
+ * Una "extensión" es una row de `reservations` con `parentReservationId` apuntando
+ * al alquiler original. Esta lista colapsa cada cadena (padre + extensiones del
+ * mismo bloque) en una sola card representativa, eligiendo el eslabón "más
+ * activo" según `pickRepresentative()` y usando como rango `min(startAt) →
+ * max(endAt)` de los eslabones no cancelados/rechazados.
+ *
+ * Si el rentador del eslabón viene paginado en una página y el padre en otra,
+ * cada uno se muestra como una card independiente — es solo una limitación
+ * temporal del paginado server-side, no afecta correctness.
+ */
+function CollapsedReservasList({ items, role, isRefetching }: CollapsedReservasListProps) {
+  const collapsed = useMemo(() => collapseChain(items), [items])
+  return (
+    <div
+      className={
+        isRefetching
+          ? 'flex flex-col gap-3 opacity-50 pointer-events-none transition-opacity'
+          : 'flex flex-col gap-3 transition-opacity'
+      }
+    >
+      {collapsed.map((entry) => (
+        <ReservaCard
+          key={entry.representative.id}
+          reserva={entry.representative}
+          role={role}
+          rangeStartAt={entry.rangeStartAt}
+          rangeEndAt={entry.rangeEndAt}
+          rangeTotalCents={entry.rangeTotalCents}
+          hasPendingExtension={entry.hasPendingExtension}
+        />
+      ))}
+    </div>
+  )
+}
+
+interface CollapsedEntry {
+  representative: ReservationListItem
+  rangeStartAt: string
+  rangeEndAt: string
+  rangeTotalCents: number
+  hasPendingExtension: boolean
+}
+
+const COMMITTED_STATUSES: ReservationStatus[] = [
+  RESERVATION_STATUS.confirmed,
+  RESERVATION_STATUS.in_progress,
+  RESERVATION_STATUS.completed,
+]
+
+const PENDING_STATUSES: ReservationStatus[] = [
+  RESERVATION_STATUS.pending_approval,
+  RESERVATION_STATUS.pending_payment,
+]
+
+/**
+ * Prioridad de "actividad" para elegir el eslabón representativo de un chain.
+ * Estados más activos primero — el primer eslabón que matchee gana.
+ */
+const CHAIN_STATUS_PRIORITY: ReservationStatus[] = [
+  RESERVATION_STATUS.in_progress,
+  RESERVATION_STATUS.confirmed,
+  RESERVATION_STATUS.pending_payment,
+  RESERVATION_STATUS.pending_approval,
+  RESERVATION_STATUS.completed,
+  RESERVATION_STATUS.cancelled,
+  RESERVATION_STATUS.rejected,
+  RESERVATION_STATUS.expired,
+]
+
+/**
+ * Agrupa una lista plana de reservas en cadenas (padre + extensiones).
+ *
+ * Una reserva con `parentReservationId == null` actúa como root. Cada hija
+ * se anexa al root resolviendo recursivamente hacia arriba. Si el root no
+ * está en el page actual (paginado server-side), la hija se trata como su
+ * propio chain (orphan) — caso raro pero correcto.
+ *
+ * @returns Un entry por chain con el representante visible, el `startAt`
+ *   mínimo y el `endAt` máximo de los eslabones no terminales.
+ */
+export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
+  const byId = new Map<string, ReservationListItem>()
+  for (const item of items) byId.set(item.id, item)
+
+  const rootCache = new Map<string, string>()
+  const groups = new Map<string, ReservationListItem[]>()
+  for (const item of items) {
+    const rootId = resolveRootId(item, byId, rootCache)
+    const existing = groups.get(rootId)
+    if (existing) existing.push(item)
+    else groups.set(rootId, [item])
+  }
+
+  const result: CollapsedEntry[] = []
+  for (const [, members] of groups) {
+    const representative = pickRepresentative(members)
+    const activeMembers = members.filter(
+      (m) =>
+        m.status !== RESERVATION_STATUS.cancelled &&
+        m.status !== RESERVATION_STATUS.rejected &&
+        m.status !== RESERVATION_STATUS.expired,
+    )
+    const committedMembers = members.filter((m) =>
+      COMMITTED_STATUSES.includes(m.status),
+    )
+    const rangeSource =
+      committedMembers.length > 0
+        ? committedMembers
+        : activeMembers.length > 0
+          ? activeMembers
+          : members
+    const rangeStartAt = rangeSource.reduce(
+      (min, m) => (m.startAt < min ? m.startAt : min),
+      rangeSource[0].startAt,
+    )
+    const rangeEndAt = rangeSource.reduce(
+      (max, m) => (m.endAt > max ? m.endAt : max),
+      rangeSource[0].endAt,
+    )
+    const rangeTotalCents = rangeSource.reduce((sum, m) => sum + m.totalCents, 0)
+    const hasPendingExtension = members.some(
+      (m) =>
+        m.parentReservationId !== null && PENDING_STATUSES.includes(m.status),
+    )
+    result.push({
+      representative,
+      rangeStartAt,
+      rangeEndAt,
+      rangeTotalCents,
+      hasPendingExtension,
+    })
+  }
+
+  result.sort((a, b) => b.rangeStartAt.localeCompare(a.rangeStartAt))
+  return result
+}
+
+function resolveRootId(
+  item: ReservationListItem,
+  byId: Map<string, ReservationListItem>,
+  rootCache: Map<string, string>,
+): string {
+  const visited: string[] = []
+  let current = item
+  while (current.parentReservationId) {
+    const cached = rootCache.get(current.id)
+    if (cached) {
+      for (const id of visited) rootCache.set(id, cached)
+      return cached
+    }
+    visited.push(current.id)
+    const parent = byId.get(current.parentReservationId)
+    if (!parent) break
+    current = parent
+  }
+  const rootId = current.id
+  for (const id of visited) rootCache.set(id, rootId)
+  rootCache.set(rootId, rootId)
+  return rootId
+}
+
+function pickRepresentative(members: ReservationListItem[]): ReservationListItem {
+  for (const status of CHAIN_STATUS_PRIORITY) {
+    const match = members.find((m) => m.status === status)
+    if (match) return match
+  }
+  return members[0]
+}
+
 interface ReservaCardProps {
   reserva: ReservationListItem
   role: ReservationRole
+  rangeStartAt?: string
+  rangeEndAt?: string
+  rangeTotalCents?: number
+  hasPendingExtension?: boolean
 }
 
 /**
  * Card de listado. La contraparte mostrada depende del rol: para conductor,
  * el rentador; para rentador, el conductor.
+ *
+ * Si el eslabón representativo está en `pending_approval` y el usuario está
+ * con rol owner, la card muestra acciones rápidas inline para aprobar o
+ * rechazar sin entrar al detalle. Cuando además es una extensión
+ * (`parentReservationId` presente), suma un badge purple "Extensión" para
+ * distinguirla visualmente de una solicitud de reserva nueva.
  */
-function ReservaCard({ reserva, role }: ReservaCardProps) {
+function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents, hasPendingExtension }: ReservaCardProps) {
   const photo = reserva.vehicle.photo
   const counterpart = role === 'owner' ? reserva.conductor : reserva.rentador
+  const startAt = rangeStartAt ?? reserva.startAt
+  const endAt = rangeEndAt ?? reserva.endAt
+  const totalCents = rangeTotalCents ?? reserva.totalCents
 
   const canHaveChat =
     reserva.status === RESERVATION_STATUS.confirmed ||
     reserva.status === RESERVATION_STATUS.in_progress
   const { data: unreadCount = 0 } = useUnreadCount(reserva.id, canHaveChat)
+
+  const isPendingApprovalForOwner =
+    role === 'owner' && reserva.status === RESERVATION_STATUS.pending_approval
+  const isExtension = reserva.parentReservationId != null
+  const showExtensionBadge = isPendingApprovalForOwner && isExtension
 
   return (
     <Link
@@ -355,33 +530,165 @@ function ReservaCard({ reserva, role }: ReservaCardProps) {
           <p className="font-semibold text-text-primary truncate">
             {reserva.vehicle.brand} {reserva.vehicle.model}
           </p>
-          <ReservaStatusBadge estado={reserva.status} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {showExtensionBadge && (
+              <span className="inline-flex items-center rounded-full bg-purple-500/15 text-purple-300 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                {t('reservas.list.extensionBadge')}
+              </span>
+            )}
+            <ReservaStatusBadge estado={reserva.status} />
+          </div>
         </div>
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <CalendarDays className="h-3.5 w-3.5 text-text-muted shrink-0" />
           <span className="truncate">
             <span className="font-semibold text-text-primary">
-              {fmt.dayMonth(reserva.startAt)}
+              {fmt.dayMonth(startAt)}
             </span>{' '}
-            {fmt.time(reserva.startAt)}
+            {fmt.time(startAt)}
             <ArrowRight className="inline h-3 w-3 mx-1 text-text-muted align-text-bottom" />
             <span className="font-semibold text-text-primary">
-              {fmt.dayMonth(reserva.endAt)}
+              {fmt.dayMonth(endAt)}
             </span>{' '}
-            {fmt.time(reserva.endAt)}
+            {fmt.time(endAt)}
           </span>
         </div>
+        {hasPendingExtension && !showExtensionBadge && (
+          <div className="flex items-center gap-1 text-[11px] text-warning">
+            <Clock className="h-3 w-3 shrink-0" />
+            <span>{t('reservas.list.pendingExtension')}</span>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2 text-xs text-text-secondary">
           <div className="flex items-center gap-2 min-w-0">
             <User className="h-3.5 w-3.5 text-text-muted shrink-0" />
             <span className="truncate">{counterpart.name}</span>
           </div>
           <span className="font-bold text-brand-400 shrink-0 text-sm">
-            {fmt.currency(reserva.totalCents)}
+            {fmt.currency(totalCents)}
           </span>
         </div>
+        {isPendingApprovalForOwner && (
+          <ReservationQuickActions
+            reservationId={reserva.id}
+            isExtension={isExtension}
+          />
+        )}
       </div>
     </Link>
+  )
+}
+
+interface ReservationQuickActionsProps {
+  reservationId: string
+  isExtension: boolean
+}
+
+/**
+ * Acciones rápidas para que el rentador apruebe o rechace una solicitud
+ * `pending_approval` desde la lista, sin tener que entrar al detalle. Cubre
+ * tanto solicitudes de reserva nuevas como solicitudes de extensión —
+ * `isExtension` selecciona los copies (modal + toast) adecuados.
+ *
+ * Los botones detienen propagación y previenen el default del `<Link>`
+ * contenedor para que clickearlos no dispare la navegación al detalle.
+ */
+function ReservationQuickActions({ reservationId, isExtension }: ReservationQuickActionsProps) {
+  const approveMutation = useApproveReservation()
+  const rejectMutation = useRejectReservation()
+  const [showApprove, setShowApprove] = useState(false)
+  const [showReject, setShowReject] = useState(false)
+  const isBusy = approveMutation.isPending || rejectMutation.isPending
+
+  const handleApprove = async () => {
+    try {
+      await approveMutation.mutateAsync(reservationId)
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.aprobada'
+            : 'rentador.reservas.aprobada',
+        ),
+      )
+      setShowApprove(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const handleReject = async (reason: string) => {
+    try {
+      await rejectMutation.mutateAsync({
+        reservationId,
+        reason: reason.trim().length > 0 ? reason.trim() : undefined,
+      })
+      toast.success(
+        t(
+          isExtension
+            ? 'rentador.reservas.extension.rechazada'
+            : 'rentador.reservas.rechazada',
+        ),
+      )
+      setShowReject(false)
+    } catch {
+      toast.error(t('rentador.reservas.errorAccion'))
+    }
+  }
+
+  const stop = (handler: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    handler()
+  }
+
+  return (
+    <>
+      <div className="flex gap-2 pt-1">
+        <Button
+          variant="outline"
+          className="flex-1 h-8 text-xs border-danger/40 text-danger-400 hover:bg-danger/10"
+          disabled={isBusy}
+          onClick={stop(() => setShowReject(true))}
+        >
+          <X className="h-3.5 w-3.5" />
+          {t('rentador.reservas.detalle.rechazar')}
+        </Button>
+        <Button
+          className="flex-1 h-8 text-xs"
+          disabled={isBusy}
+          onClick={stop(() => setShowApprove(true))}
+        >
+          <Check className="h-3.5 w-3.5" />
+          {t('rentador.reservas.detalle.aprobar')}
+        </Button>
+      </div>
+      {showApprove && (
+        <ConfirmationModal
+          title={t(
+            isExtension
+              ? 'reservas.approve.extensionTitle'
+              : 'rentador.reservas.aprobar.confirmTitle',
+          )}
+          body={t(
+            isExtension
+              ? 'reservas.approve.extensionBody'
+              : 'rentador.reservas.aprobar.confirmBody',
+          )}
+          confirmLabel={t('rentador.reservas.aprobar.confirmar')}
+          submittingLabel={t('rentador.reservas.detalle.aprobando')}
+          submitting={approveMutation.isPending}
+          onConfirm={handleApprove}
+          onCancel={() => setShowApprove(false)}
+        />
+      )}
+      {showReject && (
+        <RejectReasonModal
+          submitting={rejectMutation.isPending}
+          onSubmit={handleReject}
+          onCancel={() => setShowReject(false)}
+        />
+      )}
+    </>
   )
 }
 
