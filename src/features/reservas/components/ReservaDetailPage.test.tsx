@@ -129,6 +129,12 @@ function makeReservation(opts: MakeOpts = {}) {
     cancellationPolicySnapshot: (policy ?? 'FLEXIBLE') as 'FLEXIBLE' | 'MODERATE' | 'STRICT',
     maxKilometrageSnapshot: { type: 'UNLIMITED' as const },
     rentalTimeConstraintsSnapshot: {},
+    withHomeDelivery: false,
+    homeDeliveryFeeCentsSnapshot: null,
+    deliveryAddress: null,
+    withHomeReturn: false,
+    homeReturnFeeCentsSnapshot: null,
+    returnAddress: null,
     vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
