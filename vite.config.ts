@@ -19,10 +19,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // autoUpdate + skipWaiting + clientsClaim: cuando hay una versión nueva
-      // el SW se instala y toma control sin pedir confirmación. Sin esto, el
-      // PWA instalado queda corriendo el bundle viejo aunque deployees fixes.
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       includeAssets: ['favicon.ico', 'favicon-16.png', 'favicon-32.png', 'apple-touch-icon.png', 'icons/*.png'],
       manifest: {
         name: 'Rocket Lease',
@@ -54,39 +54,9 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
-        skipWaiting: true,
-        clientsClaim: true,
-        cleanupOutdatedCaches: true,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              networkTimeoutSeconds: 10,
-              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'image-cache',
-              expiration: { maxEntries: 100, maxAgeSeconds: 86400 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'font-cache',
-              expiration: { maxAgeSeconds: 31536000, maxEntries: 10 },
-            },
-          },
-        ],
       },
     }),
   ],
