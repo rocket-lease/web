@@ -10,7 +10,7 @@ import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 export function VehiculoCardSkeleton({ className }: { className?: string }) {
   return (
     <div className={cn('', className)}>
-      <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+      <Skeleton className="aspect-[4/3] w-full rounded-3xl" />
       <div className="mt-2.5 space-y-1.5">
         <div className="flex items-start justify-between gap-2">
           <Skeleton className="h-3.5 w-2/3" />
@@ -42,7 +42,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
         className="block active:scale-[0.98] transition-transform duration-150"
       >
         {/* Foto */}
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-2 shadow-[0_4px_20px_rgba(0,0,0,0.55)]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-surface-2 shadow-[0_4px_20px_rgba(0,0,0,0.55)]">
           <img
             src={coverPhoto}
             alt={`${vehiculo.brand} ${vehiculo.model}`}

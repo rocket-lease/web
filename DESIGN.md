@@ -122,7 +122,7 @@ El sistema rechaza explícitamente tres familias estéticas: el SaaS-gradient co
 - Dark-first con cinco niveles de superficie por luminosidad (`surface-0` a `surface-4`), no por color.
 - Un violeta de marca + dos roles diferenciados (cian para conductor, ámbar para rentador). Sin un cuarto color.
 - Una sola familia: Poppins, en pesos 400/600/700. Sin pares.
-- Pill (`9999px`) para CTAs primarios y badges; `12px` para cards e inputs. Sin esquinas de 24-40px.
+- Pill (`9999px`) para CTAs primarios y badges; `12px` para inputs/cards de UI; `24px` (`rounded-3xl`) para cards image-led del catálogo (la foto domina, el rounding suave la enmarca).
 - Motion con ease-out fuerte (`cubic-bezier(0.23, 1, 0.32, 1)`) y 150-300ms. `prefers-reduced-motion` es obligatorio.
 - Touch targets ≥44px. Cualquier interactivo con `active:scale-[0.97]`.
 
@@ -217,7 +217,7 @@ El sistema usa **elevation tonal por luminosidad**, no shadows ambientales pesad
 - **Background:** `surface-1`, sin border, con el **premium pill shadow** (drop + inset highlight). Es el patrón visual de "elemento confiable, flotante, tappeable" que se usa también en cards del catálogo.
 
 ### Cards (catálogo)
-- **Shape:** imagen `rounded-xl` (`12px`), sin border en la imagen. Caption debajo sin contenedor.
+- **Shape:** imagen `rounded-3xl` (`24px`), sin border en la imagen. Caption debajo sin contenedor. El radius generoso enmarca la foto y le da el feeling premium; aplica solo a cards image-led (no a cards de UI tipo settings, esas siguen siendo `rounded-xl`).
 - **Foto:** `aspect-[4/3]`, `bg-surface-2` (placeholder), premium pill shadow.
 - **Badges sobre foto:** `bg-black/70 backdrop-blur-sm`, `h-7 px-2.5 rounded-full`, label en blanco. Promoted lleva ícono de Sparkle ámbar.
 - **Auto-aceptar:** badge ámbar (`bg-owner/90 text-black`) bottom-left, con ícono Lightning.
@@ -272,7 +272,7 @@ El sistema usa **elevation tonal por luminosidad**, no shadows ambientales pesad
 - **Don't** anidar cards. Un auto card dentro de un panel card dentro de un sheet card está roto. Aplanar.
 - **Don't** crear un cuarto color de identidad. Si una nueva feature "necesita" un verde menta o un rosa, está mal escópica. Reusar violeta-cian-ámbar + semánticos.
 - **Don't** customizar scrollbars con colores nuevos. El default ya es `surface-4` thumb / brand on hover, 4px. No tocar.
-- **Don't** redondear cards con `rounded-3xl` o `rounded-2xl`. Tope `rounded-xl` (`12px`) para cards. Pills (`9999px`) solo para CTAs y badges.
+- **Don't** redondear cards de UI (settings, panel, dashboard) con `rounded-3xl` o `rounded-2xl`. Tope `rounded-xl` (`12px`) ahí. Las cards image-led del catálogo son la excepción documentada: `rounded-3xl` (`24px`) para enmarcar la foto. Pills (`9999px`) solo para CTAs y badges.
 - **Don't** combinar `border: 1px solid X` con `box-shadow` de blur ≥16px en la misma card. Es el "ghost card" tell. Elegir uno.
 - **Don't** poner el accent violeta en hover de cualquier interactivo. El violeta es para state activo/seleccionado/CTA, no para hint-of-interactivity.
 - **Don't** clonar el look claro de Airbnb (fondo blanco cálido, foto-first). Tomamos sus patrones de UX (chrome contextual, switch de rol), no su paleta.

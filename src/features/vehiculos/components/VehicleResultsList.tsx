@@ -103,7 +103,7 @@ export function VehicleResultsList({
               onMouseLeave={() => onHoverVehicle?.(null)}
               onClick={() => onClickVehicle?.(v.id)}
               className={cn(
-                'rounded-xl transition-all duration-200',
+                'rounded-3xl transition-all duration-200',
                 selectedId === v.id && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-surface-0',
               )}
             >
