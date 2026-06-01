@@ -60,11 +60,22 @@ function formatRange(start?: string, end?: string): string | null {
  * sensación de capas. Footer global con "Limpiar" + "Buscar".
  */
 export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchOverlayProps) {
-  const [step, setStep] = useState<Step>('where')
+  const [step, setStep] = useState<Step>(() => initial.city ? 'when' : 'where')
+  const [prevStep, setPrevStep] = useState<Step>(step)
   const [whereExpanded, setWhereExpanded] = useState(false)
   const [cityDraft, setCityDraft] = useState<string | undefined>(initial.city)
   const [startDraft, setStartDraft] = useState<string | undefined>(initial.start)
   const [endDraft, setEndDraft] = useState<string | undefined>(initial.end)
+
+  // El swap del contenido a su versión colapsada se demora 450ms para que
+  // la animación de shrink (max-height) sea visible. Sin esto, el contenido
+  // se reduce instantáneamente y el contenedor colapsa al tamaño nuevo sin
+  // animar.
+  useEffect(() => {
+    if (step === prevStep) return
+    const id = setTimeout(() => setPrevStep(step), 450)
+    return () => clearTimeout(id)
+  }, [step, prevStep])
 
   useEffect(() => {
     if (!open) return
@@ -121,6 +132,7 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
       <OverlayBody
         isOpen={phase === 'open'}
         step={step}
+        prevStep={prevStep}
         setStep={setStep}
         whereExpanded={whereExpanded}
         setWhereExpanded={setWhereExpanded}
@@ -193,6 +205,7 @@ function OverlayShell({
 interface OverlayBodyProps {
   isOpen:           boolean
   step:             Step
+  prevStep:         Step
   setStep:          (s: Step) => void
   whereExpanded:    boolean
   setWhereExpanded: (v: boolean) => void
@@ -209,13 +222,20 @@ interface OverlayBodyProps {
 }
 
 function OverlayBody({
-  isOpen, step, setStep, whereExpanded, setWhereExpanded,
+  isOpen, step, prevStep, setStep, whereExpanded, setWhereExpanded,
   cityDraft, startDraft, endDraft, cityLabel, datesLabel,
   pickCity, onNearby, setRange, clearAll, submit,
 }: OverlayBodyProps) {
   // En modo expanded el card de Dónde toma toda la pantalla y el de
   // Cuándo se oculta temporalmente para no distraer del search.
   const hideOthers = step === 'where' && whereExpanded
+
+  // Mostrar el contenido expandido mientras el step actual O el step
+  // previo (durante la transición) sea ese. Esto mantiene visible el
+  // contenido viejo durante el shrink, así la animación de max-height
+  // tiene contenido alto para chocar.
+  const showWhereContent = step === 'where' || prevStep === 'where'
+  const showWhenContent = step === 'when' || prevStep === 'when'
 
   return (
     <div
@@ -224,7 +244,7 @@ function OverlayBody({
     >
       <div className="flex flex-col gap-3 shrink-0 pointer-events-none">
         <DropSlot grow={step === 'where'} fullscreen={whereExpanded} open={isOpen}>
-          {step === 'where' ? (
+          {showWhereContent ? (
             <WhereExpanded
               currentCity={cityDraft}
               onPick={pickCity}
@@ -244,7 +264,7 @@ function OverlayBody({
 
         {!hideOthers && (
           <DropSlot grow={step === 'when'} delayMs={60} open={isOpen}>
-            {step === 'when' ? (
+            {showWhenContent ? (
               <WhenExpanded
                 start={startDraft}
                 end={endDraft}
