@@ -282,7 +282,11 @@ function OverlayBody({
       </div>
 
       <div
-        className="mt-auto flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto"
+        className={cn(
+          'mt-auto flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto',
+          'transition-[opacity,transform] duration-[300ms] ease-[var(--ease-out)]',
+          whereExpanded ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0',
+        )}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <button
@@ -453,7 +457,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
         'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto overflow-hidden',
         'transition-[height,margin,border-radius] duration-[450ms] ease-[var(--ease-out)]',
         expanded
-          ? 'h-[calc(100dvh-8rem)] -mx-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
+          ? 'h-[calc(100dvh-4rem)] -mx-3 -mb-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
           : 'h-[24rem] mx-0 rounded-3xl border border-white/8 shrink-0',
       )}
       style={{
