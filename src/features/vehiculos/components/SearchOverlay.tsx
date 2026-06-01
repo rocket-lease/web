@@ -67,13 +67,13 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   const [startDraft, setStartDraft] = useState<string | undefined>(initial.start)
   const [endDraft, setEndDraft] = useState<string | undefined>(initial.end)
 
-  // El swap del contenido a su versión colapsada se demora 450ms para que
-  // la animación de shrink (max-height) sea visible. Sin esto, el contenido
-  // se reduce instantáneamente y el contenedor colapsa al tamaño nuevo sin
-  // animar.
+  // El swap del contenido a su versión colapsada se demora 400ms (un toque
+  // antes que la animación de 450ms del max-height) para que el cambio a
+  // pill aterrice justo cuando la animación está casi terminando, sin que
+  // se note el "snap" final.
   useEffect(() => {
     if (step === prevStep) return
-    const id = setTimeout(() => setPrevStep(step), 450)
+    const id = setTimeout(() => setPrevStep(step), 400)
     return () => clearTimeout(id)
   }, [step, prevStep])
 
