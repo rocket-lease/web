@@ -541,14 +541,11 @@ export function ReservarVehiculoPage() {
         return
       }
       setStep('pago')
-    } catch {
-      // surfaced through createReservation.error
-    }
+    } catch (_) {}
   }
 
   async function onPay() {
     if (!paymentMethod || !reservationId) return
-    // El modo seña solo aplica si está disponible para esta reserva.
     const mode = depositAvailable ? paymentMode : 'full'
     try {
       if (paymentMethod === 'bank_transfer') {
@@ -568,9 +565,7 @@ export function ReservarVehiculoPage() {
           params: { id: reservationId },
         })
       }
-    } catch {
-      // surfaced through error
-    }
+    } catch (_) {}
   }
 
   const submissionError =
