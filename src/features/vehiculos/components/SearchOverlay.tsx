@@ -67,13 +67,13 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   const [startDraft, setStartDraft] = useState<string | undefined>(initial.start)
   const [endDraft, setEndDraft] = useState<string | undefined>(initial.end)
 
-  // El swap del contenido a su versión colapsada se demora 350ms (100ms
+  // El swap del contenido a su versión colapsada se demora 200ms (250ms
   // antes que la animación de 450ms del max-height) para que el cambio a
-  // pill aterrice mientras la animación todavía está en curso, sin que se
-  // note el "snap" final.
+  // pill se haga temprano en la curva, mientras el slot todavía está
+  // shrink-ándose.
   useEffect(() => {
     if (step === prevStep) return
-    const id = setTimeout(() => setPrevStep(step), 350)
+    const id = setTimeout(() => setPrevStep(step), 200)
     return () => clearTimeout(id)
   }, [step, prevStep])
 
