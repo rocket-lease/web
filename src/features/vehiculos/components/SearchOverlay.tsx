@@ -472,10 +472,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
           : 'transform 220ms cubic-bezier(0.23, 1, 0.32, 1), height 450ms cubic-bezier(0.23, 1, 0.32, 1), margin 450ms cubic-bezier(0.23, 1, 0.32, 1), border-radius 450ms cubic-bezier(0.23, 1, 0.32, 1)',
       }}
     >
-      {expanded && (
-        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-surface-3 shrink-0" aria-hidden />
-      )}
-      <div className={cn('px-5 shrink-0', expanded ? 'pt-3 pb-3' : 'pt-5 pb-3')}>
+      <div className={cn('px-5 shrink-0', expanded ? 'pt-5 pb-3' : 'pt-5 pb-3')}>
         <h2 className="text-base font-semibold text-text-primary">Dónde</h2>
       </div>
 
