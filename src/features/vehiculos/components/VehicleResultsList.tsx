@@ -83,7 +83,7 @@ export function VehicleResultsList({
           <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
           <div>
             <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-xs text-text-secondary mt-1">
               {hasDateFilter ? t('buscar.noResultsDatesHint') : t('buscar.noResultsHint')}
             </p>
           </div>
@@ -103,7 +103,7 @@ export function VehicleResultsList({
               onMouseLeave={() => onHoverVehicle?.(null)}
               onClick={() => onClickVehicle?.(v.id)}
               className={cn(
-                'rounded-3xl transition-all duration-200',
+                'rounded-xl transition-all duration-200',
                 selectedId === v.id && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-surface-0',
               )}
             >

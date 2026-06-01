@@ -190,7 +190,7 @@ export function BuscarPage() {
         className={activeFiltersCount > 0 ? 'text-client' : ''}
       />
       {activeFiltersCount > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-client text-[9px] font-bold text-white">
+        <span className="absolute -top-1 -right-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-client text-[11px] font-bold text-white">
           {activeFiltersCount}
         </span>
       )}
