@@ -82,7 +82,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
   }
 
   return (
-    <div className="flex flex-col gap-8 pt-2 pb-8">
+    <div className="flex flex-col gap-8 pt-5 pb-8">
       <DestinationsRow onPickCity={onPickCity} />
 
       {(promoted.length > 0 || isLoading) && (
@@ -187,6 +187,7 @@ function DestinationsRow({ onPickCity }: DestinationsRowProps) {
               </div>
             </button>
           ))}
+          <div aria-hidden className="shrink-0 w-1" />
         </div>
       </div>
     </section>
@@ -227,6 +228,7 @@ function Carousel({ title, icon, vehicles, isLoading }: CarouselProps) {
                   <VehiculoCard vehiculo={v} />
                 </div>
               ))}
+          <div aria-hidden className="shrink-0 w-1" />
         </div>
       </div>
     </section>
