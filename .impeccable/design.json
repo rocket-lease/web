@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T00:00:00Z",
+  "title": "Design System: Rocket Lease",
+  "extensions": {
+    "colorMeta": {
+      "brand-500": {
+        "role": "primary",
+        "displayName": "Violeta de marca",
+        "canonical": "#7C3AED",
+        "tonalRamp": ["#290f5c", "#3d1a8a", "#5521b5", "#6D28D9", "#7C3AED", "#9b6bf4", "#b898f8", "#d8bfff"]
+      },
+      "client": {
+        "role": "secondary",
+        "displayName": "Cian conductor",
+        "canonical": "#06B6D4",
+        "tonalRamp": ["#155e75", "#0e7490", "#0891b2", "#0599b8", "#06B6D4", "#22d3ee", "#67e8f9", "#a5f3fc"]
+      },
+      "owner": {
+        "role": "secondary",
+        "displayName": "Ámbar rentador",
+        "canonical": "#F59E0B",
+        "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#F59E0B", "#fbbf24", "#fcd34d", "#fde68a"]
+      },
+      "surface-0": {
+        "role": "neutral",
+        "displayName": "Surface 0 (base)",
+        "canonical": "#0D0D1A",
+        "tonalRamp": ["#0D0D1A", "#13131F", "#1A1A2E", "#222238", "#2C2C48", "#3a3a5e", "#4a4a78", "#5a5a92"]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Text primary",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#FFFFFF", "#F0F0F8", "#A0A0B8", "#8888A0", "#6a6a82", "#4a4a5e", "#2c2c3a", "#13131F"]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success",
+        "canonical": "#10B981",
+        "tonalRamp": ["#064e3b", "#065f46", "#047857", "#059669", "#10B981", "#34d399", "#6ee7b7", "#a7f3d0"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "canonical": "#EF4444",
+        "tonalRamp": ["#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#EF4444", "#f87171", "#fca5a5", "#fecaca"]
+      }
+    },
+    "typographyMeta": {
+      "display":  { "displayName": "Display",  "purpose": "Hero / detalle inmersivo. Raro en mobile." },
+      "headline": { "displayName": "Headline", "purpose": "Titular de sección, header de drawer expandido." },
+      "title":    { "displayName": "Title",    "purpose": "Nombre de card (marca + modelo), title de step." },
+      "body":     { "displayName": "Body",     "purpose": "Párrafos, descripciones, captions." },
+      "label":    { "displayName": "Label",    "purpose": "Metadata, badges, contadores." }
+    },
+    "shadows": [
+      { "name": "card",        "value": "0 2px 12px rgba(0,0,0,0.30)",  "purpose": "Cards, inputs flotantes, pill de búsqueda." },
+      { "name": "elevated",    "value": "0 8px 32px rgba(0,0,0,0.50)",  "purpose": "Modales, bottom sheets, FAB, botones flotantes sobre el mapa." },
+      { "name": "brand",       "value": "0 8px 24px rgba(124,58,237,0.35)", "purpose": "Glow violeta. Solo FAB primarios o tooltips de marca." },
+      { "name": "premium-pill","value": "0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)", "purpose": "Pill de búsqueda y foto de card de auto. Drop + inset highlight." }
+    ],
+    "motion": [
+      { "name": "ease-out",    "value": "cubic-bezier(0.23, 1, 0.32, 1)",   "purpose": "Default de toda transición. Más fuerte que ease-out de CSS." },
+      { "name": "ease-in-out", "value": "cubic-bezier(0.77, 0, 0.175, 1)",  "purpose": "Movimiento on-screen, no entrada/salida." },
+      { "name": "drawer",      "value": "cubic-bezier(0.32, 0.72, 0, 1)",   "purpose": "Curva iOS de Vaul. Bottom sheets." }
+    ],
+    "breakpoints": [
+      { "name": "sm",  "value": "640px" },
+      { "name": "md",  "value": "768px" },
+      { "name": "lg",  "value": "1024px" },
+      { "name": "xl",  "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "CTA principal. Pill violeta con feedback táctil.",
+      "html": "<button class=\"ds-btn-primary\">Reservar auto</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3rem; padding: 0 1.5rem; border: none; border-radius: 9999px; background: #7C3AED; color: #FFFFFF; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.30); transition: background 150ms cubic-bezier(0.23, 1, 0.32, 1), transform 150ms cubic-bezier(0.23, 1, 0.32, 1); touch-action: manipulation; } .ds-btn-primary:hover { background: #6D28D9; } .ds-btn-primary:focus-visible { outline: 2px solid #7C3AED; outline-offset: 2px; } .ds-btn-primary:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria. Background tonal con border sutil.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: 3rem; padding: 0 1.5rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; background: #1A1A2E; color: #FFFFFF; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-secondary:hover { background: #222238; } .ds-btn-secondary:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Search Pill",
+      "kind": "custom",
+      "description": "Trigger de búsqueda con shadow premium (drop + inset highlight). Patrón signature dark.",
+      "html": "<button class=\"ds-search-pill\"><svg viewBox=\"0 0 256 256\" width=\"16\" height=\"16\" fill=\"#A0A0B8\"><path d=\"M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z\"/></svg><span>Buenos Aires · 12 mar – 15 mar</span></button>",
+      "css": ".ds-search-pill { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; height: 2.75rem; padding: 0 1.25rem; border: none; border-radius: 9999px; background: #13131F; color: #A0A0B8; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.875rem; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07); transition: box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-search-pill:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.1); } .ds-search-pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+    },
+    {
+      "name": "Vehicle Card",
+      "kind": "card",
+      "description": "Card de auto del catálogo. Foto con shadow premium, caption sin contenedor.",
+      "html": "<article class=\"ds-vehicle-card\"><div class=\"ds-vehicle-card__photo\"><div class=\"ds-vehicle-card__badge\">Promocionado</div></div><div class=\"ds-vehicle-card__caption\"><div class=\"ds-vehicle-card__row\"><p class=\"ds-vehicle-card__title\">Toyota Corolla · 2022</p><span class=\"ds-vehicle-card__price\">$8.500 / día</span></div><p class=\"ds-vehicle-card__meta\">Palermo, CABA · Automático · 5 pasajeros</p></div></article>",
+      "css": ".ds-vehicle-card { font-family: 'Poppins', system-ui, sans-serif; } .ds-vehicle-card__photo { position: relative; aspect-ratio: 4 / 3; background: #1A1A2E; border-radius: 0.75rem; box-shadow: 0 4px 20px rgba(0,0,0,0.55); overflow: hidden; } .ds-vehicle-card__badge { position: absolute; top: 0.625rem; left: 0.625rem; height: 1.75rem; padding: 0 0.625rem; display: inline-flex; align-items: center; border-radius: 9999px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: #FFFFFF; font-size: 0.75rem; font-weight: 600; } .ds-vehicle-card__caption { margin-top: 0.625rem; } .ds-vehicle-card__row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; } .ds-vehicle-card__title { color: #FFFFFF; font-size: 0.875rem; font-weight: 600; line-height: 1.3; margin: 0; } .ds-vehicle-card__price { color: #FFFFFF; font-size: 0.875rem; font-weight: 600; } .ds-vehicle-card__meta { margin: 0.125rem 0 0; color: #8888A0; font-size: 0.75rem; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Input estándar dark. Focus con glow violeta tenue.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Buscar ciudad\" />",
+      "css": ".ds-input { display: flex; height: 3rem; width: 100%; padding: 0 1rem; border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; background: #1A1A2E; color: #FFFFFF; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.875rem; transition: border-color 150ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-input::placeholder { color: #8888A0; } .ds-input:focus { outline: none; border-color: rgba(109, 40, 217, 0.6); box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Role Badge — Conductor",
+      "kind": "chip",
+      "refersTo": "badge-client",
+      "description": "Badge de rol conductor (cian).",
+      "html": "<span class=\"ds-badge ds-badge--client\">Conductor</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; height: 1.5rem; padding: 0 0.625rem; border-radius: 9999px; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; } .ds-badge--client { background: #06B6D4; color: #0D0D1A; }"
+    },
+    {
+      "name": "Role Badge — Rentador",
+      "kind": "chip",
+      "refersTo": "badge-owner",
+      "description": "Badge de rol rentador (ámbar).",
+      "html": "<span class=\"ds-badge ds-badge--owner\">Rentador</span>",
+      "css": ".ds-badge--owner { display: inline-flex; align-items: center; height: 1.5rem; padding: 0 0.625rem; border-radius: 9999px; background: #F59E0B; color: #0D0D1A; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.75rem; font-weight: 600; }"
+    },
+    {
+      "name": "Bottom Sheet Header",
+      "kind": "custom",
+      "description": "Top de un bottom sheet con handle visible. Rounded-top, surface elevada.",
+      "html": "<div class=\"ds-sheet\"><div class=\"ds-sheet__handle\"></div><p class=\"ds-sheet__title\">24 vehículos</p></div>",
+      "css": ".ds-sheet { background: #13131F; border-top: 1px solid rgba(255,255,255,0.08); border-radius: 1.5rem 1.5rem 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,0.5); padding-bottom: 1rem; } .ds-sheet__handle { width: 3rem; height: 0.375rem; margin: 0.75rem auto 0; border-radius: 9999px; background: #222238; } .ds-sheet__title { margin: 0.75rem 0 0; padding: 0 1.25rem; text-align: center; color: #FFFFFF; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; }"
+    },
+    {
+      "name": "Map Price Pin",
+      "kind": "custom",
+      "description": "Pin de precio sobre mapa. Light-on-dark para contraste sobre satelital.",
+      "html": "<button class=\"ds-pin\">$8.500</button>",
+      "css": ".ds-pin { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border: none; border-radius: 9999px; background: #FFFFFF; color: #0D0D1A; font-family: 'Poppins', system-ui, sans-serif; font-size: 0.75rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer; transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-pin:hover { transform: scale(1.05); } .ds-pin--selected { background: #FFFFFF; color: #0D0D1A; transform: scale(1.1); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Noche violeta confiable",
+    "overview": "Rocket Lease es un marketplace peer-to-peer de alquiler de autos. El usuario está casi siempre en el celular, con poca paciencia, decidiendo entre desconocidos. El sistema visual responde a eso siendo dark-first sin abaratar: un negro tintado de violeta (#0D0D1A) carga la mayoría de la superficie, el violeta de marca (#7C3AED) marca lo accionable, y la calidez vive en el copy y las fotos del auto, no en la paleta. El sistema rechaza explícitamente tres familias: el SaaS-gradient con gradient text y eyebrows uppercase; el navy-frío bancario; y el clon claro de Airbnb. La jerarquía se construye por luminosidad (cinco superficies en escala de gris-violeta) y peso tipográfico, nunca por anidar contenedores.",
+    "keyCharacteristics": [
+      "Dark-first con cinco niveles de superficie por luminosidad (surface-0 a surface-4), no por color.",
+      "Un violeta de marca + dos roles diferenciados (cian para conductor, ámbar para rentador). Sin un cuarto color.",
+      "Una sola familia: Poppins, en pesos 400/600/700. Sin pares.",
+      "Pill (9999px) para CTAs primarios y badges; 12px para cards e inputs. Sin esquinas de 24-40px.",
+      "Motion con ease-out fuerte (cubic-bezier(0.23, 1, 0.32, 1)) y 150-300ms. prefers-reduced-motion es obligatorio.",
+      "Touch targets ≥44px. Cualquier interactivo con active:scale-[0.97]."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule",            "body": "El violeta de marca carga lo accionable. No hay un segundo 'violeta más suave' ni un 'azul para destacar otra cosa'. Si una pantalla necesita tres jerarquías, dos van con peso/tamaño tipográfico; el violeta es la tercera.", "section": "colors" },
+      { "name": "The Role-Color Locked Rule",     "body": "Cian = conductor. Ámbar = rentador. Ese mapeo no se rompe ni 'para variar'. Un badge cian en una pantalla de rentador es un bug.", "section": "colors" },
+      { "name": "The No-Gray-On-Color Rule",      "body": "Texto gris sobre fondo coloreado se lee como apagado. Sobre client-subtle o owner-subtle, el texto va en el color del fondo en peso alto, no en text-muted.", "section": "colors" },
+      { "name": "The One Family Rule",            "body": "Toda la app es Poppins. Si un componente parece pedir un pair (display serif + body sans), está pidiendo otra cosa: peso o jerarquía.", "section": "typography" },
+      { "name": "The No Body Caps Rule",          "body": "Uppercase reservado para labels ≤4 palabras y badges. Sentencias en caps son ilegibles a body size.", "section": "typography" },
+      { "name": "The Tight Heading Rule",         "body": "Todos los h1-h6 traen letter-spacing -0.02em por default. No bajar de -0.04em.", "section": "typography" },
+      { "name": "The Tonal Elevation Rule",       "body": "El primer recurso para elevar algo es subir un step de superficie (surface-0 → surface-1). El shadow se suma cuando el delta tonal no alcanza o cuando el elemento es flotante.", "section": "elevation" },
+      { "name": "The No Ghost-Card Rule",         "body": "Borde sólido o shadow blur grande, nunca los dos juntos en la misma card.", "section": "elevation" },
+      { "name": "The Brand Glow Sparing Rule",    "body": "El glow violeta (shadow-brand) aparece como máximo dos veces en una pantalla.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar surface-0 como fondo de página y surface-1 para cards/inputs. La elevación tonal es el primer recurso, antes que shadow.",
+      "Do mantener text-primary (#FFFFFF) sobre surface-0 para titulares; text-secondary (#A0A0B8) para cuerpo; text-muted (#8888A0) solo para metadata.",
+      "Do poner active:scale-[0.97] en cada interactivo.",
+      "Do usar Vaul para bottom sheets con snap points en string-px ('80px'), nunca rem.",
+      "Do ocultar la bottom nav cuando un drawer fullscreen está activo (via useHideNav).",
+      "Do importar componentes de @/ui antes de inventar uno nuevo.",
+      "Do respetar prefers-reduced-motion.",
+      "Do mantener los pines de precio en mapa como pill claro sobre dark."
+    ],
+    "donts": [
+      "Don't usar gradient text (background-clip text + gradient). Bandera de AI-slop SaaS.",
+      "Don't poner eyebrows uppercase tracked ('ABOUT', 'FILTROS') arriba de cada sección.",
+      "Don't anidar cards. Aplanar.",
+      "Don't crear un cuarto color de identidad. Reusar violeta-cian-ámbar + semánticos.",
+      "Don't customizar scrollbars con colores nuevos.",
+      "Don't redondear cards con rounded-3xl o rounded-2xl. Tope rounded-xl (12px).",
+      "Don't combinar border 1px solid + box-shadow ≥16px blur en la misma card.",
+      "Don't poner el accent violeta en hover de cualquier interactivo. El violeta es para state activo/seleccionado/CTA.",
+      "Don't clonar el look claro de Airbnb (fondo blanco cálido, foto-first).",
+      "Don't usar lucide-react en componentes nuevos. La librería estándar es @phosphor-icons/react.",
+      "Don't poner texto en inglés visible al usuario. Toda string va en src/i18n/es.ts."
+    ]
+  }
+}
