@@ -213,8 +213,15 @@ function OverlayBody({
       className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full pointer-events-none"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
-      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden pointer-events-none">
-        <DropSlot grow={step === 'where'}>
+      <div
+        className="flex-1 min-h-0 grid gap-3 overflow-hidden pointer-events-none transition-[grid-template-rows] duration-300 ease-[var(--ease-out)]"
+        style={{
+          gridTemplateRows: hideOthers
+            ? '1fr'
+            : step === 'where' ? '1fr 3.5rem' : '3.5rem 1fr',
+        }}
+      >
+        <DropSlot>
           {step === 'where' ? (
             <WhereExpanded
               currentCity={cityDraft}
@@ -234,7 +241,7 @@ function OverlayBody({
         </DropSlot>
 
         {!hideOthers && (
-          <DropSlot grow={step === 'when'} delayMs={60}>
+          <DropSlot delayMs={60}>
             {step === 'when' ? (
               <WhenExpanded
                 start={startDraft}
@@ -277,21 +284,21 @@ function OverlayBody({
 /**
  * Wrapper que orquesta la entrada/salida de cada card del overlay. La card
  * "cae desde arriba" (translate-y + opacity) sincronizada con el `data-state`
- * del overlay padre. `grow` empuja el slot a `flex-1` cuando el contenido es
- * un card expandido que debe ocupar todo el espacio disponible. `delayMs`
- * permite stagger entre cards consecutivas.
+ * del overlay padre. El sizing entre expanded/collapsed lo controla el grid
+ * padre vía `grid-template-rows` animado. `delayMs` permite stagger entre
+ * cards consecutivas. `overflow-hidden` asegura que el contenido interno
+ * (largo) no se desborde mientras la fila grow/shrink.
  */
 function DropSlot({
-  children, grow, delayMs = 0,
-}: { children: React.ReactNode; grow: boolean; delayMs?: number }) {
+  children, delayMs = 0,
+}: { children: React.ReactNode; delayMs?: number }) {
   return (
     <div
       style={{ transitionDelay: `${delayMs}ms` }}
       className={cn(
-        'min-h-0 flex flex-col opacity-0 -translate-y-3',
+        'min-h-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
         'transition-[transform,opacity] duration-300 ease-[var(--ease-out)]',
         'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
-        grow ? 'flex-1' : 'shrink-0',
       )}
     >
       {children}
