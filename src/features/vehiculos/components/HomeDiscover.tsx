@@ -17,15 +17,20 @@ interface HomeDiscoverProps {
  * abajo. Cada carrusel se arma client-side a partir del mismo dataset
  * filtrado/ordenado por un criterio distinto.
  */
-const DESTINATIONS: ReadonlyArray<{ value: string; label: string; hint: string; gradient: string }> = [
-  { value: 'CABA',                    label: 'Buenos Aires',         hint: 'Ciudad',     gradient: 'from-brand-700 to-brand-500' },
-  { value: 'Bariloche',               label: 'Bariloche',            hint: 'Patagonia',  gradient: 'from-sky-700 to-cyan-500' },
-  { value: 'Mar del Plata',           label: 'Mar del Plata',        hint: 'Costa',      gradient: 'from-teal-700 to-emerald-500' },
-  { value: 'Mendoza',                 label: 'Mendoza',              hint: 'Cordillera', gradient: 'from-rose-700 to-amber-500' },
-  { value: 'Córdoba',                 label: 'Córdoba',              hint: 'Sierras',    gradient: 'from-amber-700 to-orange-500' },
-  { value: 'Salta',                   label: 'Salta',                hint: 'Norte',      gradient: 'from-red-800 to-rose-500' },
-  { value: 'Rosario',                 label: 'Rosario',              hint: 'Litoral',    gradient: 'from-indigo-700 to-blue-500' },
-  { value: 'San Martín de los Andes', label: 'San Martín',           hint: 'Patagonia',  gradient: 'from-emerald-800 to-teal-500' },
+/**
+ * Destinos sugeridos en el home. Cada uno arranca una búsqueda en su ciudad.
+ * Las fotos son URLs públicas de Unsplash; si alguna queda fea o se rompe,
+ * reemplazarla por otra del mismo banco o subirla a Cloudinary.
+ */
+const DESTINATIONS: ReadonlyArray<{ value: string; label: string; hint: string; photo: string }> = [
+  { value: 'CABA',                    label: 'Buenos Aires',  hint: 'Ciudad',     photo: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Bariloche',               label: 'Bariloche',     hint: 'Patagonia',  photo: 'https://images.unsplash.com/photo-1565073624497-7e91b3b2e7e2?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Mar del Plata',           label: 'Mar del Plata', hint: 'Costa',      photo: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Mendoza',                 label: 'Mendoza',       hint: 'Cordillera', photo: 'https://images.unsplash.com/photo-1568871391302-cdf459fbb43d?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Córdoba',                 label: 'Córdoba',       hint: 'Sierras',    photo: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Salta',                   label: 'Salta',         hint: 'Norte',      photo: 'https://images.unsplash.com/photo-1605833556084-de23f8676d2f?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'Rosario',                 label: 'Rosario',       hint: 'Litoral',    photo: 'https://images.unsplash.com/photo-1518883946614-3a37f0d930e3?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'San Martín de los Andes', label: 'San Martín',    hint: 'Patagonia',  photo: 'https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?w=400&h=560&fit=crop&q=70&auto=format' },
 ]
 
 const CAROUSEL_LIMIT = 8
@@ -137,51 +142,6 @@ function FullGrid({ vehicles, isLoading }: FullGridProps) {
   )
 }
 
-/**
- * Patrón topográfico SVG (curvas de nivel concéntricas, estilo mapa físico)
- * derivado de un `seed` string. El mismo destino siempre produce la misma
- * "topografía" — relación 1:1 sin assets externos. Renderizado en blanco al
- * 14% para que se lea como textura sobre cualquier gradient.
- */
-function TopoPattern({ seed }: { seed: string }) {
-  const params = useMemo(() => seededParams(seed), [seed])
-  return (
-    <svg
-      className="absolute inset-0 h-full w-full text-white/15"
-      viewBox="0 0 128 176"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden
-    >
-      {params.rings.map((r, i) => (
-        <ellipse
-          key={i}
-          cx={params.cx}
-          cy={params.cy}
-          rx={r.rx}
-          ry={r.ry}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={0.6}
-        />
-      ))}
-    </svg>
-  )
-}
-
-/** Hash determinístico simple sobre el seed → posición del foco + 7 anillos. */
-function seededParams(seed: string) {
-  let h = 0
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
-  const cx = 20 + (h % 88)
-  const cy = 30 + ((h >>> 8) % 116)
-  const skew = 0.7 + ((h >>> 16) % 60) / 100
-  const rings = Array.from({ length: 7 }, (_, i) => {
-    const base = 18 + i * 16
-    return { rx: base, ry: base * skew }
-  })
-  return { cx, cy, rings }
-}
-
 interface DestinationsRowProps {
   onPickCity: (city: string) => void
 }
@@ -206,13 +166,18 @@ function DestinationsRow({ onPickCity }: DestinationsRowProps) {
               key={d.value}
               type="button"
               onClick={() => onPickCity(d.value)}
-              className={`relative shrink-0 w-32 h-44 rounded-3xl overflow-hidden bg-gradient-to-br ${d.gradient} text-left active:scale-[0.97] transition-transform`}
+              className="relative shrink-0 w-32 h-44 rounded-3xl overflow-hidden bg-surface-2 text-left active:scale-[0.97] transition-transform shadow-[0_4px_20px_rgba(0,0,0,0.55)]"
             >
-              <TopoPattern seed={d.value} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <img
+                src={d.photo}
+                alt={d.label}
+                loading="lazy"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-3">
-                <p className="text-white font-bold text-sm leading-tight drop-shadow">{d.label}</p>
-                <p className="text-white/70 text-[11px] mt-0.5 flex items-center gap-1">
+                <p className="text-white font-bold text-sm leading-tight drop-shadow-md">{d.label}</p>
+                <p className="text-white/85 text-[11px] mt-0.5 flex items-center gap-1">
                   <MapPin size={10} weight="fill" />
                   {d.hint}
                 </p>
