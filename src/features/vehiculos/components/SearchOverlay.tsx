@@ -450,21 +450,23 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
       className={cn(
-        'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto',
+        'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto overflow-hidden',
+        'transition-[height,margin,border-radius] duration-[450ms] ease-[var(--ease-out)]',
         expanded
-          ? 'h-[calc(100dvh-8rem)] -mx-3 border-x-0 rounded-none touch-none'
-          : 'rounded-3xl border border-white/8 shrink-0',
+          ? 'h-[calc(100dvh-8rem)] -mx-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
+          : 'h-[24rem] mx-0 rounded-3xl border border-white/8 shrink-0',
       )}
-      style={
-        expanded
-          ? {
-              transform: `translateY(${dragOffset}px)`,
-              transition: isDragging ? 'none' : 'transform 220ms cubic-bezier(0.23, 1, 0.32, 1)',
-            }
-          : undefined
-      }
+      style={{
+        ...(expanded ? { transform: `translateY(${dragOffset}px)` } : {}),
+        transition: isDragging
+          ? 'transform 0s, height 450ms cubic-bezier(0.23, 1, 0.32, 1), margin 450ms cubic-bezier(0.23, 1, 0.32, 1), border-radius 450ms cubic-bezier(0.23, 1, 0.32, 1)'
+          : 'transform 220ms cubic-bezier(0.23, 1, 0.32, 1), height 450ms cubic-bezier(0.23, 1, 0.32, 1), margin 450ms cubic-bezier(0.23, 1, 0.32, 1), border-radius 450ms cubic-bezier(0.23, 1, 0.32, 1)',
+      }}
     >
-      <div className={cn('px-5 shrink-0', expanded ? 'pt-5 pb-3' : 'pt-5 pb-3')}>
+      {expanded && (
+        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-surface-3 shrink-0" aria-hidden />
+      )}
+      <div className={cn('px-5 shrink-0', expanded ? 'pt-3 pb-3' : 'pt-5 pb-3')}>
         <h2 className="text-base font-semibold text-text-primary">Dónde</h2>
       </div>
 
