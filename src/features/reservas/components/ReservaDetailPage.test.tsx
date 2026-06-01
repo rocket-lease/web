@@ -135,7 +135,7 @@ function makeReservation(opts: MakeOpts = {}) {
     withHomeReturn: false,
     homeReturnFeeCentsSnapshot: null,
     returnAddress: null,
-    vehicle: { id: VEH, brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
+    vehicle: { id: VEH, plate: 'AB123CD', brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
   }
 }

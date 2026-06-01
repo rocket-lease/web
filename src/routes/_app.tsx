@@ -8,6 +8,7 @@ import {
   ChartBar,
   ClipboardText,
   MapTrifold,
+  ClockClockwise,
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from '@/features/layout/components/BottomNav'
@@ -54,6 +55,7 @@ function AppLayout() {
     { to: '/mapa',        icon: MapTrifold,      label: t('nav.mapa') },
     { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
     { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
+    { to: '/historial',   icon: ClockClockwise,  label: t('nav.historial') },
     { to: '/perfil',      icon: UserCircle,      label: t('nav.perfil') },
   ]
 
@@ -61,6 +63,7 @@ function AppLayout() {
     { to: '/dashboard',     icon: ChartBar,      label: t('nav.dashboard') },
     { to: '/mis-vehiculos', icon: Car,           label: t('nav.misVehiculos') },
     { to: '/reservas',      icon: ClipboardText, label: t('nav.misReservas'), search: { role: 'owner' as const } },
+    { to: '/historial',     icon: ClockClockwise, label: t('nav.historial') },
     { to: '/perfil',        icon: UserCircle,    label: t('nav.perfil') },
   ]
 
