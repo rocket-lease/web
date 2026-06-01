@@ -213,8 +213,8 @@ function OverlayBody({
       className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full pointer-events-none"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
-      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden pointer-events-none">
-        <DropSlot grow={step === 'where'}>
+      <div className="flex flex-col gap-3 shrink-0 pointer-events-none">
+        <DropSlot grow={step === 'where'} fullscreen={whereExpanded}>
           {step === 'where' ? (
             <WhereExpanded
               currentCity={cityDraft}
@@ -253,7 +253,7 @@ function OverlayBody({
       </div>
 
       <div
-        className="flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto"
+        className="mt-auto flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <button
@@ -279,26 +279,28 @@ function OverlayBody({
  * transición grow/shrink al cambiar de step. Combina dos animaciones:
  *  - Entrada/salida del overlay: opacity + translate-y, atadas al
  *    `data-state` del overlay padre vía `group-data-[state=open]/overlay:`.
- *  - Grow/shrink al cambiar el step activo: anima `flex-grow` y
- *    `flex-basis` (de `1 0%` a `0 3.5rem` y viceversa). El browser
- *    interpola las dimensiones del flex item de forma suave.
+ *  - Grow/shrink al cambiar el step activo: anima `max-height` entre
+ *    `3.5rem` (pill colapsado) y `55dvh` (card expandido). `max-height`
+ *    interpola limpio en todos los browsers, sin los jumps de `flex`.
  *
- * `overflow-hidden` corta lo que sobra mientras la fila se achica, evitando
- * que el contenido expandido desborde durante la transición.
+ * `overflow-hidden` corta el contenido mientras la fila crece/se achica,
+ * dando el efecto de "unfurl" desde arriba.
  */
 function DropSlot({
-  children, grow, delayMs = 0,
-}: { children: React.ReactNode; grow: boolean; delayMs?: number }) {
+  children, grow, fullscreen = false, delayMs = 0,
+}: { children: React.ReactNode; grow: boolean; fullscreen?: boolean; delayMs?: number }) {
+  const maxH = grow
+    ? fullscreen ? 'calc(100dvh - 8rem)' : '55dvh'
+    : '3.5rem'
   return (
     <div
       style={{
         transitionDelay: `${delayMs}ms`,
-        flexGrow: grow ? 1 : 0,
-        flexBasis: grow ? '0%' : '3.5rem',
+        maxHeight: maxH,
       }}
       className={cn(
-        'min-h-0 shrink-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
-        'transition-[transform,opacity,flex-grow,flex-basis] duration-300 ease-[var(--ease-out)]',
+        'shrink-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
+        'transition-[transform,opacity,max-height] duration-300 ease-[var(--ease-out)]',
         'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
       )}
     >
@@ -533,7 +535,7 @@ function WhenExpanded({ start, end, onChange }: WhenExpandedProps) {
   const datesLabel = useMemo(() => formatRange(start, end) ?? 'Elegí las fechas', [start, end])
 
   return (
-    <div className="flex flex-col rounded-3xl bg-surface-1 border border-white/8 shadow-2xl overflow-hidden flex-1 min-h-0 pointer-events-auto">
+    <div className="flex flex-col rounded-3xl bg-surface-1 border border-white/8 shadow-2xl overflow-hidden h-[55dvh] min-h-0 pointer-events-auto">
       <div className="px-5 pt-5 pb-3 shrink-0">
         <h2 className="text-base font-semibold text-text-primary">Cuándo</h2>
         <p className="text-xs text-text-muted mt-1">{datesLabel}</p>
