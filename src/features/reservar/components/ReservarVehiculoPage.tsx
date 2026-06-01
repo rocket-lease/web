@@ -29,6 +29,7 @@ import { estimateReservationTotalCents } from '../utils/pricing'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
+import { AddressAutocomplete } from './AddressAutocomplete'
 
 type Step = 'fechas' | 'contrato' | 'pago'
 
@@ -410,18 +411,20 @@ export function ReservarVehiculoPage() {
   const [holdExpired, setHoldExpired] = useState(false)
   const [rulesCollapsed, setRulesCollapsed] = useState(false)
   const [rulesAcknowledged, setRulesAcknowledged] = useState(false)
-  const [withHomeDelivery, setWithHomeDelivery] = useState(false)
-  const [deliveryAddress, setDeliveryAddress] = useState<ReservationAddress | null>(null)
-  const [withHomeReturn, setWithHomeReturn] = useState(false)
-  const [returnAddress, setReturnAddress] = useState<ReservationAddress | null>(null)
-  const [sameAsDelivery, setSameAsDelivery] = useState(false)
+  const [deliveryUseCustom, setDeliveryUseCustom] = useState(false)
+  const [deliveryCustomAddress, setDeliveryCustomAddress] = useState<ReservationAddress | null>(null)
+  const [returnUseCustom, setReturnUseCustom] = useState(false)
+  const [returnCustomAddress, setReturnCustomAddress] = useState<ReservationAddress | null>(null)
 
   const createReservation = useCreateReservation()
   const reservationId = createReservation.data?.id ?? null
   const confirmPayment = useConfirmPayment(reservationId)
   const initiateTransfer = useInitiateTransfer(reservationId)
-  
+
   const { paymentMethods: savedPaymentMethods, isLoading: isLoadingPaymentMethods } = usePaymentMethods()
+
+  const withHomeDelivery = !!(vehicle?.homeDeliveryEnabled && deliveryUseCustom)
+  const withHomeReturn = !!(vehicle?.homeReturnEnabled && returnUseCustom)
 
   const estimatedTotal = useMemo(() => {
     if (!vehicle || !startAtLocal || !endAtLocal) return 0
@@ -473,7 +476,12 @@ export function ReservarVehiculoPage() {
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
 
   const canContinueToContract =
-    validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
+    validRange &&
+    !overlapsBusy &&
+    !rentalDurationViolation &&
+    (!vehicle?.reservationRuleSet || rulesAcknowledged) &&
+    !(deliveryUseCustom && !deliveryCustomAddress) &&
+    !(returnUseCustom && !returnCustomAddress)
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
@@ -518,18 +526,15 @@ export function ReservarVehiculoPage() {
       return
     }
     try {
-      const effectiveReturnAddress = withHomeReturn
-        ? (sameAsDelivery ? deliveryAddress : returnAddress)
-        : undefined
       const created = await createReservation.mutateAsync({
         vehicleId: vehicle!.id,
         startAt: toIsoUtc(startAtLocal),
         endAt: toIsoUtc(endAtLocal),
         contractAccepted: true,
         withHomeDelivery,
-        deliveryAddress: withHomeDelivery && deliveryAddress ? deliveryAddress : undefined,
+        deliveryAddress: withHomeDelivery && deliveryCustomAddress ? deliveryCustomAddress : undefined,
         withHomeReturn,
-        returnAddress: withHomeReturn && effectiveReturnAddress ? effectiveReturnAddress : undefined,
+        returnAddress: withHomeReturn && returnCustomAddress ? returnCustomAddress : undefined,
       })
       if (created.status === 'pending_approval') {
         navigate({ to: '/reservas/$id', params: { id: created.id } })
@@ -744,153 +749,148 @@ export function ReservarVehiculoPage() {
             ) : null}
 
             {(vehicle.homeDeliveryEnabled || vehicle.homeReturnEnabled) && (
-              <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-4">
-                <p className="text-sm font-semibold text-text-primary">
-                  {t('editVehiculo.section.entrega.title')}
-                </p>
-
+              <div className="space-y-3">
                 {vehicle.homeDeliveryEnabled && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-text-primary">
-                          {t('reservar.homeDelivery.toggle')}
-                        </p>
-                        {vehicle.homeDeliveryFeeCents ? (
-                          <p className="text-xs text-text-muted">
-                            {t('reservar.homeDelivery.fee').replace(
-                              '{fee}',
-                              fmt.currency(vehicle.homeDeliveryFeeCents),
-                            )}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-text-muted">{t('reservar.homeDelivery.freeLabel')}</p>
-                        )}
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={withHomeDelivery}
-                        onChange={(e) => {
-                          setWithHomeDelivery(e.target.checked)
-                          if (!e.target.checked) {
-                            setDeliveryAddress(null)
-                            setSameAsDelivery(false)
-                          }
-                        }}
-                        className="checkbox-brand"
-                      />
+                  <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-3">
+                    <p className="text-sm font-semibold text-text-primary">
+                      {t('reservar.homeDelivery.sectionTitle')}
+                    </p>
+                    <div className="flex rounded-xl overflow-hidden border border-white/8">
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryUseCustom(false)}
+                        className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                          !deliveryUseCustom
+                            ? 'bg-surface-3 text-text-primary'
+                            : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                        }`}
+                      >
+                        {t('reservar.address.original')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryUseCustom(true)}
+                        className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                          deliveryUseCustom
+                            ? 'bg-brand-500/20 text-brand-300'
+                            : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                        }`}
+                      >
+                        {t('reservar.address.custom')}
+                        {vehicle.homeDeliveryFeeCents
+                          ? ` · ${fmt.currency(vehicle.homeDeliveryFeeCents)}`
+                          : ''}
+                      </button>
                     </div>
-                    {withHomeDelivery && (
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-text-secondary">
-                          {t('reservar.homeDelivery.addressLabel')}
-                        </label>
-                        <input
-                          type="text"
-                          value={deliveryAddress?.address ?? ''}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              setDeliveryAddress((prev) => ({
-                                address: e.target.value,
-                                latitude: prev?.latitude ?? 0,
-                                longitude: prev?.longitude ?? 0,
-                              }))
-                            } else {
-                              setDeliveryAddress(null)
-                            }
-                          }}
-                          placeholder={t('reservar.homeDelivery.addressPlaceholder')}
-                          className="w-full rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
-                        />
-                      </div>
+                    {!deliveryUseCustom && vehicle.address && (
+                      <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                    )}
+                    {deliveryUseCustom && (
+                      <AddressAutocomplete
+                        value={deliveryCustomAddress}
+                        onChange={setDeliveryCustomAddress}
+                        onClear={() => setDeliveryCustomAddress(null)}
+                        placeholder={t('reservar.homeDelivery.addressPlaceholder')}
+                      />
                     )}
                   </div>
                 )}
 
-                {vehicle.homeReturnEnabled && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-text-primary">
-                          {t('reservar.homeReturn.toggle')}
-                        </p>
-                        {vehicle.homeReturnFeeCents ? (
-                          <p className="text-xs text-text-muted">
-                            {t('reservar.homeReturn.fee').replace(
-                              '{fee}',
-                              fmt.currency(vehicle.homeReturnFeeCents),
-                            )}
-                          </p>
-                        ) : null}
+                <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-text-primary">
+                    {t('reservar.homeReturn.sectionTitle')}
+                  </p>
+                  {vehicle.homeReturnEnabled ? (
+                    <>
+                      <div className="flex rounded-xl overflow-hidden border border-white/8">
+                        <button
+                          type="button"
+                          onClick={() => setReturnUseCustom(false)}
+                          className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                            !returnUseCustom
+                              ? 'bg-surface-3 text-text-primary'
+                              : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                          }`}
+                        >
+                          {t('reservar.address.original')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setReturnUseCustom(true)}
+                          className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                            returnUseCustom
+                              ? 'bg-brand-500/20 text-brand-300'
+                              : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                          }`}
+                        >
+                          {t('reservar.address.custom')}
+                          {vehicle.homeReturnFeeCents
+                            ? ` · ${fmt.currency(vehicle.homeReturnFeeCents)}`
+                            : ''}
+                        </button>
                       </div>
-                      <input
-                        type="checkbox"
-                        checked={withHomeReturn}
-                        onChange={(e) => {
-                          setWithHomeReturn(e.target.checked)
-                          if (!e.target.checked) {
-                            setReturnAddress(null)
-                            setSameAsDelivery(false)
-                          }
-                        }}
-                        className="checkbox-brand"
-                      />
-                    </div>
-                    {withHomeReturn && (
-                      <div className="space-y-2">
-                        {withHomeDelivery && deliveryAddress && (
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={sameAsDelivery}
-                              onChange={(e) => setSameAsDelivery(e.target.checked)}
-                              className="checkbox-brand"
-                            />
-                            <span className="text-xs text-text-secondary">
-                              {t('reservar.homeReturn.sameAsDelivery')}
-                            </span>
-                          </label>
-                        )}
-                        {!sameAsDelivery && (
-                          <>
-                            <label className="text-xs font-medium text-text-secondary">
-                              {t('reservar.homeReturn.addressLabel')}
-                            </label>
-                            <input
-                              type="text"
-                              value={returnAddress?.address ?? ''}
-                              onChange={(e) => {
-                                if (e.target.value) {
-                                  setReturnAddress((prev) => ({
-                                    address: e.target.value,
-                                    latitude: prev?.latitude ?? 0,
-                                    longitude: prev?.longitude ?? 0,
-                                  }))
-                                } else {
-                                  setReturnAddress(null)
-                                }
-                              }}
-                              placeholder={t('reservar.homeReturn.addressPlaceholder')}
-                              className="w-full rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
-                            />
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {!returnUseCustom && vehicle.address && (
+                        <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                      )}
+                      {returnUseCustom && (
+                        <AddressAutocomplete
+                          value={returnCustomAddress}
+                          onChange={setReturnCustomAddress}
+                          onClear={() => setReturnCustomAddress(null)}
+                          placeholder={t('reservar.homeReturn.addressPlaceholder')}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {vehicle.address && (
+                        <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                      )}
+                      <p className="text-xs text-text-muted">
+                        {t('reservar.homeReturn.changeDisabled')}
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
             <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">
-                {t('reservar.total')}
-              </span>
-              <span className="text-base font-semibold text-text-primary">
-                {fmt.currency(estimatedTotal)}
-              </span>
-            </div>
+            {vehicle && (withHomeDelivery || withHomeReturn) ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-muted">{t('reservar.breakdown.baseRent')}</span>
+                  <span className="text-xs text-text-muted">
+                    {fmt.currency(
+                      estimatedTotal -
+                        (withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : 0) -
+                        (withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : 0),
+                    )}
+                  </span>
+                </div>
+                {withHomeDelivery && (vehicle.homeDeliveryFeeCents ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeDeliveryFee')}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle.homeDeliveryFeeCents ?? 0)}</span>
+                  </div>
+                )}
+                {withHomeReturn && (vehicle.homeReturnFeeCents ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeReturnFee')}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle.homeReturnFeeCents ?? 0)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1 border-t border-white/8">
+                  <span className="text-sm text-text-muted">{t('reservar.total')}</span>
+                  <span className="text-base font-semibold text-text-primary">{fmt.currency(estimatedTotal)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-muted">{t('reservar.total')}</span>
+                <span className="text-base font-semibold text-text-primary">{fmt.currency(estimatedTotal)}</span>
+              </div>
+            )}
             <Button
               size="lg"
               className="w-full"
