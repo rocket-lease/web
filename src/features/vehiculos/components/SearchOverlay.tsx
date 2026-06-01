@@ -213,15 +213,8 @@ function OverlayBody({
       className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full pointer-events-none"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
-      <div
-        className="flex-1 min-h-0 grid gap-3 overflow-hidden pointer-events-none transition-[grid-template-rows] duration-300 ease-[var(--ease-out)]"
-        style={{
-          gridTemplateRows: hideOthers
-            ? '1fr'
-            : step === 'where' ? '1fr 3.5rem' : '3.5rem 1fr',
-        }}
-      >
-        <DropSlot>
+      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden pointer-events-none">
+        <DropSlot grow={step === 'where'}>
           {step === 'where' ? (
             <WhereExpanded
               currentCity={cityDraft}
@@ -241,7 +234,7 @@ function OverlayBody({
         </DropSlot>
 
         {!hideOthers && (
-          <DropSlot delayMs={60}>
+          <DropSlot grow={step === 'when'} delayMs={60}>
             {step === 'when' ? (
               <WhenExpanded
                 start={startDraft}
@@ -282,22 +275,30 @@ function OverlayBody({
 }
 
 /**
- * Wrapper que orquesta la entrada/salida de cada card del overlay. La card
- * "cae desde arriba" (translate-y + opacity) sincronizada con el `data-state`
- * del overlay padre. El sizing entre expanded/collapsed lo controla el grid
- * padre vía `grid-template-rows` animado. `delayMs` permite stagger entre
- * cards consecutivas. `overflow-hidden` asegura que el contenido interno
- * (largo) no se desborde mientras la fila grow/shrink.
+ * Wrapper que orquesta la entrada/salida de cada card del overlay y la
+ * transición grow/shrink al cambiar de step. Combina dos animaciones:
+ *  - Entrada/salida del overlay: opacity + translate-y, atadas al
+ *    `data-state` del overlay padre vía `group-data-[state=open]/overlay:`.
+ *  - Grow/shrink al cambiar el step activo: anima `flex-grow` y
+ *    `flex-basis` (de `1 0%` a `0 3.5rem` y viceversa). El browser
+ *    interpola las dimensiones del flex item de forma suave.
+ *
+ * `overflow-hidden` corta lo que sobra mientras la fila se achica, evitando
+ * que el contenido expandido desborde durante la transición.
  */
 function DropSlot({
-  children, delayMs = 0,
-}: { children: React.ReactNode; delayMs?: number }) {
+  children, grow, delayMs = 0,
+}: { children: React.ReactNode; grow: boolean; delayMs?: number }) {
   return (
     <div
-      style={{ transitionDelay: `${delayMs}ms` }}
+      style={{
+        transitionDelay: `${delayMs}ms`,
+        flexGrow: grow ? 1 : 0,
+        flexBasis: grow ? '0%' : '3.5rem',
+      }}
       className={cn(
-        'min-h-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
-        'transition-[transform,opacity] duration-300 ease-[var(--ease-out)]',
+        'min-h-0 shrink-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
+        'transition-[transform,opacity,flex-grow,flex-basis] duration-300 ease-[var(--ease-out)]',
         'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
       )}
     >
