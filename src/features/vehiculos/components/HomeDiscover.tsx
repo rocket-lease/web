@@ -137,6 +137,51 @@ function FullGrid({ vehicles, isLoading }: FullGridProps) {
   )
 }
 
+/**
+ * Patrón topográfico SVG (curvas de nivel concéntricas, estilo mapa físico)
+ * derivado de un `seed` string. El mismo destino siempre produce la misma
+ * "topografía" — relación 1:1 sin assets externos. Renderizado en blanco al
+ * 14% para que se lea como textura sobre cualquier gradient.
+ */
+function TopoPattern({ seed }: { seed: string }) {
+  const params = useMemo(() => seededParams(seed), [seed])
+  return (
+    <svg
+      className="absolute inset-0 h-full w-full text-white/15"
+      viewBox="0 0 128 176"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+    >
+      {params.rings.map((r, i) => (
+        <ellipse
+          key={i}
+          cx={params.cx}
+          cy={params.cy}
+          rx={r.rx}
+          ry={r.ry}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={0.6}
+        />
+      ))}
+    </svg>
+  )
+}
+
+/** Hash determinístico simple sobre el seed → posición del foco + 7 anillos. */
+function seededParams(seed: string) {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  const cx = 20 + (h % 88)
+  const cy = 30 + ((h >>> 8) % 116)
+  const skew = 0.7 + ((h >>> 16) % 60) / 100
+  const rings = Array.from({ length: 7 }, (_, i) => {
+    const base = 18 + i * 16
+    return { rx: base, ry: base * skew }
+  })
+  return { cx, cy, rings }
+}
+
 interface DestinationsRowProps {
   onPickCity: (city: string) => void
 }
@@ -163,7 +208,8 @@ function DestinationsRow({ onPickCity }: DestinationsRowProps) {
               onClick={() => onPickCity(d.value)}
               className={`relative shrink-0 w-32 h-44 rounded-3xl overflow-hidden bg-gradient-to-br ${d.gradient} text-left active:scale-[0.97] transition-transform`}
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <TopoPattern seed={d.value} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-end p-3">
                 <p className="text-white font-bold text-sm leading-tight drop-shadow">{d.label}</p>
                 <p className="text-white/70 text-[11px] mt-0.5 flex items-center gap-1">
