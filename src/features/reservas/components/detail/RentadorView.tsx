@@ -263,12 +263,12 @@ export function RentadorView({ reservation }: RentadorViewProps) {
               <Star
                 key={i}
                 size={14}
-                weight={i < reservation.review.rating ? 'fill' : 'regular'}
-                className={i < reservation.review.rating ? 'text-amber-400' : 'text-white/20'}
+                weight={i < (reservation.review?.rating ?? 0) ? 'fill' : 'regular'}
+                className={i < (reservation.review?.rating ?? 0) ? 'text-amber-400' : 'text-white/20'}
               />
             ))}
             <span className="ml-1.5 text-xs text-text-muted">
-              {fmt.rating(reservation.review.rating)}
+              {fmt.rating(reservation.review?.rating ?? 0)}
             </span>
           </div>
 

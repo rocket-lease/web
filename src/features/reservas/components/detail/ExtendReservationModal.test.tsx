@@ -39,6 +39,7 @@ function makeReservation(
     updatedAt: '2026-06-01T10:00:00.000Z',
     vehicle: {
       id: 'veh-1',
+      plate: 'AB123CD',
       brand: 'Toyota',
       model: 'Corolla',
       year: 2022,

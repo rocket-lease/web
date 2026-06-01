@@ -46,6 +46,7 @@ function makeReservation(
     updatedAt: '2026-05-30T12:00:00.000Z',
     vehicle: {
       id: '22222222-2222-2222-2222-222222222222',
+      plate: 'AB123CD',
       brand: 'Ford',
       model: 'Ranger',
       year: 2023,

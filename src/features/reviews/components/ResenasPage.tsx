@@ -1,4 +1,4 @@
-import { Loader2, MessageSquare } from 'lucide-react'
+import { Spinner, ChatCircleDots } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useRentadorReviews } from '../hooks/useRentadorReviews'
@@ -12,13 +12,13 @@ export function ResenasPage() {
       <PageHeader
         title={t('historial.resenas.title')}
         showBack
-        icon={<MessageSquare size={20} weight="regular" />}
+        icon={<ChatCircleDots size={20} weight="regular" />}
       />
 
       <div className="flex-1 px-4 pt-4 space-y-3 pb-24">
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-text-muted" />
+            <Spinner className="h-6 w-6 animate-spin text-text-muted" />
           </div>
         )}
 
@@ -30,7 +30,7 @@ export function ResenasPage() {
 
         {reviews?.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <MessageSquare size={40} className="text-white/10 mb-3" />
+            <ChatCircleDots size={40} className="text-white/10 mb-3" />
             <p className="text-sm text-text-primary font-medium">
               {t('historial.resenas.empty')}
             </p>
