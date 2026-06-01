@@ -9,6 +9,7 @@ import { SearchPill } from './SearchPill'
 import { SearchOverlay } from './SearchOverlay'
 import { VehicleResultsList } from './VehicleResultsList'
 import { VehicleResultsMap } from './VehicleResultsMap'
+import { HomeDiscover } from './HomeDiscover'
 import { t } from '@/i18n/es'
 import type { SortCriteria, VehiculoFilters } from '../types'
 import { vehiclesApi } from '../api/vehiculos.api'
@@ -312,15 +313,11 @@ export function BuscarPage() {
           )}
         </div>
       ) : (
-        <VehicleResultsList
+        <HomeDiscover
           vehicles={sorted}
           isLoading={isLoading}
           isError={isError}
-          from={search.start}
-          to={search.end}
-          hasDateFilter={!!(search.start ?? search.end)}
-          hasActiveFilter={activeFiltersCount > 0}
-          onClearFilters={clearAllFilters}
+          onPickCity={(city) => updateSearch({ city, searched: true })}
         />
       )}
 
