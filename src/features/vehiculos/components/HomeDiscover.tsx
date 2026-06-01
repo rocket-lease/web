@@ -19,18 +19,21 @@ interface HomeDiscoverProps {
  */
 /**
  * Destinos sugeridos en el home. Cada uno arranca una búsqueda en su ciudad.
- * Las fotos son URLs públicas de Unsplash; si alguna queda fea o se rompe,
- * reemplazarla por otra del mismo banco o subirla a Cloudinary.
+ *
+ * Las fotos usan Lorem Picsum con seed por destino como placeholder estable
+ * (siempre cargan, son fotos reales de banco). NO son específicas del lugar
+ * — para la versión final hay que swappear cada `photo` por una URL de la
+ * ciudad correspondiente (Unsplash, Cloudinary, etc.).
  */
 const DESTINATIONS: ReadonlyArray<{ value: string; label: string; hint: string; photo: string }> = [
-  { value: 'CABA',                    label: 'Buenos Aires',  hint: 'Ciudad',     photo: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Bariloche',               label: 'Bariloche',     hint: 'Patagonia',  photo: 'https://images.unsplash.com/photo-1565073624497-7e91b3b2e7e2?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Mar del Plata',           label: 'Mar del Plata', hint: 'Costa',      photo: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Mendoza',                 label: 'Mendoza',       hint: 'Cordillera', photo: 'https://images.unsplash.com/photo-1568871391302-cdf459fbb43d?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Córdoba',                 label: 'Córdoba',       hint: 'Sierras',    photo: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Salta',                   label: 'Salta',         hint: 'Norte',      photo: 'https://images.unsplash.com/photo-1605833556084-de23f8676d2f?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'Rosario',                 label: 'Rosario',       hint: 'Litoral',    photo: 'https://images.unsplash.com/photo-1518883946614-3a37f0d930e3?w=400&h=560&fit=crop&q=70&auto=format' },
-  { value: 'San Martín de los Andes', label: 'San Martín',    hint: 'Patagonia',  photo: 'https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?w=400&h=560&fit=crop&q=70&auto=format' },
+  { value: 'CABA',                    label: 'Buenos Aires',  hint: 'Ciudad',     photo: 'https://picsum.photos/seed/caba-buenosaires/400/560' },
+  { value: 'Bariloche',               label: 'Bariloche',     hint: 'Patagonia',  photo: 'https://picsum.photos/seed/bariloche-lago/400/560' },
+  { value: 'Mar del Plata',           label: 'Mar del Plata', hint: 'Costa',      photo: 'https://picsum.photos/seed/mardelplata-playa/400/560' },
+  { value: 'Mendoza',                 label: 'Mendoza',       hint: 'Cordillera', photo: 'https://picsum.photos/seed/mendoza-vinedos/400/560' },
+  { value: 'Córdoba',                 label: 'Córdoba',       hint: 'Sierras',    photo: 'https://picsum.photos/seed/cordoba-sierras/400/560' },
+  { value: 'Salta',                   label: 'Salta',         hint: 'Norte',      photo: 'https://picsum.photos/seed/salta-cerros/400/560' },
+  { value: 'Rosario',                 label: 'Rosario',       hint: 'Litoral',    photo: 'https://picsum.photos/seed/rosario-parana/400/560' },
+  { value: 'San Martín de los Andes', label: 'San Martín',    hint: 'Patagonia',  photo: 'https://picsum.photos/seed/smandes-andes/400/560' },
 ]
 
 const CAROUSEL_LIMIT = 8
@@ -82,7 +85,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
     <div className="flex flex-col gap-8 pt-2 pb-8">
       <DestinationsRow onPickCity={onPickCity} />
 
-      {promoted.length > 0 && (
+      {(promoted.length > 0 || isLoading) && (
         <Carousel
           title="Promocionados"
           icon={<Sparkle size={16} weight="fill" className="text-warning" />}
