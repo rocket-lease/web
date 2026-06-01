@@ -36,6 +36,12 @@ function makeReservation(
     cancellationPolicySnapshot: 'FLEXIBLE',
     maxKilometrageSnapshot: { type: 'UNLIMITED' },
     rentalTimeConstraintsSnapshot: {},
+    withHomeDelivery: false,
+    homeDeliveryFeeCentsSnapshot: null,
+    deliveryAddress: null,
+    withHomeReturn: false,
+    homeReturnFeeCentsSnapshot: null,
+    returnAddress: null,
     createdAt: '2026-05-30T12:00:00.000Z',
     updatedAt: '2026-05-30T12:00:00.000Z',
     vehicle: {
