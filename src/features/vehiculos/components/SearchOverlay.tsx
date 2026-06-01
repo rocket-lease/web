@@ -113,7 +113,7 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   const cityLabel = SUGGESTED_DESTINATIONS.find(d => d.value === cityDraft)?.label ?? cityDraft
   const datesLabel = formatRange(startDraft, endDraft)
 
-  const phase = useExitPhase(open, 280)
+  const phase = useExitPhase(open, 450)
   if (!phase) return null
 
   return (
@@ -300,7 +300,7 @@ function DropSlot({
       }}
       className={cn(
         'shrink-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
-        'transition-[transform,opacity,max-height] duration-300 ease-[var(--ease-out)]',
+        'transition-[transform,opacity,max-height] duration-[450ms] ease-[var(--ease-out)]',
         'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
       )}
     >
