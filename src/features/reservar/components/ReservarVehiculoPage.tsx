@@ -400,7 +400,7 @@ export function ReservarVehiculoPage() {
     queryKey: ['vehicle', vehicleId, 'busy-ranges'],
     queryFn: () => reservarApi.getBusyRanges(vehicleId),
   })
-  const busyRanges = busyData?.items ?? []
+  const busyRanges = useMemo(() => busyData?.items ?? [], [busyData])
 
   const [step, setStep] = useState<Step>('fechas')
   const [startAtLocal, setStartAtLocal] = useState('')

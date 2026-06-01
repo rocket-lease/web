@@ -17,6 +17,7 @@ export const es = {  // --- App ---
   'nav.misVehiculos': 'Mis vehiculos',
   'nav.misReservas': 'Mis reservas',
   'nav.mapa': 'Mapa',
+  'nav.historial': 'Historial',
 
   // --- Wallet / saldo ---
   'wallet.title': 'Saldo y retiros',
@@ -1171,6 +1172,30 @@ export const es = {  // --- App ---
     'Solo podés extender un alquiler en curso.',
   'reservar.errors.RESERVATION_EXTENSION_INVALID_END_AT':
     'La nueva fecha no es válida — tiene que ser posterior a la devolución actual.',
+
+  // --- Historial ---
+  'historial.title': 'Historial',
+  'historial.empty': 'No tenés reservas pasadas.',
+  'historial.error': 'No pudimos cargar tu historial. Intenta de nuevo.',
+  'historial.cargando': 'Cargando historial',
+  'historial.filtros.estado': 'Estado',
+  'historial.filtros.desde': 'Desde',
+  'historial.filtros.hasta': 'Hasta',
+  'historial.filtros.limpiar': 'Limpiar filtros',
+  'historial.filtros.title': 'Elegí un rango',
+  'historial.filtros.todos': 'Todos',
+  'historial.resenas.title': 'Reseñas recibidas',
+  'historial.resenas.empty': 'Todavía no tenés reseñas.',
+  'historial.resenas.emptyHint': 'Cuando un conductor complete un alquiler y deje una opinión, la vas a ver acá.',
+  'historial.resenas.targetType.vehicle': 'Sobre vehículo',
+  'historial.resenas.targetType.rentador': 'Sobre ti',
+  'historial.resenas.error': 'No pudimos cargar tus reseñas. Intenta de nuevo.',
+  'historial.resenas.cargando': 'Cargando reseñas',
+  'historial.resenas.rating': 'Calificación',
+
+  // --- Reseñas en detalle de reserva ---
+  'reservas.detail.review.title': 'Reseña del conductor',
+  'reservas.detail.review.empty': 'Sin reseña',
 } as const
 
 export type I18nKey = keyof typeof es

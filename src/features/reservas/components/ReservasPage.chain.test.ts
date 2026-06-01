@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { ReservationListItem } from '@rocket-lease/contracts'
-import { collapseChain } from './ReservasPage'
+import { collapseChain } from '../utils/chain'
 
 function makeItem(overrides: Partial<ReservationListItem>): ReservationListItem {
   return {

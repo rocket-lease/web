@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { GetReservationResponse } from '@rocket-lease/contracts'
-import { computeRequiresApproval } from './ExtendReservationModal'
+import { computeRequiresApproval } from '../../utils/extend'
 
 function makeReservation(
   overrides: Partial<GetReservationResponse> = {},
