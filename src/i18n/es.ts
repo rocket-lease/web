@@ -1231,6 +1231,24 @@ export const es = {  // --- App ---
   // --- Reseñas en detalle de reserva ---
   'reservas.detail.review.title': 'Reseña del conductor',
   'reservas.detail.review.empty': 'Sin reseña',
+
+  // --- Tickets (US-36) ---
+  'tickets.reportar.title': 'Reportar problema',
+  'tickets.reportar.descriptionLabel': 'Describí el problema',
+  'tickets.reportar.descriptionPlaceholder': 'Contanos qué pasó con el vehículo...',
+  'tickets.reportar.fotosLabel': 'Adjuntar fotos (opcional, máx 5)',
+  'tickets.reportar.cta': 'Enviar reporte',
+  'tickets.reportar.sending': 'Enviando...',
+  'tickets.reportar.uploadError': 'No se pudieron subir las fotos. Intentá de nuevo.',
+  'tickets.reportar.success': 'Reporte enviado. La contraparte fue notificada.',
+  'tickets.reportar.errorDuplicate': 'Ya tenés un reporte abierto para esta reserva.',
+  'tickets.misTickets.title': 'Mis reportes',
+  'tickets.misTickets.empty': 'No tenés reportes registrados.',
+  'tickets.misTickets.reservaPrefix': 'Reserva #',
+  'tickets.status.open': 'Abierto',
+  'tickets.status.under_review': 'En revisión',
+  'tickets.status.resolved': 'Resuelto',
+  'tickets.status.rejected': 'Rechazado',
 } as const
 
 export type I18nKey = keyof typeof es

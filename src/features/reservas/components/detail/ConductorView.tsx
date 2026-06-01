@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { X as PhosphorX } from '@phosphor-icons/react'
+import { X as PhosphorX, WarningCircle } from '@phosphor-icons/react'
 import {
   AlertOctagon,
   CalendarDays,
@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Inbox,
-  LifeBuoy,
   MessageSquare,
   QrCode,
   ShieldCheck,
@@ -56,6 +55,7 @@ import {
   type EffectiveReservationRules,
 } from '../../utils/cancellation-policy'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
+import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -107,6 +107,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
    * — para cancelar después del pago debe contactar soporte).
    */
   const isPostPayment = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
+  const isCompleted = status === RESERVATION_STATUS.completed
+  const [reportarOpen, setReportarOpen] = useState(false)
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -259,6 +261,26 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {status === RESERVATION_STATUS.in_progress && (
         <ReturnAction reservationId={reservation.id} />
       )}
+
+      {isCompleted && (
+        <>
+          <Separator />
+          <button
+            type="button"
+            onClick={() => setReportarOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+          >
+            <WarningCircle className="h-4 w-4" weight="regular" />
+            {t('reservas.detail.actions.reportar')}
+          </button>
+        </>
+      )}
+
+      <ReportarProblemaSheet
+        reservationId={reservation.id}
+        open={reportarOpen}
+        onOpenChange={setReportarOpen}
+      />
     </div>
   )
 }
@@ -326,6 +348,7 @@ function PostPaymentActions({
 }) {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showExtendModal, setShowExtendModal] = useState(false)
+  const [reportarOpen, setReportarOpen] = useState(false)
   const cancelMutation = useCancelReservation()
 
   const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
@@ -387,14 +410,23 @@ function PostPaymentActions({
             </span>
           )}
         </Link>
-        <Link
-          to="/soporte"
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
-        >
-          <LifeBuoy className="h-4 w-4" />
-          {t('reservas.detail.actions.reportar')}
-        </Link>
+        {status === RESERVATION_STATUS.in_progress && (
+          <button
+            type="button"
+            onClick={() => setReportarOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+          >
+            <WarningCircle className="h-4 w-4" weight="regular" />
+            {t('reservas.detail.actions.reportar')}
+          </button>
+        )}
       </div>
+
+      <ReportarProblemaSheet
+        reservationId={reservation.id}
+        open={reportarOpen}
+        onOpenChange={setReportarOpen}
+      />
 
       {showCancelModal && (
         <CancelConfirmModal

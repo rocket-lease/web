@@ -18,6 +18,7 @@ import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
+import { MisTicketsSection } from '@/features/soporte/components/MisTicketsSection'
 import { t, type I18nKey } from '@/i18n/es'
 import { Bell, Bank, Coins, Tag, Trophy, Headset } from '@phosphor-icons/react'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
@@ -135,6 +136,13 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       </div>
 
       {canEdit && <Separator />}
+
+      {/* Reportes del usuario (solo perfil propio) */}
+      {canEdit && (
+        <div className="px-4 mt-5">
+          <MisTicketsSection />
+        </div>
+      )}
 
       {/* Vehículos publicados + reseñas del rentador (perfil ajeno) */}
       {!canEdit && profile && (
