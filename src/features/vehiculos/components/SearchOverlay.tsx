@@ -283,9 +283,11 @@ function OverlayBody({
 
       <div
         className={cn(
-          'mt-auto flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto',
+          'flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto',
           'transition-[opacity,transform] duration-[300ms] ease-[var(--ease-out)]',
-          whereExpanded ? 'opacity-0 translate-y-4 pointer-events-none' : 'opacity-100 translate-y-0',
+          whereExpanded
+            ? 'opacity-0 translate-y-4 pointer-events-none absolute bottom-0 left-3 right-3'
+            : 'opacity-100 translate-y-0 mt-auto',
         )}
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
