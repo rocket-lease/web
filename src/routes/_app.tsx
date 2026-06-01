@@ -55,6 +55,7 @@ function AppLayout() {
     { to: '/mapa',        icon: MapTrifold,      label: t('nav.mapa') },
     { to: '/favoritos',   icon: Heart,           label: t('nav.favoritos') },
     { to: '/reservas',    icon: CalendarCheck,   label: t('nav.reservas') },
+    { to: '/historial',   icon: ClockClockwise,  label: t('nav.historial') },
     { to: '/perfil',      icon: UserCircle,      label: t('nav.perfil') },
   ]
 

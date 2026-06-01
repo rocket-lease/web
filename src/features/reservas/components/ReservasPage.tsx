@@ -35,8 +35,6 @@ type TabKey =
   | 'pendingBalance'
   | 'confirmed'
   | 'inProgress'
-  | 'completed'
-  | 'cancelled'
 
 /**
  * Mapea cada tab a los estados que filtra. Es role-aware para `pending_balance`
@@ -63,14 +61,6 @@ function getTabStatuses(
         : [RESERVATION_STATUS.confirmed]
     case 'inProgress':
       return [RESERVATION_STATUS.in_progress]
-    case 'completed':
-      return [RESERVATION_STATUS.completed]
-    case 'cancelled':
-      return [
-        RESERVATION_STATUS.cancelled,
-        RESERVATION_STATUS.rejected,
-        RESERVATION_STATUS.expired,
-      ]
   }
 }
 
@@ -96,8 +86,6 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
       : []),
     { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
     { key: 'inProgress', label: t('reservas.tabs.enCurso') },
-    { key: 'completed', label: t('reservas.tabs.completadas') },
-    { key: 'cancelled', label: t('reservas.tabs.canceladas') },
   ]
 }
 
@@ -126,8 +114,17 @@ export function ReservasPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined
   const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
 
+  const ACTIVE_STATUSES: ReservationStatus[] = [
+    RESERVATION_STATUS.pending_approval,
+    RESERVATION_STATUS.pending_payment,
+    RESERVATION_STATUS.pending_balance,
+    RESERVATION_STATUS.confirmed,
+    RESERVATION_STATUS.in_progress,
+  ]
+
   const probeQuery = useReservations({
     role,
+    status: ACTIVE_STATUSES,
     from: fromIso,
     to: toIso,
     page: 1,

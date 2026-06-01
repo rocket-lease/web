@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ClockClockwise } from '@phosphor-icons/react'
-import { ChevronRight } from 'lucide-react'
-import { type ReservationStatus } from '@rocket-lease/contracts'
+import { CalendarDays, ChevronRight } from 'lucide-react'
+import { type ReservationStatus, type ReservationRole } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -12,6 +12,7 @@ import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/select'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 
 const HISTORY_STATUSES: ReservationStatus[] = [
   'completed',
@@ -21,6 +22,9 @@ const HISTORY_STATUSES: ReservationStatus[] = [
 ]
 
 export function HistorialPage() {
+  const { activeRole } = useAuth()
+  const role: ReservationRole = activeRole === 'rentador' ? 'owner' : 'conductor'
+
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all')
   const [from, setFrom] = useState('')
@@ -33,7 +37,7 @@ export function HistorialPage() {
 
   const { data, isLoading, isError } = useReservations(
     {
-      role: 'owner',
+      role,
       status: statuses,
       from: from || undefined,
       to: to || undefined,
@@ -114,41 +118,57 @@ export function HistorialPage() {
           </div>
         )}
 
-        {data?.items.map((item) => (
-          <Link
-            key={item.id}
-            to="/reservas/$id"
-            params={{ id: item.id }}
-            className="block bg-surface-1 rounded-xl p-4 active:opacity-80 transition-opacity"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0 space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <ReservaStatusBadge estado={item.status} />
-                  <span className="text-xs text-text-muted">
-                    {fmt.dateShort(item.startAt)}
-                  </span>
+        {data?.items.map((item) => {
+          const photo = item.vehicle.photo
+          return (
+            <Link
+              key={item.id}
+              to="/reservas/$id"
+              params={{ id: item.id }}
+              className="block bg-surface-1 rounded-xl p-4 active:opacity-80 transition-opacity"
+            >
+              <div className="flex gap-3">
+                <div className="relative h-20 w-20 shrink-0">
+                  <div className="h-full w-full rounded overflow-hidden bg-surface-2 flex items-center justify-center">
+                    {photo ? (
+                      <img
+                        src={photo}
+                        alt={`${item.vehicle.brand} ${item.vehicle.model}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <CalendarDays className="h-6 w-6 text-text-muted" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <ReservaStatusBadge estado={item.status} />
+                    <span className="text-xs text-text-muted">
+                      {fmt.dateShort(item.startAt)}
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-text-primary font-medium truncate">
+                    {item.vehicle.brand} {item.vehicle.model}
+                  </p>
+
+                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    <span>{fmt.plate(item.vehicle.plate)}</span>
+                    <span className="text-white/10">·</span>
+                    <span>{item.conductor.name}</span>
+                  </div>
+
+                  <p className="text-sm font-semibold text-text-primary">
+                    {fmt.currency(item.totalCents)}
+                  </p>
                 </div>
 
-                <p className="text-sm text-text-primary font-medium truncate">
-                  {item.vehicle.brand} {item.vehicle.model}
-                </p>
-
-                <div className="flex items-center gap-2 text-xs text-text-secondary">
-                  <span>{fmt.plate(item.vehicle.plate)}</span>
-                  <span className="text-white/10">·</span>
-                  <span>{item.conductor.name}</span>
-                </div>
-
-                <p className="text-sm font-semibold text-text-primary">
-                  {fmt.currency(item.totalCents)}
-                </p>
+                <ChevronRight className="h-4 w-4 text-text-muted mt-3 shrink-0" />
               </div>
-
-              <ChevronRight className="h-4 w-4 text-text-muted mt-1 shrink-0" />
-            </div>
-          </Link>
-        ))}
+            </Link>
+          )
+        })}
 
         {data && data.total > data.pageSize && (
           <div className="flex items-center justify-center gap-3 pt-2">
