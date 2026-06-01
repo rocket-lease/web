@@ -113,10 +113,11 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   const cityLabel = SUGGESTED_DESTINATIONS.find(d => d.value === cityDraft)?.label ?? cityDraft
   const datesLabel = formatRange(startDraft, endDraft)
 
-  if (!open) return null
+  const phase = useExitPhase(open, 280)
+  if (!phase) return null
 
   return (
-    <OverlayShell close={close}>
+    <OverlayShell close={close} state={phase}>
       <OverlayBody
         step={step}
         setStep={setStep}
@@ -138,21 +139,45 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
 }
 
 /**
- * Wrapper que monta el overlay y bloquea el scroll del body mientras está
- * abierto. Separar el shell del body permite que `useLockBodyScroll` solo
- * monte cuando `open === true`.
+ * Sincroniza el render con un `phase` de entrada/salida. Cuando `open` pasa a
+ * `false`, retrasa el unmount `exitMs` ms para que la animación de cierre
+ * pueda correr. Devuelve `null` cuando no hay nada para renderizar.
  */
-function OverlayShell({ children, close }: { children: React.ReactNode; close: () => void }) {
+function useExitPhase(open: boolean, exitMs: number): 'opening' | 'open' | 'closing' | null {
+  const [phase, setPhase] = useState<'opening' | 'open' | 'closing' | null>(open ? 'opening' : null)
+
+  useEffect(() => {
+    if (open) {
+      setPhase('opening')
+      const id = requestAnimationFrame(() => setPhase('open'))
+      return () => cancelAnimationFrame(id)
+    }
+    setPhase(prev => (prev === null ? null : 'closing'))
+    const t = setTimeout(() => setPhase(null), exitMs)
+    return () => clearTimeout(t)
+  }, [open, exitMs])
+
+  return phase
+}
+
+/**
+ * Wrapper que monta el overlay y bloquea el scroll del body mientras está
+ * abierto. `state` distingue las tres fases (opening/open/closing) y las
+ * expone via `data-state` para que el CSS dispare las animaciones.
+ */
+function OverlayShell({
+  children, close, state,
+}: { children: React.ReactNode; close: () => void; state: 'opening' | 'open' | 'closing' }) {
   useLockBodyScroll()
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col">
+    <div data-state={state} className="fixed inset-0 z-[60] flex flex-col group/overlay">
       <button
         type="button"
         aria-label="Cerrar"
         onClick={close}
-        className="absolute inset-0 bg-black/30 backdrop-blur-xl cursor-default"
+        className="absolute inset-0 bg-black/30 backdrop-blur-xl cursor-default opacity-0 transition-opacity duration-200 ease-out group-data-[state=open]/overlay:opacity-100"
       />
-{children}
+      {children}
     </div>
   )
 }
@@ -189,37 +214,41 @@ function OverlayBody({
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
       <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden pointer-events-none">
-        {step === 'where' ? (
-          <WhereExpanded
-            currentCity={cityDraft}
-            onPick={pickCity}
-            onNearby={onNearby}
-            expanded={whereExpanded}
-            onExpand={() => setWhereExpanded(true)}
-            onCollapse={() => setWhereExpanded(false)}
-          />
-        ) : (
-          <CardCollapsed
-            label="Dónde"
-            value={cityLabel ?? 'Cualquier lugar'}
-            onClick={() => setStep('where')}
-          />
-        )}
-
-        {!hideOthers && (
-          step === 'when' ? (
-            <WhenExpanded
-              start={startDraft}
-              end={endDraft}
-              onChange={setRange}
+        <DropSlot grow={step === 'where'}>
+          {step === 'where' ? (
+            <WhereExpanded
+              currentCity={cityDraft}
+              onPick={pickCity}
+              onNearby={onNearby}
+              expanded={whereExpanded}
+              onExpand={() => setWhereExpanded(true)}
+              onCollapse={() => setWhereExpanded(false)}
             />
           ) : (
             <CardCollapsed
-              label="Cuándo"
-              value={datesLabel ?? 'Agregar fechas'}
-              onClick={() => setStep('when')}
+              label="Dónde"
+              value={cityLabel ?? 'Cualquier lugar'}
+              onClick={() => setStep('where')}
             />
-          )
+          )}
+        </DropSlot>
+
+        {!hideOthers && (
+          <DropSlot grow={step === 'when'} delayMs={60}>
+            {step === 'when' ? (
+              <WhenExpanded
+                start={startDraft}
+                end={endDraft}
+                onChange={setRange}
+              />
+            ) : (
+              <CardCollapsed
+                label="Cuándo"
+                value={datesLabel ?? 'Agregar fechas'}
+                onClick={() => setStep('when')}
+              />
+            )}
+          </DropSlot>
         )}
       </div>
 
@@ -241,6 +270,31 @@ function OverlayBody({
           Buscar
         </button>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Wrapper que orquesta la entrada/salida de cada card del overlay. La card
+ * "cae desde arriba" (translate-y + opacity) sincronizada con el `data-state`
+ * del overlay padre. `grow` empuja el slot a `flex-1` cuando el contenido es
+ * un card expandido que debe ocupar todo el espacio disponible. `delayMs`
+ * permite stagger entre cards consecutivas.
+ */
+function DropSlot({
+  children, grow, delayMs = 0,
+}: { children: React.ReactNode; grow: boolean; delayMs?: number }) {
+  return (
+    <div
+      style={{ transitionDelay: `${delayMs}ms` }}
+      className={cn(
+        'min-h-0 flex flex-col opacity-0 -translate-y-3',
+        'transition-[transform,opacity] duration-300 ease-[var(--ease-out)]',
+        'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
+        grow ? 'flex-1' : 'shrink-0',
+      )}
+    >
+      {children}
     </div>
   )
 }
