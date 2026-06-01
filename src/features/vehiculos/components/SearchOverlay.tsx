@@ -119,6 +119,7 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   return (
     <OverlayShell close={close} state={phase}>
       <OverlayBody
+        isOpen={phase === 'open'}
         step={step}
         setStep={setStep}
         whereExpanded={whereExpanded}
@@ -162,20 +163,27 @@ function useExitPhase(open: boolean, exitMs: number): 'opening' | 'open' | 'clos
 
 /**
  * Wrapper que monta el overlay y bloquea el scroll del body mientras está
- * abierto. `state` distingue las tres fases (opening/open/closing) y las
- * expone via `data-state` para que el CSS dispare las animaciones.
+ * abierto. `state` distingue las tres fases (opening/open/closing). Se
+ * expone via `data-state` (consumido por descendants para sus animaciones)
+ * y también directamente vía className para que el backdrop/cards no
+ * dependan de la resolución del group selector.
  */
 function OverlayShell({
   children, close, state,
 }: { children: React.ReactNode; close: () => void; state: 'opening' | 'open' | 'closing' }) {
   useLockBodyScroll()
+  const isOpen = state === 'open'
   return (
     <div data-state={state} className="fixed inset-0 z-[60] flex flex-col group/overlay">
       <button
         type="button"
         aria-label="Cerrar"
         onClick={close}
-        className="absolute inset-0 bg-black/30 backdrop-blur-xl cursor-default opacity-0 transition-opacity duration-200 ease-out group-data-[state=open]/overlay:opacity-100"
+        className={cn(
+          'absolute inset-0 bg-black/30 backdrop-blur-xl cursor-default',
+          'transition-opacity duration-300 ease-[var(--ease-out)]',
+          isOpen ? 'opacity-100' : 'opacity-0',
+        )}
       />
       {children}
     </div>
@@ -183,6 +191,7 @@ function OverlayShell({
 }
 
 interface OverlayBodyProps {
+  isOpen:           boolean
   step:             Step
   setStep:          (s: Step) => void
   whereExpanded:    boolean
@@ -200,7 +209,7 @@ interface OverlayBodyProps {
 }
 
 function OverlayBody({
-  step, setStep, whereExpanded, setWhereExpanded,
+  isOpen, step, setStep, whereExpanded, setWhereExpanded,
   cityDraft, startDraft, endDraft, cityLabel, datesLabel,
   pickCity, onNearby, setRange, clearAll, submit,
 }: OverlayBodyProps) {
@@ -214,7 +223,7 @@ function OverlayBody({
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
       <div className="flex flex-col gap-3 shrink-0 pointer-events-none">
-        <DropSlot grow={step === 'where'} fullscreen={whereExpanded}>
+        <DropSlot grow={step === 'where'} fullscreen={whereExpanded} open={isOpen}>
           {step === 'where' ? (
             <WhereExpanded
               currentCity={cityDraft}
@@ -234,7 +243,7 @@ function OverlayBody({
         </DropSlot>
 
         {!hideOthers && (
-          <DropSlot grow={step === 'when'} delayMs={60}>
+          <DropSlot grow={step === 'when'} delayMs={60} open={isOpen}>
             {step === 'when' ? (
               <WhenExpanded
                 start={startDraft}
@@ -287,8 +296,14 @@ function OverlayBody({
  * dando el efecto de "unfurl" desde arriba.
  */
 function DropSlot({
-  children, grow, fullscreen = false, delayMs = 0,
-}: { children: React.ReactNode; grow: boolean; fullscreen?: boolean; delayMs?: number }) {
+  children, grow, fullscreen = false, delayMs = 0, open,
+}: {
+  children:   React.ReactNode
+  grow:       boolean
+  fullscreen?: boolean
+  delayMs?:   number
+  open:       boolean
+}) {
   const maxH = grow
     ? fullscreen ? 'calc(100dvh - 8rem)' : '55dvh'
     : '3.5rem'
@@ -299,9 +314,9 @@ function DropSlot({
         maxHeight: maxH,
       }}
       className={cn(
-        'shrink-0 flex flex-col overflow-hidden opacity-0 -translate-y-3',
+        'shrink-0 flex flex-col overflow-hidden',
         'transition-[transform,opacity,max-height] duration-[450ms] ease-[var(--ease-out)]',
-        'group-data-[state=open]/overlay:opacity-100 group-data-[state=open]/overlay:translate-y-0',
+        open ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3',
       )}
     >
       {children}
