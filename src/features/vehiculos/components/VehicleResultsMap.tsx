@@ -109,7 +109,7 @@ function VehiclePins({ vehicles, selectedId, onHoverVehicle, onClickVehicle }: V
               onMouseEnter={() => onHoverVehicle?.(v.id)}
               onMouseLeave={() => onHoverVehicle?.(null)}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-semibold shadow-lg transition-all duration-150 active:scale-95',
+                'rounded-full px-3 py-1 text-xs font-semibold shadow-lg transition-[transform,background-color,color] duration-200 ease-[var(--ease-out)] active:scale-95',
                 isSelected
                   ? 'bg-text-primary text-surface-0 scale-110'
                   : 'bg-surface-0 text-text-primary hover:scale-105',

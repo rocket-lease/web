@@ -229,7 +229,7 @@ function OverlayBody({
       >
         <button
           onClick={clearAll}
-          className="pl-3 text-sm font-medium text-white/80 hover:text-white transition-colors"
+          className="pl-3 text-sm font-medium text-white/80 hover:text-white transition-colors active:scale-[0.97]"
         >
           Limpiar todo
         </button>

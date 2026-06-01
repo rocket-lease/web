@@ -35,7 +35,7 @@ export function SearchPill({ city, start, end, onClick }: SearchPillProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 rounded-full bg-surface-1 px-5 h-11 transition-colors shadow-[0_4px_20px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.07)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.1)]"
+      className="w-full flex items-center justify-center gap-2 rounded-full bg-surface-1 px-5 h-11 shadow-[0_4px_20px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.07)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.1)] active:scale-[0.98] transition-[box-shadow,transform] duration-200 ease-[var(--ease-out)]"
     >
       <MagnifyingGlass size={16} weight="regular" className="text-text-secondary shrink-0" />
       <span className="text-sm font-normal text-text-secondary truncate">{summary}</span>

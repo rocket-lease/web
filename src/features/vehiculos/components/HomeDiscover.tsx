@@ -164,12 +164,13 @@ function DestinationsRow({ onPickCity }: DestinationsRowProps) {
 
       <div className="overflow-x-auto no-scrollbar">
         <div className="flex gap-3 px-5 pb-1">
-          {DESTINATIONS.map(d => (
+          {DESTINATIONS.map((d, i) => (
             <button
               key={d.value}
               type="button"
               onClick={() => onPickCity(d.value)}
-              className="relative shrink-0 w-32 h-44 rounded-3xl overflow-hidden bg-surface-2 text-left active:scale-[0.97] transition-transform shadow-[0_4px_20px_rgba(0,0,0,0.55)]"
+              style={{ animationDelay: `${i * 40}ms` }}
+              className="relative shrink-0 w-32 h-44 rounded-3xl overflow-hidden bg-surface-2 text-left active:scale-[0.97] transition-transform duration-200 ease-[var(--ease-out)] shadow-[0_4px_20px_rgba(0,0,0,0.55)] opacity-0 translate-y-2 animate-rise-in motion-reduce:animate-none motion-reduce:opacity-100 motion-reduce:translate-y-0"
             >
               <img
                 src={d.photo}
