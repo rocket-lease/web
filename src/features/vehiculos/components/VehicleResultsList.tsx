@@ -19,6 +19,9 @@ interface VehicleResultsListProps {
   onClickVehicle?: (id: string) => void
   /** Layout de la grilla. `single` colapsa a 1 columna (para split-pane). */
   columns?:        'auto' | 'single'
+  /** Oculta el header "N resultados" — útil cuando el contenedor (drawer)
+   *  ya muestra el count por su cuenta. */
+  hideCountHeader?: boolean
   className?:      string
 }
 
@@ -30,7 +33,7 @@ interface VehicleResultsListProps {
 export function VehicleResultsList({
   vehicles, isLoading, isError, from, to, hasDateFilter, hasActiveFilter,
   onClearFilters, selectedId, onHoverVehicle, onClickVehicle,
-  columns = 'auto', className,
+  columns = 'auto', hideCountHeader, className,
 }: VehicleResultsListProps) {
   if (isError) {
     return (
@@ -58,20 +61,22 @@ export function VehicleResultsList({
 
   return (
     <div className={cn('px-5 pt-4 pb-2', className)}>
-      <div className="flex items-center gap-2 mb-4">
-        <p className="text-xs text-text-muted">
-          <span className="font-semibold text-text-primary">{vehicles.length}</span>{' '}
-          {t('buscar.results')}
-        </p>
-        {hasActiveFilter && (
-          <>
-            <span className="text-xs text-text-muted">·</span>
-            <button onClick={onClearFilters} className="text-xs text-client font-semibold">
-              {t('buscar.filter.clearAll')}
-            </button>
-          </>
-        )}
-      </div>
+      {!hideCountHeader && (
+        <div className="flex items-center gap-2 mb-4">
+          <p className="text-xs text-text-muted">
+            <span className="font-semibold text-text-primary">{vehicles.length}</span>{' '}
+            {t('buscar.results')}
+          </p>
+          {hasActiveFilter && (
+            <>
+              <span className="text-xs text-text-muted">·</span>
+              <button onClick={onClearFilters} className="text-xs text-client font-semibold">
+                {t('buscar.filter.clearAll')}
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {vehicles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center gap-4">

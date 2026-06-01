@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X, MagnifyingGlass, MapPin, NavigationArrow } from '@phosphor-icons/react'
+import { MagnifyingGlass, MapPin, NavigationArrow } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { ScrollingCalendar } from './ScrollingCalendar'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -152,16 +152,7 @@ function OverlayShell({ children, close }: { children: React.ReactNode; close: (
         onClick={close}
         className="absolute inset-0 bg-black/30 backdrop-blur-xl cursor-default"
       />
-      <button
-        type="button"
-        aria-label="Cerrar"
-        onClick={close}
-        className="absolute right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-surface-1 border border-white/10 text-text-secondary hover:text-text-primary active:scale-95 shadow-lg"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
-      >
-        <X size={16} />
-      </button>
-      {children}
+{children}
     </div>
   )
 }
@@ -194,10 +185,10 @@ function OverlayBody({
 
   return (
     <div
-      className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full"
+      className="relative flex flex-col flex-1 min-h-0 px-3 pb-3 max-w-2xl mx-auto w-full pointer-events-none"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
-      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden pointer-events-none">
         {step === 'where' ? (
           <WhereExpanded
             currentCity={cityDraft}
@@ -233,31 +224,22 @@ function OverlayBody({
       </div>
 
       <div
-        className="flex items-center justify-between gap-3 pt-3 shrink-0"
+        className="flex items-center justify-between gap-3 pt-3 shrink-0 pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <button
           onClick={clearAll}
-          className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+          className="pl-3 text-sm font-medium text-white/80 hover:text-white transition-colors"
         >
           Limpiar todo
         </button>
-        {step === 'where' ? (
-          <button
-            onClick={() => setStep('when')}
-            className="rounded-full bg-gradient-to-br from-client to-brand-500 px-6 h-11 text-sm font-semibold text-white active:scale-95 transition-transform shadow-lg"
-          >
-            Continuar
-          </button>
-        ) : (
-          <button
-            onClick={submit}
-            className="flex items-center gap-2 rounded-full bg-gradient-to-br from-client to-brand-500 px-6 h-11 text-sm font-semibold text-white active:scale-95 transition-transform shadow-lg"
-          >
-            <MagnifyingGlass size={16} weight="bold" />
-            Buscar
-          </button>
-        )}
+        <button
+          onClick={submit}
+          className="flex items-center gap-2 rounded-full bg-gradient-to-br from-client to-brand-500 px-6 h-11 text-sm font-semibold text-white active:scale-95 transition-transform shadow-lg"
+        >
+          <MagnifyingGlass size={16} weight="bold" />
+          Buscar
+        </button>
       </div>
     </div>
   )
@@ -275,7 +257,7 @@ function CardCollapsed({ label, value, onClick }: CardCollapsedProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center justify-between rounded-2xl bg-surface-1 border border-white/8 px-5 h-14 text-left shadow-lg hover:border-brand-500/40 transition-colors shrink-0"
+      className="w-full flex items-center justify-between rounded-2xl bg-surface-1 border border-white/8 px-5 h-14 text-left shadow-lg hover:border-brand-500/40 transition-colors shrink-0 pointer-events-auto"
     >
       <span className="text-sm font-medium text-text-secondary">{label}</span>
       <span className="text-sm font-semibold text-text-primary truncate ml-3">{value}</span>
@@ -369,7 +351,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
       className={cn(
-        'bg-surface-1 shadow-2xl flex flex-col will-change-transform',
+        'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto',
         expanded
           ? 'flex-1 min-h-0 -mx-3 border-x-0 rounded-none touch-none'
           : 'rounded-3xl border border-white/8 shrink-0',
@@ -489,7 +471,7 @@ function WhenExpanded({ start, end, onChange }: WhenExpandedProps) {
   const datesLabel = useMemo(() => formatRange(start, end) ?? 'Elegí las fechas', [start, end])
 
   return (
-    <div className="flex flex-col rounded-3xl bg-surface-1 border border-white/8 shadow-2xl overflow-hidden flex-1 min-h-0">
+    <div className="flex flex-col rounded-3xl bg-surface-1 border border-white/8 shadow-2xl overflow-hidden flex-1 min-h-0 pointer-events-auto">
       <div className="px-5 pt-5 pb-3 shrink-0">
         <h2 className="text-base font-semibold text-text-primary">Cuándo</h2>
         <p className="text-xs text-text-muted mt-1">{datesLabel}</p>

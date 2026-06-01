@@ -14,6 +14,7 @@ const buscarSearchSchema = z.object({
   city:            z.string().optional(),
   start:           z.string().optional(),
   end:             z.string().optional(),
+  searched:        z.boolean().optional(),
   query:           z.string().optional(),
   transmission:    z.enum(['Automatico', 'Manual', 'Semiautomatico']).optional(),
   minPrice:        z.number().optional(),

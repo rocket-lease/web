@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
-import { Warning } from '@phosphor-icons/react'
+import { Warning, NavigationArrow } from '@phosphor-icons/react'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import {
   GOOGLE_MAPS_API_KEY,
@@ -12,6 +12,7 @@ import {
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { cn } from '@/lib/utils'
+import { useNearMe } from '@/features/mapa/hooks/useNearMe'
 
 interface VehicleResultsMapProps {
   vehicles:        GetVehicleResponse[]
@@ -29,6 +30,8 @@ interface VehicleResultsMapProps {
 export function VehicleResultsMap({
   vehicles, selectedId, onHoverVehicle, onClickVehicle, className,
 }: VehicleResultsMapProps) {
+  const nearMe = useNearMe()
+
   if (!hasGoogleMaps()) {
     return (
       <div className={cn('flex h-full flex-col items-center justify-center gap-3 px-8 text-center', className)}>
@@ -39,7 +42,7 @@ export function VehicleResultsMap({
   }
 
   return (
-    <div className={cn('h-full w-full', className)}>
+    <div className={cn('relative h-full w-full', className)}>
       <APIProvider apiKey={GOOGLE_MAPS_API_KEY as string}>
         <Map
           mapId={GOOGLE_MAPS_MAP_ID}
@@ -55,9 +58,28 @@ export function VehicleResultsMap({
             onHoverVehicle={onHoverVehicle}
             onClickVehicle={onClickVehicle}
           />
-          <FitBoundsController vehicles={vehicles} selectedId={selectedId ?? null} />
+          <FitBoundsController
+            vehicles={vehicles}
+            selectedId={selectedId ?? null}
+            nearMePosition={nearMe.position}
+          />
         </Map>
       </APIProvider>
+
+      {/* Botón "ubicación" arriba a la derecha, sobre el mapa. */}
+      <button
+        type="button"
+        onClick={() => nearMe.locate()}
+        aria-label="Centrar en mi ubicación"
+        disabled={nearMe.status === 'locating'}
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-surface-0 text-text-primary shadow-lg border border-white/8 hover:bg-surface-1 transition-colors active:scale-95 disabled:opacity-60"
+      >
+        <NavigationArrow
+          size={18}
+          weight={nearMe.status === 'granted' ? 'fill' : 'regular'}
+          className={nearMe.status === 'granted' ? 'text-brand-400' : 'text-text-secondary'}
+        />
+      </button>
     </div>
   )
 }
@@ -103,22 +125,25 @@ function VehiclePins({ vehicles, selectedId, onHoverVehicle, onClickVehicle }: V
 }
 
 interface FitBoundsControllerProps {
-  vehicles:   GetVehicleResponse[]
-  selectedId: string | null
+  vehicles:       GetVehicleResponse[]
+  selectedId:     string | null
+  nearMePosition: { lat: number; lng: number } | null
 }
 
 /**
- * Encadra el viewport del mapa según el contexto:
- *  - Hay un vehículo seleccionado → pan + zoom hacia él.
+ * Encadra el viewport del mapa según el contexto, en orden de prioridad:
+ *  - "Cerca mío" recién resuelta → pan + zoom hacia la posición del user.
+ *  - Hay un vehículo seleccionado → pan hacia él.
  *  - Sin selección y hay vehículos con coords → fit bounds que los contenga.
  *  - Sin vehículos → no hace nada (queda el default center).
  *
- * Usa un ref para evitar refit cuando el array de vehículos no cambió en
- * contenido (Google Maps re-renderiza igual con cada nueva instancia).
+ * Usa refs para detectar cuándo hay un cambio real (firma del set de
+ * vehículos o coords nuevas de nearMe) y evitar refits redundantes.
  */
-function FitBoundsController({ vehicles, selectedId }: FitBoundsControllerProps) {
+function FitBoundsController({ vehicles, selectedId, nearMePosition }: FitBoundsControllerProps) {
   const map = useMap()
   const lastSignatureRef = useRef<string>('')
+  const lastNearMeKeyRef = useRef<string>('')
 
   const withCoords = useMemo(
     () => vehicles.filter(v => v.latitude != null && v.longitude != null),
@@ -126,9 +151,17 @@ function FitBoundsController({ vehicles, selectedId }: FitBoundsControllerProps)
   )
 
   const signature = withCoords.map(v => v.id).sort().join(',')
+  const nearMeKey = nearMePosition ? `${nearMePosition.lat},${nearMePosition.lng}` : ''
 
   useEffect(() => {
     if (!map) return
+    // "Cerca mío" pisa cualquier otra prioridad cuando es nueva.
+    if (nearMePosition && nearMeKey !== lastNearMeKeyRef.current) {
+      lastNearMeKeyRef.current = nearMeKey
+      map.panTo(nearMePosition)
+      map.setZoom(14)
+      return
+    }
     if (selectedId) {
       const target = withCoords.find(v => v.id === selectedId)
       if (target && target.latitude != null && target.longitude != null) {
@@ -154,7 +187,7 @@ function FitBoundsController({ vehicles, selectedId }: FitBoundsControllerProps)
       east:  Math.max(...lngs),
       west:  Math.min(...lngs),
     }, 64)
-  }, [map, selectedId, signature, withCoords])
+  }, [map, selectedId, signature, withCoords, nearMePosition, nearMeKey])
 
   return null
 }
