@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MagnifyingGlass, MapPin, NavigationArrow } from '@phosphor-icons/react'
+import { MagnifyingGlass, MapPin, NavigationArrow, ArrowLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { ScrollingCalendar } from './ScrollingCalendar'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
@@ -452,7 +452,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
       className={cn(
         'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto',
         expanded
-          ? 'flex-1 min-h-0 -mx-3 border-x-0 rounded-none touch-none'
+          ? 'h-[calc(100dvh-8rem)] -mx-3 border-x-0 rounded-none touch-none'
           : 'rounded-3xl border border-white/8 shrink-0',
       )}
       style={
@@ -471,17 +471,21 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
       <div className="px-5 pb-3 shrink-0">
         {expanded ? (
           <div className="relative">
-            <MagnifyingGlass
-              size={16}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
-            />
+            <button
+              type="button"
+              onClick={onCollapse}
+              aria-label="Volver"
+              className="absolute left-1 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-white/5 active:scale-90 transition-[color,background-color,transform] duration-150"
+            >
+              <ArrowLeft size={18} weight="bold" />
+            </button>
             <input
               type="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Buscar ciudad"
               autoFocus
-              className="w-full h-11 rounded-full bg-surface-2 border border-white/8 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+              className="w-full h-11 rounded-full bg-surface-2 border border-white/8 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
             />
           </div>
         ) : (
