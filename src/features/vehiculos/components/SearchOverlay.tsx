@@ -334,7 +334,7 @@ function DropSlot({
   open:       boolean
 }) {
   const maxH = grow
-    ? fullscreen ? 'calc(100dvh - 3rem)' : '55dvh'
+    ? fullscreen ? 'calc(100dvh - env(safe-area-inset-top, 0px) - 0.75rem)' : '55dvh'
     : '3.5rem'
   return (
     <div
@@ -462,7 +462,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
         'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto overflow-hidden',
         'transition-[height,margin,border-radius] duration-[450ms] ease-[var(--ease-out)]',
         expanded
-          ? 'h-[calc(100dvh-3rem)] mx-0 -mb-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
+          ? 'h-[calc(100dvh-env(safe-area-inset-top,0px)-0.75rem)] mx-0 -mb-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
           : 'h-[24rem] mx-0 rounded-3xl border border-white/8 shrink-0',
       )}
       style={{
