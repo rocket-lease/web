@@ -16,6 +16,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    env: {
+      VITE_SUPABASE_URL: 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test_key',
+      VITE_API_URL: 'http://localhost:3000',
+    },
     deps: {
       optimizer: {
         web: {

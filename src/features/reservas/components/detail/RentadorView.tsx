@@ -222,7 +222,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         />
       )}
 
-      {reservation.status === RESERVATION_STATUS.confirmed && (
+      {reservation.status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId && (
         <PickupAction reservationId={reservation.id} />
       )}
 

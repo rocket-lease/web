@@ -3,14 +3,16 @@ import { Loader2, ArrowDown } from 'lucide-react'
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void> | void
-  children: React.ReactNode
+  children:  React.ReactNode
+  /** Deshabilita los gestos de pull-to-refresh sin desmontar el componente. */
+  enabled?:  boolean
 }
 
 const THRESHOLD = 70
 const MAX_PULL = 110
 const RESISTANCE = 0.5
 
-export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
+export function PullToRefresh({ onRefresh, children, enabled = true }: PullToRefreshProps) {
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const pullRef = useRef(0)
@@ -18,6 +20,12 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
   const refreshingRef = useRef(false)
 
   useEffect(() => {
+    if (!enabled) {
+      setPull(0)
+      pullRef.current = 0
+      startYRef.current = null
+      return
+    }
     const setPullValue = (value: number) => {
       pullRef.current = value
       setPull(value)
@@ -72,7 +80,7 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
       window.removeEventListener('touchend', onTouchEnd)
       window.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [onRefresh])
+  }, [onRefresh, enabled])
 
   const visible = pull > 0 || refreshing
   const progress = Math.min(1, pull / THRESHOLD)
