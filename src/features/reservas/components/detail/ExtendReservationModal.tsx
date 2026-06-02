@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
-import { pricingApi } from '@/features/pricing/api/pricing.api'
 import {
   getChainEndAt,
   getChainStartAt,
@@ -126,19 +126,14 @@ export function ExtendReservationModal({
     newEndAtIso > chainEndAt &&
     (nextConflictDate === undefined || date < nextConflictDate)
 
-  const pricingQuoteQuery = useQuery({
-    queryKey: ['pricing', 'quote', reservation.vehicle.id, chainEndAt, newEndAtIso],
-    queryFn: () =>
-      pricingApi.quote({
-        vehicleId: reservation.vehicle.id,
-        startAt: chainEndAt,
-        endAt: newEndAtIso!,
-      }),
+  const pricingQuoteQuery = usePricingQuote({
+    vehicleId: reservation.vehicle.id,
+    startAt: chainEndAt,
+    endAt: newEndAtIso,
     enabled: isValid && !!newEndAtIso,
-    staleTime: 0,
   })
 
-  const totalCentsPreview = pricingQuoteQuery.data?.totalCents ?? 0
+  const totalCentsPreview = pricingQuoteQuery.totalCents
 
   const requiresApproval = computeRequiresApproval({
     reservation,

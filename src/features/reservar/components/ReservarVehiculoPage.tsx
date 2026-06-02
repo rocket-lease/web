@@ -19,12 +19,12 @@ import {
   formatMaxKilometrage,
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
+import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
 import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
-import { pricingApi } from '@/features/pricing/api/pricing.api'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
@@ -447,31 +447,22 @@ export function ReservarVehiculoPage() {
     })
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
 
-  const pricingQuoteQuery = useQuery({
-    queryKey: ['pricing', 'quote', vehicleId, startAtLocal, endAtLocal],
-    queryFn: () =>
-      pricingApi.quote({
-        vehicleId,
-        startAt: toIsoUtc(startAtLocal),
-        endAt: toIsoUtc(endAtLocal),
-      }),
-    enabled:
-      !!vehicle &&
-      validRange &&
-      !overlapsBusy &&
-      !rentalDurationViolation,
-    staleTime: 0,
+  const pricingQuoteQuery = usePricingQuote({
+    vehicleId,
+    startAt: startAtLocal,
+    endAt: endAtLocal,
+    enabled: !!vehicle && validRange && !overlapsBusy && !rentalDurationViolation,
   })
 
   const payableTotal =
-    createReservation.data?.totalCents ?? pricingQuoteQuery.data?.totalCents ?? 0
+    createReservation.data?.totalCents ?? pricingQuoteQuery.totalCents
   const depositCents =
     depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
   const startFarEnough =
     !!startAtLocal &&
     new Date(startAtLocal).getTime() - Date.now() >= 2 * 60 * 60 * 1000
   const depositAvailable = depositPercentage !== null && startFarEnough
-  const pricingQuote = pricingQuoteQuery.data ?? null
+  const pricingQuote = pricingQuoteQuery.pricingQuote
 
   const canContinueToContract =
     validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
