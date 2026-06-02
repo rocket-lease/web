@@ -101,7 +101,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
           vehicles={nearby}
           isLoading={false}
         />
-      ) : nearMe.status !== 'denied' && nearMe.status !== 'unavailable' && (
+      ) : (nearMe.status === 'idle' || nearMe.status === 'locating') && (
         <NearbyCTA
           status={nearMe.status}
           onClick={() => nearMe.locate()}
