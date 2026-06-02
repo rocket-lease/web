@@ -134,6 +134,11 @@ describe('computeRequiresApproval', () => {
           endAt: '2026-06-05T10:00:00.000Z',
           totalCents: 100000,
           parentReservationId: null,
+          pricingSnapshot: {
+            vehicleId: 'v1', currency: 'ARS', basePriceCents: 25000, durationDays: 4,
+            subtotalCents: 100000, appliedDiscountTier: null, appliedDiscountPercentage: 0,
+            discountCents: 0, totalCents: 100000,
+          },
         },
         {
           id: 'res-1',
@@ -142,6 +147,11 @@ describe('computeRequiresApproval', () => {
           endAt: '2026-06-08T10:00:00.000Z',
           totalCents: 100000,
           parentReservationId: 'parent',
+          pricingSnapshot: {
+            vehicleId: 'v1', currency: 'ARS', basePriceCents: 25000, durationDays: 3,
+            subtotalCents: 75000, appliedDiscountTier: null, appliedDiscountPercentage: 0,
+            discountCents: 0, totalCents: 75000,
+          },
         },
       ],
     })

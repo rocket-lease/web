@@ -24,7 +24,7 @@ export function ReservaPricingBreakdown({
   const chain = reservation.chain ?? []
 
   const committedExtensions = chain.filter(
-    (m) => m.parentReservationId !== null && COMMITTED_STATUSES.includes(m.status),
+    (m) => m.parentReservationId !== null && (COMMITTED_STATUSES as readonly string[]).includes(m.status),
   )
 
   const showOriginal = !!pricingSnapshot.appliedDiscountTier
