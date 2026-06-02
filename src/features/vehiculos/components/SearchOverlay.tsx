@@ -240,8 +240,8 @@ function OverlayBody({
   return (
     <div
       className={cn(
-        'relative flex flex-col flex-1 min-h-0 pb-3 w-full pointer-events-none',
-        whereExpanded ? 'px-0 max-w-none' : 'px-3 max-w-2xl mx-auto',
+        'relative flex flex-col flex-1 min-h-0 w-full pointer-events-none',
+        whereExpanded ? 'px-0 pb-0 max-w-none' : 'px-3 pb-3 max-w-2xl mx-auto',
       )}
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
     >
@@ -462,7 +462,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
         'bg-surface-1 shadow-2xl flex flex-col will-change-transform pointer-events-auto overflow-hidden',
         'transition-[height,margin,border-radius] duration-[450ms] ease-[var(--ease-out)]',
         expanded
-          ? 'h-[calc(100dvh-env(safe-area-inset-top,0px)-0.75rem)] mx-0 -mb-3 border-x-0 rounded-t-3xl rounded-b-none touch-none'
+          ? 'h-[calc(100dvh-env(safe-area-inset-top,0px)-0.75rem)] mx-0 mb-0 border-x-0 rounded-t-3xl rounded-b-none touch-none'
           : 'h-[24rem] mx-0 rounded-3xl border border-white/8 shrink-0',
       )}
       style={{
