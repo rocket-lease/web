@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('useConfirmReturn', () => {
   it('llama a confirmReturn con el returnQrToken', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockConfirmReturn = vi.mocked(reservationsApi.confirmReturn)
     mockConfirmReturn.mockResolvedValue({
       reservationId: RESERVATION_ID,
@@ -69,7 +69,7 @@ describe('useConfirmReturn', () => {
   })
 
   it('expone el error cuando la API falla', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockConfirmReturn = vi.mocked(reservationsApi.confirmReturn)
     mockConfirmReturn.mockRejectedValue(new Error('API error'))
 

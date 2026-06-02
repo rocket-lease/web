@@ -40,7 +40,7 @@ export function ReservaDetailPage() {
   useEffect(() => {
     if (!reservation) return
     if (!reservation.parentReservationId) return
-    const rootId = reservation.chain.find((r) => r.parentReservationId === null)?.id
+    const rootId = reservation.chain?.find((r) => r.parentReservationId === null)?.id
     if (rootId && rootId !== id) {
       void navigate({ to: '/reservas/$id', params: { id: rootId }, search: { role: 'owner' }, replace: true })
     }

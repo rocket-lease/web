@@ -26,7 +26,7 @@ beforeEach(() => {
 
 describe('useConfirmPickup', () => {
   it('llama a confirmPickup con el voucherToken', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockConfirmPickup = vi.mocked(reservationsApi.confirmPickup)
     mockConfirmPickup.mockResolvedValue({
       reservationId: RESERVATION_ID,
@@ -71,7 +71,7 @@ describe('useConfirmPickup', () => {
   })
 
   it('expone el error cuando la API falla', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockConfirmPickup = vi.mocked(reservationsApi.confirmPickup)
     mockConfirmPickup.mockRejectedValue(new Error('API error'))
 

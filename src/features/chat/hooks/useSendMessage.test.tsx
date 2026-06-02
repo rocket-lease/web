@@ -46,7 +46,7 @@ describe('useSendMessage', () => {
     act(() => result.current.mutate('hola'))
 
     await waitFor(() => {
-      const cache = queryClient.getQueryData<any>({ queryKey }) ?? {}
+      const cache = queryClient.getQueryData<any>(queryKey) ?? {}
       return cache.items?.some((m: any) => m.body === 'hola' && m.senderId === USER_ID)
     })
 

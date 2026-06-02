@@ -24,7 +24,7 @@ describe('useBulkUpdatePrices', () => {
   })
 
   it('llama a vehiclesApi.bulkUpdatePrices con la request', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockVehiclesApi = vi.mocked(vehiclesApiModule.vehiclesApi)
 
     const mockResponse: BulkPriceUpdateResponse = {
@@ -85,7 +85,7 @@ describe('useBulkUpdatePrices', () => {
   })
 
   it('expone el error cuando la API falla', async () => {
-    const { queryClient, wrapper } = createWrapper()
+    const { wrapper } = createWrapper()
     const mockVehiclesApi = vi.mocked(vehiclesApiModule.vehiclesApi)
 
     const mockError = new Error('API Error')
