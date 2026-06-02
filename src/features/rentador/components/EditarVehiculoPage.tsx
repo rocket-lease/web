@@ -15,6 +15,7 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { SectionCard } from './EditarVehiculo/SectionCard'
 import { DetallesSheet } from './EditarVehiculo/DetallesSheet'
 import { DisponibilidadSheet } from './EditarVehiculo/DisponibilidadSheet'
+import { DescuentosSheet } from './EditarVehiculo/DescuentosSheet'
 import { FotosSheet } from './EditarVehiculo/FotosSheet'
 import { ReglasSheet } from './EditarVehiculo/ReglasSheet'
 import { useUpdateVehicleSection } from './EditarVehiculo/useUpdateVehicleSection'
@@ -29,7 +30,7 @@ const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db
 
 const vehicleQueryKey = (vehicleId: string) => ['vehicles', vehicleId] as const
 
-type SheetKey = 'detalles' | 'disponibilidad' | 'fotos' | 'reglas'
+type SheetKey = 'detalles' | 'disponibilidad' | 'fotos' | 'reglas' | 'descuentos'
 
 interface EditarVehiculoPageProps {
   vehicleId: string
@@ -150,12 +151,25 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     : t('editVehiculo.section.details.summary.empty')
 
   const disponibilidadSummary = [
-    vehicle.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive'),
-    vehicle.basePriceCents ? `${fmt.currency(vehicle.basePriceCents)}/día` : null,
-    vehicle.availableFrom ? `Desde ${vehicle.availableFrom}` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  vehicle.enabled ? t('misVehiculos.active') : t('misVehiculos.inactive'),
+  vehicle.basePriceCents
+    ? `${fmt.currency(vehicle.basePriceCents)}/día`
+    : null,
+  vehicle.availableFrom
+    ? `Desde ${vehicle.availableFrom}`
+    : null,
+]
+  .filter(Boolean)
+  .join(' · ')
+
+  const descuentosSummary =
+    vehicle.discountTiers.length > 0
+      ? `Hasta ${Math.max(
+          ...vehicle.discountTiers.map(
+            (tier) => tier.discountPercentage,
+          ),
+        )}% de descuento`
+      : 'Sin descuentos configurados'
 
   const fotosSummary =
     vehicle.photos.length > 0 ? (
@@ -253,6 +267,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
           disabled={isDeleting}
         />
         <SectionCard
+          title="Descuentos"
+          summary={descuentosSummary}
+          onEdit={() => setOpenSheet('descuentos')}
+          disabled={isDeleting}
+        />
+        <SectionCard
           title={t('editVehiculo.section.rules.title')}
           summary={reglasSummary}
           onEdit={() => setOpenSheet('reglas')}
@@ -279,6 +299,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
 
       <DetallesSheet open={openSheet === 'detalles'} onOpenChange={(o) => setOpenSheet(o ? 'detalles' : null)} vehicle={vehicle} />
       <DisponibilidadSheet open={openSheet === 'disponibilidad'} onOpenChange={(o) => setOpenSheet(o ? 'disponibilidad' : null)} vehicle={vehicle} />
+      <DescuentosSheet open={openSheet === 'descuentos'} onOpenChange={(o) => setOpenSheet(o ? 'descuentos' : null)} vehicle={vehicle}/>
       <FotosSheet open={openSheet === 'fotos'} onOpenChange={(o) => setOpenSheet(o ? 'fotos' : null)} vehicle={vehicle} />
       <ReglasSheet
         open={openSheet === 'reglas'}

@@ -24,7 +24,7 @@ import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
 import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
-import { estimateReservationTotalCents } from '../utils/pricing'
+import { pricingApi } from '@/features/pricing/api/pricing.api'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
@@ -417,28 +417,11 @@ export function ReservarVehiculoPage() {
   
   const { paymentMethods: savedPaymentMethods, isLoading: isLoadingPaymentMethods } = usePaymentMethods()
 
-  const estimatedTotal = useMemo(() => {
-    if (!vehicle || !startAtLocal || !endAtLocal) return 0
-    const startAt = new Date(startAtLocal)
-    const endAt = new Date(endAtLocal)
-    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
-      return 0
-    }
-    return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt)
-  }, [vehicle, startAtLocal, endAtLocal])
-
   // US-26: opción de pagar seña. Solo se ofrece si el rentador la habilitó
   // (depositPercentage en el set del vehículo) y el retiro es lo bastante
   // futuro como para que la fecha límite del saldo (piso de 1h en el backend)
   // quede antes del retiro. Con un margen de 2h alcanza.
   const depositPercentage = vehicle?.reservationRuleSet?.depositPercentage ?? null
-  const payableTotal = createReservation.data?.totalCents ?? estimatedTotal
-  const depositCents =
-    depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
-  const startFarEnough =
-    !!startAtLocal &&
-    new Date(startAtLocal).getTime() - Date.now() >= 2 * 60 * 60 * 1000
-  const depositAvailable = depositPercentage !== null && startFarEnough
 
   const rentalDurationViolation = useMemo(() => {
     return getRentalDurationViolation(
@@ -463,6 +446,32 @@ export function ReservarVehiculoPage() {
       return s < re && e > rs
     })
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
+
+  const pricingQuoteQuery = useQuery({
+    queryKey: ['pricing', 'quote', vehicleId, startAtLocal, endAtLocal],
+    queryFn: () =>
+      pricingApi.quote({
+        vehicleId,
+        startAt: toIsoUtc(startAtLocal),
+        endAt: toIsoUtc(endAtLocal),
+      }),
+    enabled:
+      !!vehicle &&
+      validRange &&
+      !overlapsBusy &&
+      !rentalDurationViolation,
+    staleTime: 0,
+  })
+
+  const payableTotal =
+    createReservation.data?.totalCents ?? pricingQuoteQuery.data?.totalCents ?? 0
+  const depositCents =
+    depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
+  const startFarEnough =
+    !!startAtLocal &&
+    new Date(startAtLocal).getTime() - Date.now() >= 2 * 60 * 60 * 1000
+  const depositAvailable = depositPercentage !== null && startFarEnough
+  const pricingQuote = pricingQuoteQuery.data ?? null
 
   const canContinueToContract =
     validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
@@ -734,9 +743,40 @@ export function ReservarVehiculoPage() {
                 {t('reservar.total')}
               </span>
               <span className="text-base font-semibold text-text-primary">
-                {fmt.currency(estimatedTotal)}
+                {fmt.currency(payableTotal)}
               </span>
             </div>
+            {pricingQuote && (
+              <div className="rounded-2xl border border-white/8 bg-surface-2/70 p-4 text-sm text-text-secondary">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
+                  {t('reservar.breakdown.subtitle')}
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span>{t('reservar.breakdown.subtotal')}</span>
+                    <span>{fmt.currency(pricingQuote.subtotalCents)}</span>
+                  </div>
+                  {pricingQuote.appliedDiscountTier ? (
+                    <>
+                      <div className="flex items-center justify-between text-brand-400">
+                        <span>
+                          {t('reservar.breakdown.discount')}{' '}
+                          {t('reservar.breakdown.appliedTier')
+                            .replace('{days}', String(pricingQuote.appliedDiscountTier.minimumDays))
+                            .replace('{percentage}', String(pricingQuote.appliedDiscountTier.discountPercentage))}
+                        </span>
+                        <span>-{fmt.currency(pricingQuote.discountCents)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between text-text-muted">
+                      <span>{t('reservar.breakdown.discount')}</span>
+                      <span>{fmt.currency(0)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             <Button
               size="lg"
               className="w-full"

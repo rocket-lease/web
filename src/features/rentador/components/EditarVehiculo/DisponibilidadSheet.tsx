@@ -38,6 +38,7 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
   const [enabled, setEnabled] = useState(Boolean(vehicle.enabled))
   const [basePrice, setBasePrice] = useState(String((vehicle.basePriceCents ?? 0) / 100))
   const [autoAccept, setAutoAccept] = useState<boolean | null>(vehicle.autoAccept ?? null)
+  const [discountTiers, setDiscountTiers] = useState(vehicle.discountTiers ?? [])
 
   useEffect(() => {
     if (open) {
@@ -45,6 +46,7 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
       setEnabled(Boolean(vehicle.enabled))
       setBasePrice(String((vehicle.basePriceCents ?? 0) / 100))
       setAutoAccept(vehicle.autoAccept ?? null)
+      setDiscountTiers(vehicle.discountTiers ?? [])
     }
   }, [open, vehicle])
 

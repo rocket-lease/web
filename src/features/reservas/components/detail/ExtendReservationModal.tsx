@@ -13,7 +13,7 @@ import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
-import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
+import { pricingApi } from '@/features/pricing/api/pricing.api'
 import {
   getChainEndAt,
   getChainStartAt,
@@ -39,9 +39,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
  *   Default = `endAt` actual + 1 día.
  *
  * Muestra:
- * - Total estimado client-side con `estimateReservationTotalCents()` usando
- *   el `basePriceCentsSnapshot` actual de la reserva como proxy del precio
- *   diario del vehículo.
+ * - Total estimado con la API central de pricing usando el vehículo actual y
+ *   el rango de fechas seleccionado.
  * - Indicador "inmediata" vs "requiere aprobación" según `vehicle.autoAccept`
  *   y el cálculo de `chainTotalDays + extensionDays <= maxDays`.
  *
@@ -127,15 +126,19 @@ export function ExtendReservationModal({
     newEndAtIso > chainEndAt &&
     (nextConflictDate === undefined || date < nextConflictDate)
 
-  const dailyPriceCents = reservation.basePriceCentsSnapshot
-  const totalCentsPreview = useMemo(() => {
-    if (!isValid || !newEndAtIso) return 0
-    return estimateReservationTotalCents(
-      dailyPriceCents,
-      new Date(chainEndAt),
-      new Date(newEndAtIso),
-    )
-  }, [chainEndAt, dailyPriceCents, isValid, newEndAtIso])
+  const pricingQuoteQuery = useQuery({
+    queryKey: ['pricing', 'quote', reservation.vehicle.id, chainEndAt, newEndAtIso],
+    queryFn: () =>
+      pricingApi.quote({
+        vehicleId: reservation.vehicle.id,
+        startAt: chainEndAt,
+        endAt: newEndAtIso!,
+      }),
+    enabled: isValid && !!newEndAtIso,
+    staleTime: 0,
+  })
+
+  const totalCentsPreview = pricingQuoteQuery.data?.totalCents ?? 0
 
   const requiresApproval = computeRequiresApproval({
     reservation,
