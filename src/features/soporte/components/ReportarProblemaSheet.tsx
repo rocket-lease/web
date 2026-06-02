@@ -6,11 +6,13 @@ import { Textarea } from '@/ui/textarea'
 import { Button } from '@/ui/button'
 import { Drawer, DrawerContent } from '@/ui/drawer'
 import { t } from '@/i18n/es'
+import type { TicketType } from '@rocket-lease/contracts'
 import { ticketsApi } from '../api/tickets.api'
 import { useCreateTicket } from '../hooks/useCreateTicket'
 
 interface ReportarProblemaSheetProps {
   reservationId: string
+  type: TicketType
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -19,6 +21,7 @@ const MAX_PHOTOS = 5
 
 export function ReportarProblemaSheet({
   reservationId,
+  type,
   open,
   onOpenChange,
 }: ReportarProblemaSheetProps) {
@@ -33,6 +36,7 @@ export function ReportarProblemaSheet({
 
   function handleClose() {
     if (isBusy) return
+    photoPreviews.forEach((url) => URL.revokeObjectURL(url))
     setDescription('')
     setPhotoFiles([])
     setPhotoPreviews([])
@@ -70,7 +74,7 @@ export function ReportarProblemaSheet({
     }
     setUploading(false)
     mutation.mutate(
-      { reservationId, type: 'vehicle_issue', description: description.trim(), photoUrls },
+      { reservationId, type, description: description.trim(), photoUrls },
       {
         onSuccess: () => {
           toast.success(t('tickets.reportar.success'))

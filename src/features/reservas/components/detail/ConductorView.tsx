@@ -278,6 +278,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       <ReportarProblemaSheet
         reservationId={reservation.id}
+        type="vehicle_issue"
         open={reportarOpen}
         onOpenChange={setReportarOpen}
       />
@@ -410,6 +411,15 @@ function PostPaymentActions({
             </span>
           )}
         </Link>
+        {status === RESERVATION_STATUS.confirmed && (
+          <Link
+            to="/soporte"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+          >
+            <WarningCircle className="h-4 w-4" weight="regular" />
+            {t('reservas.detail.actions.reportar')}
+          </Link>
+        )}
         {status === RESERVATION_STATUS.in_progress && (
           <button
             type="button"
@@ -424,6 +434,7 @@ function PostPaymentActions({
 
       <ReportarProblemaSheet
         reservationId={reservation.id}
+        type="vehicle_issue"
         open={reportarOpen}
         onOpenChange={setReportarOpen}
       />
@@ -807,7 +818,7 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
           to="/soporte"
           className="flex w-full items-center justify-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary py-2"
         >
-          <LifeBuoy className="h-4 w-4" />
+          <WarningCircle className="h-4 w-4" weight="regular" />
           {t('reservas.detail.actions.reportar')}
         </Link>
       </div>

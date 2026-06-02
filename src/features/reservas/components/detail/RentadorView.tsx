@@ -309,6 +309,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
 
       <ReportarProblemaSheet
         reservationId={reservation.id}
+        type="vehicle_issue"
         open={reportarOpen}
         onOpenChange={setReportarOpen}
       />
