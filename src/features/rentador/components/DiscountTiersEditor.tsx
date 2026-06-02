@@ -129,7 +129,7 @@ export function DiscountTiersEditor({
 
   const valid = validationError === null
 
-  const commitTier = (index: number) => {
+  const commitTier = (_index: number) => {
     const next = draftTiers.map((tier) => ({
       minimumDays: Math.max(
         1,

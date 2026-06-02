@@ -426,18 +426,6 @@ export function ReservarVehiculoPage() {
 
   const withHomeDelivery = !!(vehicle?.homeDeliveryEnabled && deliveryUseCustom)
   const withHomeReturn = !!(vehicle?.homeReturnEnabled && returnUseCustom)
-
-  const estimatedTotal = useMemo(() => {
-    if (!vehicle || !startAtLocal || !endAtLocal) return 0
-    const startAt = new Date(startAtLocal)
-    const endAt = new Date(endAtLocal)
-    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
-      return 0
-    }
-    const deliveryFee = withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : null
-    const returnFee = withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : null
-    return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt, deliveryFee, returnFee)
-  }, [vehicle, startAtLocal, endAtLocal, withHomeDelivery, withHomeReturn])
   // US-26: opción de pagar seña. Solo se ofrece si el rentador la habilitó
   // (depositPercentage en el set del vehículo) y el retiro es lo bastante
   // futuro como para que la fecha límite del saldo (piso de 1h en el backend)
