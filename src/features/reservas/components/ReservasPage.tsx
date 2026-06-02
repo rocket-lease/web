@@ -10,6 +10,7 @@ import {
   type ReservationRole,
   type ReservationStatus,
 } from '@rocket-lease/contracts'
+import { collapseChain } from '../utils/chain'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
 import { Skeleton } from '@/ui/skeleton'
@@ -34,8 +35,6 @@ type TabKey =
   | 'pendingBalance'
   | 'confirmed'
   | 'inProgress'
-  | 'completed'
-  | 'cancelled'
 
 /**
  * Mapea cada tab a los estados que filtra. Es role-aware para `pending_balance`
@@ -62,14 +61,6 @@ function getTabStatuses(
         : [RESERVATION_STATUS.confirmed]
     case 'inProgress':
       return [RESERVATION_STATUS.in_progress]
-    case 'completed':
-      return [RESERVATION_STATUS.completed]
-    case 'cancelled':
-      return [
-        RESERVATION_STATUS.cancelled,
-        RESERVATION_STATUS.rejected,
-        RESERVATION_STATUS.expired,
-      ]
   }
 }
 
@@ -95,8 +86,6 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
       : []),
     { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
     { key: 'inProgress', label: t('reservas.tabs.enCurso') },
-    { key: 'completed', label: t('reservas.tabs.completadas') },
-    { key: 'cancelled', label: t('reservas.tabs.canceladas') },
   ]
 }
 
@@ -125,8 +114,17 @@ export function ReservasPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined
   const toIso = to ? new Date(to + 'T23:59:59').toISOString() : undefined
 
+  const ACTIVE_STATUSES: ReservationStatus[] = [
+    RESERVATION_STATUS.pending_approval,
+    RESERVATION_STATUS.pending_payment,
+    RESERVATION_STATUS.pending_balance,
+    RESERVATION_STATUS.confirmed,
+    RESERVATION_STATUS.in_progress,
+  ]
+
   const probeQuery = useReservations({
     role,
+    status: ACTIVE_STATUSES,
     from: fromIso,
     to: toIso,
     page: 1,
@@ -357,140 +355,6 @@ function CollapsedReservasList({ items, role, isRefetching }: CollapsedReservasL
       ))}
     </div>
   )
-}
-
-interface CollapsedEntry {
-  representative: ReservationListItem
-  rangeStartAt: string
-  rangeEndAt: string
-  rangeTotalCents: number
-  hasPendingExtension: boolean
-}
-
-const COMMITTED_STATUSES: ReservationStatus[] = [
-  RESERVATION_STATUS.confirmed,
-  RESERVATION_STATUS.in_progress,
-  RESERVATION_STATUS.completed,
-]
-
-const PENDING_STATUSES: ReservationStatus[] = [
-  RESERVATION_STATUS.pending_approval,
-  RESERVATION_STATUS.pending_payment,
-]
-
-/**
- * Prioridad de "actividad" para elegir el eslabón representativo de un chain.
- * Estados más activos primero — el primer eslabón que matchee gana.
- */
-const CHAIN_STATUS_PRIORITY: ReservationStatus[] = [
-  RESERVATION_STATUS.in_progress,
-  RESERVATION_STATUS.confirmed,
-  RESERVATION_STATUS.pending_payment,
-  RESERVATION_STATUS.pending_approval,
-  RESERVATION_STATUS.completed,
-  RESERVATION_STATUS.cancelled,
-  RESERVATION_STATUS.rejected,
-  RESERVATION_STATUS.expired,
-]
-
-/**
- * Agrupa una lista plana de reservas en cadenas (padre + extensiones).
- *
- * Una reserva con `parentReservationId == null` actúa como root. Cada hija
- * se anexa al root resolviendo recursivamente hacia arriba. Si el root no
- * está en el page actual (paginado server-side), la hija se trata como su
- * propio chain (orphan) — caso raro pero correcto.
- *
- * @returns Un entry por chain con el representante visible, el `startAt`
- *   mínimo y el `endAt` máximo de los eslabones no terminales.
- */
-export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
-  const byId = new Map<string, ReservationListItem>()
-  for (const item of items) byId.set(item.id, item)
-
-  const rootCache = new Map<string, string>()
-  const groups = new Map<string, ReservationListItem[]>()
-  for (const item of items) {
-    const rootId = resolveRootId(item, byId, rootCache)
-    const existing = groups.get(rootId)
-    if (existing) existing.push(item)
-    else groups.set(rootId, [item])
-  }
-
-  const result: CollapsedEntry[] = []
-  for (const [, members] of groups) {
-    const representative = pickRepresentative(members)
-    const activeMembers = members.filter(
-      (m) =>
-        m.status !== RESERVATION_STATUS.cancelled &&
-        m.status !== RESERVATION_STATUS.rejected &&
-        m.status !== RESERVATION_STATUS.expired,
-    )
-    const committedMembers = members.filter((m) =>
-      COMMITTED_STATUSES.includes(m.status),
-    )
-    const rangeSource =
-      committedMembers.length > 0
-        ? committedMembers
-        : activeMembers.length > 0
-          ? activeMembers
-          : members
-    const rangeStartAt = rangeSource.reduce(
-      (min, m) => (m.startAt < min ? m.startAt : min),
-      rangeSource[0].startAt,
-    )
-    const rangeEndAt = rangeSource.reduce(
-      (max, m) => (m.endAt > max ? m.endAt : max),
-      rangeSource[0].endAt,
-    )
-    const rangeTotalCents = rangeSource.reduce((sum, m) => sum + m.totalCents, 0)
-    const hasPendingExtension = members.some(
-      (m) =>
-        m.parentReservationId !== null && PENDING_STATUSES.includes(m.status),
-    )
-    result.push({
-      representative,
-      rangeStartAt,
-      rangeEndAt,
-      rangeTotalCents,
-      hasPendingExtension,
-    })
-  }
-
-  result.sort((a, b) => b.rangeStartAt.localeCompare(a.rangeStartAt))
-  return result
-}
-
-function resolveRootId(
-  item: ReservationListItem,
-  byId: Map<string, ReservationListItem>,
-  rootCache: Map<string, string>,
-): string {
-  const visited: string[] = []
-  let current = item
-  while (current.parentReservationId) {
-    const cached = rootCache.get(current.id)
-    if (cached) {
-      for (const id of visited) rootCache.set(id, cached)
-      return cached
-    }
-    visited.push(current.id)
-    const parent = byId.get(current.parentReservationId)
-    if (!parent) break
-    current = parent
-  }
-  const rootId = current.id
-  for (const id of visited) rootCache.set(id, rootId)
-  rootCache.set(rootId, rootId)
-  return rootId
-}
-
-function pickRepresentative(members: ReservationListItem[]): ReservationListItem {
-  for (const status of CHAIN_STATUS_PRIORITY) {
-    const match = members.find((m) => m.status === status)
-    if (match) return match
-  }
-  return members[0]
 }
 
 interface ReservaCardProps {

@@ -15,6 +15,7 @@ import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { SectionCard } from './EditarVehiculo/SectionCard'
 import { DetallesSheet } from './EditarVehiculo/DetallesSheet'
 import { DisponibilidadSheet } from './EditarVehiculo/DisponibilidadSheet'
+import { EntregaRetiroSheet } from './EditarVehiculo/EntregaRetiroSheet'
 import { FotosSheet } from './EditarVehiculo/FotosSheet'
 import { ReglasSheet } from './EditarVehiculo/ReglasSheet'
 import { useUpdateVehicleSection } from './EditarVehiculo/useUpdateVehicleSection'
@@ -29,7 +30,7 @@ const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db
 
 const vehicleQueryKey = (vehicleId: string) => ['vehicles', vehicleId] as const
 
-type SheetKey = 'detalles' | 'disponibilidad' | 'fotos' | 'reglas'
+type SheetKey = 'detalles' | 'disponibilidad' | 'fotos' | 'reglas' | 'entrega'
 
 interface EditarVehiculoPageProps {
   vehicleId: string
@@ -188,6 +189,24 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
     ? t('editVehiculo.section.rules.summary.shared').replace('{name}', sharedRuleSet.name)
     : t('editVehiculo.section.rules.summary.none')
 
+  const entregaSummary = (() => {
+    const { homeDeliveryEnabled, homeDeliveryFeeCents, homeReturnEnabled, homeReturnFeeCents } = vehicle
+    const fmtFee = (cents: number | null) =>
+      cents ? fmt.currency(cents) : t('editVehiculo.section.entrega.summary.free')
+    if (homeDeliveryEnabled && homeReturnEnabled) {
+      return t('editVehiculo.section.entrega.summary.both')
+        .replace('{deliveryFee}', fmtFee(homeDeliveryFeeCents))
+        .replace('{returnFee}', fmtFee(homeReturnFeeCents))
+    }
+    if (homeDeliveryEnabled) {
+      return t('editVehiculo.section.entrega.summary.deliveryOnly').replace('{fee}', fmtFee(homeDeliveryFeeCents))
+    }
+    if (homeReturnEnabled) {
+      return t('editVehiculo.section.entrega.summary.returnOnly').replace('{fee}', fmtFee(homeReturnFeeCents))
+    }
+    return t('editVehiculo.section.entrega.summary.disabled')
+  })()
+
   const docStatus = vehicle.documentStatus
   const docBadgeVariant = docStatus === 'verified' ? 'success' : docStatus === 'rejected' ? 'danger' : docStatus === 'pending' ? 'warning' : 'secondary'
   const docSummaryKey: I18nKey = docStatus === 'verified'
@@ -258,6 +277,12 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
           onEdit={() => setOpenSheet('reglas')}
           disabled={isDeleting}
         />
+        <SectionCard
+          title={t('editVehiculo.section.entrega.title')}
+          summary={entregaSummary}
+          onEdit={() => setOpenSheet('entrega')}
+          disabled={isDeleting}
+        />
 
         <Card className="mt-6 border-destructive/30 bg-destructive/5">
           <CardContent className="space-y-3 pt-4 pb-4">
@@ -280,6 +305,11 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       <DetallesSheet open={openSheet === 'detalles'} onOpenChange={(o) => setOpenSheet(o ? 'detalles' : null)} vehicle={vehicle} />
       <DisponibilidadSheet open={openSheet === 'disponibilidad'} onOpenChange={(o) => setOpenSheet(o ? 'disponibilidad' : null)} vehicle={vehicle} />
       <FotosSheet open={openSheet === 'fotos'} onOpenChange={(o) => setOpenSheet(o ? 'fotos' : null)} vehicle={vehicle} />
+      <EntregaRetiroSheet
+        open={openSheet === 'entrega'}
+        onOpenChange={(o) => setOpenSheet(o ? 'entrega' : null)}
+        vehicle={vehicle}
+      />
       <ReglasSheet
         open={openSheet === 'reglas'}
         onOpenChange={(o) => setOpenSheet(o ? 'reglas' : null)}

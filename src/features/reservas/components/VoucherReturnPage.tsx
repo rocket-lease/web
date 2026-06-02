@@ -23,7 +23,7 @@ export function VoucherReturnPage() {
         toast.error(t('reservas.devolucion.qrInvalido'))
         void navigate({ to: '/buscar' })
       })
-  }, [token])
+  }, [token, navigate])
 
   return (
     <div className="flex flex-col min-h-dvh bg-surface-0">
