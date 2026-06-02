@@ -70,7 +70,7 @@ export function ReportarProblemaSheet({
     }
     setUploading(false)
     mutation.mutate(
-      { reservationId, description: description.trim(), photoUrls },
+      { reservationId, type: 'vehicle_issue', description: description.trim(), photoUrls },
       {
         onSuccess: () => {
           toast.success(t('tickets.reportar.success'))
