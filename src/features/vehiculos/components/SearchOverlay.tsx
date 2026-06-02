@@ -493,14 +493,14 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
               onChange={e => setQuery(e.target.value)}
               placeholder="Buscar ciudad"
               autoFocus
-              className="w-full h-11 rounded-full bg-surface-2 border border-white/8 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
+              className="w-full h-11 rounded-xl bg-surface-2 border border-white/8 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
             />
           </div>
         ) : (
           <button
             type="button"
             onClick={onExpand}
-            className="w-full h-11 rounded-full bg-surface-2 border border-white/8 px-4 flex items-center gap-2 text-sm text-text-muted hover:border-brand-500/40 transition-colors"
+            className="w-full h-11 rounded-xl bg-surface-2 border border-white/8 px-4 flex items-center gap-2 text-sm text-text-muted hover:border-brand-500/40 transition-colors"
           >
             <MagnifyingGlass size={16} className="text-text-muted shrink-0" />
             <span>Buscar ciudad</span>
