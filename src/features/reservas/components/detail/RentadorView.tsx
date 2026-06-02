@@ -17,6 +17,7 @@ import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { ReservaPricingBreakdown } from './ReservaPricingBreakdown'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { ConfirmationModal } from '../modals/ConfirmationModal'
 import { RejectReasonModal } from '../modals/RejectReasonModal'
@@ -190,6 +191,11 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           {fmt.currency(getCommittedChainTotalCents(reservation))}
         </p>
       </div>
+
+      <ReservaPricingBreakdown
+        reservation={reservation}
+        totalLabel={t('rentador.reservas.detalle.total')}
+      />
 
       {reservation.paidAt && reservation.paymentMethod && (
         <div className="flex items-center justify-between text-sm">

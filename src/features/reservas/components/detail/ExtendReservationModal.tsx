@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
-import { estimateReservationTotalCents } from '@/features/reservar/utils/pricing'
 import {
   getChainEndAt,
   getCommittedChainEndAt,
@@ -41,9 +41,8 @@ interface ExtendReservationModalProps {
  *   Default = `endAt` actual + 1 día.
  *
  * Muestra:
- * - Total estimado client-side con `estimateReservationTotalCents()` usando
- *   el `basePriceCentsSnapshot` actual de la reserva como proxy del precio
- *   diario del vehículo.
+ * - Total estimado con la API central de pricing usando el vehículo actual y
+ *   el rango de fechas seleccionado.
  * - Indicador "inmediata" vs "requiere aprobación" según `vehicle.autoAccept`
  *   y el cálculo de `chainTotalDays + extensionDays <= maxDays`.
  *
@@ -129,15 +128,14 @@ export function ExtendReservationModal({
     newEndAtIso > chainEndAt &&
     (nextConflictDate === undefined || date < nextConflictDate)
 
-  const dailyPriceCents = reservation.basePriceCentsSnapshot
-  const totalCentsPreview = useMemo(() => {
-    if (!isValid || !newEndAtIso) return 0
-    return estimateReservationTotalCents(
-      dailyPriceCents,
-      new Date(chainEndAt),
-      new Date(newEndAtIso),
-    )
-  }, [chainEndAt, dailyPriceCents, isValid, newEndAtIso])
+  const pricingQuoteQuery = usePricingQuote({
+    vehicleId: reservation.vehicle.id,
+    startAt: chainEndAt,
+    endAt: newEndAtIso,
+    enabled: isValid && !!newEndAtIso,
+  })
+
+  const totalCentsPreview = pricingQuoteQuery.totalCents
 
   const requiresApproval = computeRequiresApproval({
     reservation,

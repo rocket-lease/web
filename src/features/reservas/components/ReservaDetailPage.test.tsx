@@ -88,6 +88,7 @@ interface MakeOpts {
   cancellationPolicy?: 'FLEXIBLE' | 'MODERATE' | 'STRICT' | null
   startAt?: string
   paidAt?: string | null
+  discountTier?: { minimumDays: number; discountPercentage: number } | null
 }
 
 function makeReservation(opts: MakeOpts = {}) {
@@ -103,6 +104,15 @@ function makeReservation(opts: MakeOpts = {}) {
           maxKilometrage: { type: 'UNLIMITED' as const },
           rentalTimeConstraints: {},
         }
+  const basePriceCents = 50000
+  const durationDays = opts.discountTier ? 3 : 2
+  const subtotalCents = basePriceCents * durationDays
+  const hasDiscount = opts.discountTier !== undefined ? opts.discountTier !== null : false
+  const appliedDiscountTier = hasDiscount ? opts.discountTier! : null
+  const discountCents = hasDiscount
+    ? Math.floor((subtotalCents * opts.discountTier!.discountPercentage) / 100)
+    : 0
+  const totalCents = subtotalCents - discountCents
   return {
     id: RES,
     vehicleId: VEH,
@@ -112,7 +122,7 @@ function makeReservation(opts: MakeOpts = {}) {
     startAt: opts.startAt ?? '2026-06-01T10:00:00.000Z',
     endAt: '2026-06-03T10:00:00.000Z',
     holdExpiresAt: opts.holdExpiresAt ?? '2026-05-17T10:00:00.000Z',
-    totalCents: 100000,
+    totalCents,
     currency: 'ARS' as const,
     paymentMethod: null,
     walletProvider: null,
@@ -125,7 +135,18 @@ function makeReservation(opts: MakeOpts = {}) {
     createdAt: '2026-05-16T10:00:00.000Z',
     updatedAt: '2026-05-16T10:00:00.000Z',
     depositPercentageSnapshot: null,
-    basePriceCentsSnapshot: 50000,
+    pricingSnapshot: {
+      vehicleId: VEH,
+      currency: 'ARS' as const,
+      basePriceCents,
+      durationDays,
+      subtotalCents,
+      appliedDiscountTier,
+      appliedDiscountPercentage: hasDiscount ? opts.discountTier!.discountPercentage : 0,
+      discountCents,
+      totalCents,
+    },
+    basePriceCentsSnapshot: basePriceCents,
     cancellationPolicySnapshot: (policy ?? 'FLEXIBLE') as 'FLEXIBLE' | 'MODERATE' | 'STRICT',
     maxKilometrageSnapshot: { type: 'UNLIMITED' as const },
     rentalTimeConstraintsSnapshot: {},
@@ -392,5 +413,89 @@ describe('ReservaDetailPage (conductor) — cancellation policy block', () => {
     expect(
       await screen.findByText(/Recibirás un reembolso total si cancelás antes del/i),
     ).toBeInTheDocument()
+  })
+})
+
+describe('ReservaDetailPage (conductor) — discount breakdown', () => {
+  it('NO muestra breakdown de descuento cuando no hay descuento aplicado', async () => {
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        discountTier: null,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    await waitFor(() => expect(getById).toHaveBeenCalled())
+    expect(screen.queryByText(/Desglose del precio/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Aplica desde/i)).not.toBeInTheDocument()
+  })
+
+  it('muestra breakdown de descuento cuando hay descuento aplicado', async () => {
+    const discountTier = { minimumDays: 3, discountPercentage: 15 }
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        discountTier,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(await screen.findByText(/Desglose del precio/i)).toBeInTheDocument()
+    expect(screen.getByText('Subtotal')).toBeInTheDocument()
+    expect(screen.getByText(/Aplica desde 3 días \(-15%\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Ahorro total/i)).toBeInTheDocument()
+    expect(screen.getByText(/Alquiler original/i)).toBeInTheDocument()
+
+    const titleEl = await screen.findByText(/Desglose del precio/i)
+    const breakdownCard = titleEl.closest('div')!
+    expect(breakdownCard.textContent).toMatch(/1\.500/)
+    expect(breakdownCard.textContent).toMatch(/225/)
+    expect(breakdownCard.textContent).toMatch(/1\.275/)
+  })
+})
+
+describe('ReservaDetailPage (rentador) — discount breakdown', () => {
+  it('NO muestra breakdown de descuento cuando no hay descuento aplicado', async () => {
+    mockUser.current = { id: RENT }
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        discountTier: null,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    await waitFor(() => expect(getById).toHaveBeenCalled())
+    expect(screen.queryByText(/Desglose del precio/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Aplica desde/i)).not.toBeInTheDocument()
+  })
+
+  it('muestra breakdown de descuento cuando hay descuento aplicado', async () => {
+    mockUser.current = { id: RENT }
+    const discountTier = { minimumDays: 3, discountPercentage: 15 }
+    getById.mockResolvedValue(
+      makeReservation({
+        status: 'confirmed',
+        discountTier,
+      }),
+    )
+
+    render(<ReservaDetailPage />, { wrapper: createWrapper() })
+
+    expect(await screen.findByText(/Desglose del precio/i)).toBeInTheDocument()
+    expect(screen.getByText('Subtotal')).toBeInTheDocument()
+    expect(screen.getByText(/Aplica desde 3 días \(-15%\)/)).toBeInTheDocument()
+    expect(screen.getByText(/Ahorro total/i)).toBeInTheDocument()
+    expect(screen.getByText(/Alquiler original/i)).toBeInTheDocument()
+
+    const titleEl = await screen.findByText(/Desglose del precio/i)
+    const breakdownCard = titleEl.closest('div')!
+    expect(breakdownCard.textContent).toMatch(/1\.500/)
+    expect(breakdownCard.textContent).toMatch(/225/)
+    expect(breakdownCard.textContent).toMatch(/1\.275/)
   })
 })

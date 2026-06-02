@@ -76,6 +76,14 @@ export function VehiculoDetailPage() {
   const photos = vehicle.photos.length > 0 ? vehicle.photos : ['/placeholder-car.jpg']
   const currentPhoto = photos[Math.min(photoIndex, photos.length - 1)]
   const isOwnVehicle = !!user && vehicle.ownerId === user.id
+  const maxDiscount =
+    vehicle.discountTiers.length > 0
+      ? Math.max(
+          ...vehicle.discountTiers.map(
+            (tier) => tier.discountPercentage,
+          ),
+        )
+      : null
 
   const handleReservarClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!isAuthenticated) {
@@ -180,6 +188,13 @@ export function VehiculoDetailPage() {
             <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
               {/* <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" /> */}
               <p className="text-xs text-warning">{t('vehiculo.ownNotice')}</p>
+            </div>
+          )}
+          {maxDiscount && (
+            <div className="mb-2 inline-flex items-center rounded-full border border-success/20 bg-success/10 px-2.5 py-1">
+              <span className="text-xs font-medium text-success">
+                {t('vehiculo.maxDiscount').replace('{discount}', `${maxDiscount}%`)}
+              </span>
             </div>
           )}
           <div className="flex items-end justify-between gap-3">

@@ -23,6 +23,11 @@ function makeChainItem(
     endAt: '2026-06-03T10:00:00.000Z',
     totalCents: 100000,
     parentReservationId: null,
+    pricingSnapshot: {
+      vehicleId: 'v1', currency: 'ARS', basePriceCents: 50000, durationDays: 2,
+      subtotalCents: 100000, appliedDiscountTier: null, appliedDiscountPercentage: 0,
+      discountCents: 0, totalCents: 100000,
+    },
     ...overrides,
   }
 }

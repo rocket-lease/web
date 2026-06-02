@@ -41,6 +41,7 @@ import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
+import { ReservaPricingBreakdown } from './ReservaPricingBreakdown'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
 import {
@@ -226,6 +227,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         <p className="font-semibold text-text-primary">{t('reservas.detail.total')}</p>
         <p className="text-xl font-bold text-brand-400">{fmt.currency(displayTotalCents)}</p>
       </div>
+
+      <ReservaPricingBreakdown reservation={reservation} />
 
       <CancellationPolicyCard reservation={reservation} />
 
