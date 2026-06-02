@@ -1,4 +1,5 @@
-import { useParams } from '@tanstack/react-router'
+import { useEffect } from 'react'
+import { useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
@@ -22,7 +23,7 @@ import { RentadorView } from './detail/RentadorView'
  */
 export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
-
+  const navigate = useNavigate()
   const { user } = useAuth()
 
   const { data: reservation, isLoading, isError } = useQuery({
@@ -32,6 +33,18 @@ export function ReservaDetailPage() {
     gcTime: Infinity,
     staleTime: 5 * 60 * 1000,
   })
+
+  const perspective: 'conductor' | 'owner' =
+    user?.id === reservation?.rentadorId ? 'owner' : 'conductor'
+
+  useEffect(() => {
+    if (!reservation) return
+    if (!reservation.parentReservationId) return
+    const rootId = reservation.chain.find((r) => r.parentReservationId === null)?.id
+    if (rootId && rootId !== id) {
+      void navigate({ to: '/reservas/$id', params: { id: rootId }, search: { role: 'owner' }, replace: true })
+    }
+  }, [reservation, perspective, id, navigate])
 
   if (isLoading) {
     return (
@@ -58,9 +71,6 @@ export function ReservaDetailPage() {
       </div>
     )
   }
-
-  const perspective: 'conductor' | 'owner' =
-    user?.id === reservation.rentadorId ? 'owner' : 'conductor'
 
   return (
     <div className="flex flex-col">

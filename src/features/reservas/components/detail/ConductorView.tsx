@@ -325,7 +325,7 @@ function PostPaymentActions({
   const [showExtendModal, setShowExtendModal] = useState(false)
   const cancelMutation = useCancelReservation()
 
-  const canCancel = status === RESERVATION_STATUS.confirmed
+  const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
   const canChat =
     status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
