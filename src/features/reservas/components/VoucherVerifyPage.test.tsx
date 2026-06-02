@@ -38,7 +38,7 @@ const baseVoucher = {
   status: 'confirmed',
   conductor: { id: 'conductor-id', name: 'Juan Pérez', avatarUrl: null },
   rentador: { id: 'rentador-id', name: 'Carlos López', avatarUrl: null },
-  vehicle: { brand: 'Toyota', model: 'Corolla' },
+  vehicle: { id: 'veh-1', plate: 'AB123CD', brand: 'Toyota', model: 'Corolla', year: 2020, photo: null },
   startAt: '2026-06-01T10:00:00Z',
   endAt: '2026-06-05T10:00:00Z',
   paymentMethod: 'TRANSFER',

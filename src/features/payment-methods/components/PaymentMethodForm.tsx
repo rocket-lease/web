@@ -70,6 +70,7 @@ export function PaymentMethodForm({ initialData, onSubmit, onCancel, isLoading }
   const cardErrors = errors.cardDetails as CardFieldErrors | undefined
   const walletErrors = errors.walletDetails as WalletFieldErrors | undefined
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const type = watch('type')
 
   const handleFormSubmit = async (data: FormData) => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { ReservationListItem } from '@rocket-lease/contracts'
-import { collapseChain } from './ReservasPage'
+import { collapseChain } from '../utils/chain'
 
 function makeItem(overrides: Partial<ReservationListItem>): ReservationListItem {
   return {
@@ -21,7 +21,7 @@ function makeItem(overrides: Partial<ReservationListItem>): ReservationListItem 
     parentReservationId: null,
     createdAt: '2026-05-29T09:00:00.000Z',
     updatedAt: '2026-05-29T09:00:00.000Z',
-    vehicle: { id: 'veh-1', brand: 'Toyota', model: 'Corolla', year: 2022, photo: null },
+    vehicle: { id: 'veh-1', plate: 'AB123CD', brand: 'Toyota', model: 'Corolla', year: 2022, photo: null },
     conductor: { id: 'con-1', name: 'Conductor', avatarUrl: null },
     rentador: { id: 'ren-1', name: 'Rentador', avatarUrl: null },
     ...overrides,

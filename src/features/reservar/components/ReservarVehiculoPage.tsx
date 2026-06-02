@@ -5,6 +5,7 @@ import { CheckCircle2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } fro
 import type {
   PaymentMethod,
   ProblemDetails,
+  ReservationAddress,
 } from '@rocket-lease/contracts'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
@@ -26,8 +27,10 @@ import { useConfirmPayment } from '../hooks/useConfirmPayment'
 import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { HoldCountdown } from './HoldCountdown'
 import { PaymentMethodPicker } from './PaymentMethodPicker'
+import { AddressAutocomplete } from './AddressAutocomplete'
 
 type Step = 'fechas' | 'contrato' | 'pago'
 
@@ -397,7 +400,7 @@ export function ReservarVehiculoPage() {
     queryKey: ['vehicle', vehicleId, 'busy-ranges'],
     queryFn: () => reservarApi.getBusyRanges(vehicleId),
   })
-  const busyRanges = busyData?.items ?? []
+  const busyRanges = useMemo(() => busyData?.items ?? [], [busyData])
 
   const [step, setStep] = useState<Step>('fechas')
   const [startAtLocal, setStartAtLocal] = useState('')
@@ -409,19 +412,38 @@ export function ReservarVehiculoPage() {
   const [holdExpired, setHoldExpired] = useState(false)
   const [rulesCollapsed, setRulesCollapsed] = useState(false)
   const [rulesAcknowledged, setRulesAcknowledged] = useState(false)
+  const [deliveryUseCustom, setDeliveryUseCustom] = useState(false)
+  const [deliveryCustomAddress, setDeliveryCustomAddress] = useState<ReservationAddress | null>(null)
+  const [returnUseCustom, setReturnUseCustom] = useState(false)
+  const [returnCustomAddress, setReturnCustomAddress] = useState<ReservationAddress | null>(null)
 
   const createReservation = useCreateReservation()
   const reservationId = createReservation.data?.id ?? null
   const confirmPayment = useConfirmPayment(reservationId)
   const initiateTransfer = useInitiateTransfer(reservationId)
-  
+
   const { paymentMethods: savedPaymentMethods, isLoading: isLoadingPaymentMethods } = usePaymentMethods()
 
+  const withHomeDelivery = !!(vehicle?.homeDeliveryEnabled && deliveryUseCustom)
+  const withHomeReturn = !!(vehicle?.homeReturnEnabled && returnUseCustom)
+
+  const estimatedTotal = useMemo(() => {
+    if (!vehicle || !startAtLocal || !endAtLocal) return 0
+    const startAt = new Date(startAtLocal)
+    const endAt = new Date(endAtLocal)
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+      return 0
+    }
+    const deliveryFee = withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : null
+    const returnFee = withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : null
+    return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt, deliveryFee, returnFee)
+  }, [vehicle, startAtLocal, endAtLocal, withHomeDelivery, withHomeReturn])
   // US-26: opción de pagar seña. Solo se ofrece si el rentador la habilitó
   // (depositPercentage en el set del vehículo) y el retiro es lo bastante
   // futuro como para que la fecha límite del saldo (piso de 1h en el backend)
   // quede antes del retiro. Con un margen de 2h alcanza.
   const depositPercentage = vehicle?.reservationRuleSet?.depositPercentage ?? null
+  const now = useCurrentTime()
 
   const rentalDurationViolation = useMemo(() => {
     return getRentalDurationViolation(
@@ -460,12 +482,17 @@ export function ReservarVehiculoPage() {
     depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
   const startFarEnough =
     !!startAtLocal &&
-    new Date(startAtLocal).getTime() - Date.now() >= 2 * 60 * 60 * 1000
+    new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
   const depositAvailable = depositPercentage !== null && startFarEnough
   const pricingQuote = pricingQuoteQuery.pricingQuote
 
   const canContinueToContract =
-    validRange && !overlapsBusy && !rentalDurationViolation && (!vehicle?.reservationRuleSet || rulesAcknowledged)
+    validRange &&
+    !overlapsBusy &&
+    !rentalDurationViolation &&
+    (!vehicle?.reservationRuleSet || rulesAcknowledged) &&
+    !(deliveryUseCustom && !deliveryCustomAddress) &&
+    !(returnUseCustom && !returnCustomAddress)
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
@@ -515,20 +542,21 @@ export function ReservarVehiculoPage() {
         startAt: toIsoUtc(startAtLocal),
         endAt: toIsoUtc(endAtLocal),
         contractAccepted: true,
+        withHomeDelivery,
+        deliveryAddress: withHomeDelivery && deliveryCustomAddress ? deliveryCustomAddress : undefined,
+        withHomeReturn,
+        returnAddress: withHomeReturn && returnCustomAddress ? returnCustomAddress : undefined,
       })
       if (created.status === 'pending_approval') {
         navigate({ to: '/reservas/$id', params: { id: created.id } })
         return
       }
       setStep('pago')
-    } catch {
-      // surfaced through createReservation.error
-    }
+    } catch (_) {}
   }
 
   async function onPay() {
     if (!paymentMethod || !reservationId) return
-    // El modo seña solo aplica si está disponible para esta reserva.
     const mode = depositAvailable ? paymentMode : 'full'
     try {
       if (paymentMethod === 'bank_transfer') {
@@ -548,9 +576,7 @@ export function ReservarVehiculoPage() {
           params: { id: reservationId },
         })
       }
-    } catch {
-      // surfaced through error
-    }
+    } catch (_) {}
   }
 
   const submissionError =
@@ -728,44 +754,152 @@ export function ReservarVehiculoPage() {
               </div>
             ) : null}
 
-            <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">
-                {t('reservar.total')}
-              </span>
-              <span className="text-base font-semibold text-text-primary">
-                {fmt.currency(payableTotal)}
-              </span>
-            </div>
-            {pricingQuote && (
-              <div className="rounded-2xl border border-white/8 bg-surface-2/70 p-4 text-sm text-text-secondary">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-muted">
-                  {t('reservar.breakdown.subtitle')}
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span>{t('reservar.breakdown.subtotal')}</span>
-                    <span>{fmt.currency(pricingQuote.subtotalCents)}</span>
+            {(vehicle.homeDeliveryEnabled || vehicle.homeReturnEnabled) && (
+              <div className="space-y-3">
+                {vehicle.homeDeliveryEnabled && (
+                  <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-3">
+                    <p className="text-sm font-semibold text-text-primary">
+                      {t('reservar.homeDelivery.sectionTitle')}
+                    </p>
+                    <div className="flex rounded-xl overflow-hidden border border-white/8">
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryUseCustom(false)}
+                        className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                          !deliveryUseCustom
+                            ? 'bg-surface-3 text-text-primary'
+                            : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                        }`}
+                      >
+                        {t('reservar.address.original')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryUseCustom(true)}
+                        className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                          deliveryUseCustom
+                            ? 'bg-brand-500/20 text-brand-300'
+                            : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                        }`}
+                      >
+                        {t('reservar.address.custom')}
+                        {vehicle.homeDeliveryFeeCents
+                          ? ` · ${fmt.currency(vehicle.homeDeliveryFeeCents)}`
+                          : ''}
+                      </button>
+                    </div>
+                    {!deliveryUseCustom && vehicle.address && (
+                      <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                    )}
+                    {deliveryUseCustom && (
+                      <AddressAutocomplete
+                        value={deliveryCustomAddress}
+                        onChange={setDeliveryCustomAddress}
+                        onClear={() => setDeliveryCustomAddress(null)}
+                        placeholder={t('reservar.homeDelivery.addressPlaceholder')}
+                      />
+                    )}
                   </div>
-                  {pricingQuote.appliedDiscountTier ? (
+                )}
+
+                <div className="rounded-2xl border border-white/8 bg-surface-1 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-text-primary">
+                    {t('reservar.homeReturn.sectionTitle')}
+                  </p>
+                  {vehicle.homeReturnEnabled ? (
                     <>
-                      <div className="flex items-center justify-between text-brand-400">
-                        <span>
-                          {t('reservar.breakdown.discount')}{' '}
-                          {t('reservar.breakdown.appliedTier')
-                            .replace('{days}', String(pricingQuote.appliedDiscountTier.minimumDays))
-                            .replace('{percentage}', String(pricingQuote.appliedDiscountTier.discountPercentage))}
-                        </span>
-                        <span>-{fmt.currency(pricingQuote.discountCents)}</span>
+                      <div className="flex rounded-xl overflow-hidden border border-white/8">
+                        <button
+                          type="button"
+                          onClick={() => setReturnUseCustom(false)}
+                          className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                            !returnUseCustom
+                              ? 'bg-surface-3 text-text-primary'
+                              : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                          }`}
+                        >
+                          {t('reservar.address.original')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setReturnUseCustom(true)}
+                          className={`flex-1 py-2 px-3 text-xs font-medium transition-colors ${
+                            returnUseCustom
+                              ? 'bg-brand-500/20 text-brand-300'
+                              : 'bg-surface-2 text-text-muted hover:bg-surface-3/50'
+                          }`}
+                        >
+                          {t('reservar.address.custom')}
+                          {vehicle.homeReturnFeeCents
+                            ? ` · ${fmt.currency(vehicle.homeReturnFeeCents)}`
+                            : ''}
+                        </button>
                       </div>
+                      {!returnUseCustom && vehicle.address && (
+                        <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                      )}
+                      {returnUseCustom && (
+                        <AddressAutocomplete
+                          value={returnCustomAddress}
+                          onChange={setReturnCustomAddress}
+                          onClear={() => setReturnCustomAddress(null)}
+                          placeholder={t('reservar.homeReturn.addressPlaceholder')}
+                        />
+                      )}
                     </>
                   ) : (
-                    <div className="flex items-center justify-between text-text-muted">
-                      <span>{t('reservar.breakdown.discount')}</span>
-                      <span>{fmt.currency(0)}</span>
-                    </div>
+                    <>
+                      {vehicle.address && (
+                        <p className="text-sm text-text-secondary">{vehicle.address}</p>
+                      )}
+                      <p className="text-xs text-text-muted">
+                        {t('reservar.homeReturn.changeDisabled')}
+                      </p>
+                    </>
                   )}
                 </div>
+              </div>
+            )}
+
+            <Separator />
+            {pricingQuote ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-text-muted">{t('reservar.breakdown.subtotal')}</span>
+                  <span className="text-xs text-text-muted">{fmt.currency(pricingQuote.subtotalCents)}</span>
+                </div>
+                {pricingQuote.appliedDiscountTier && (
+                  <div className="flex items-center justify-between text-brand-400">
+                    <span className="text-xs">
+                      {t('reservar.breakdown.discount')}{' '}
+                      {t('reservar.breakdown.appliedTier')
+                        .replace('{days}', String(pricingQuote.appliedDiscountTier.minimumDays))
+                        .replace('{percentage}', String(pricingQuote.appliedDiscountTier.discountPercentage))}
+                    </span>
+                    <span className="text-xs">-{fmt.currency(pricingQuote.discountCents)}</span>
+                  </div>
+                )}
+                {withHomeDelivery && (vehicle?.homeDeliveryFeeCents ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeDeliveryFee')}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle!.homeDeliveryFeeCents ?? 0)}</span>
+                  </div>
+                )}
+                {withHomeReturn && (vehicle?.homeReturnFeeCents ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeReturnFee')}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle!.homeReturnFeeCents ?? 0)}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-1 border-t border-white/8">
+                  <span className="text-sm text-text-muted">{t('reservar.total')}</span>
+                  <span className="text-base font-semibold text-text-primary">{fmt.currency(payableTotal)}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-muted">{t('reservar.total')}</span>
+                <span className="text-base font-semibold text-text-primary">{fmt.currency(payableTotal)}</span>
               </div>
             )}
             <Button
@@ -837,6 +971,31 @@ export function ReservarVehiculoPage() {
                 </span>
               </div>
               <Separator />
+              {(withHomeDelivery || withHomeReturn) && (() => {
+                const baseTotal = payableTotal
+                  - (withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : 0)
+                  - (withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : 0)
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-text-muted">{t('reservar.breakdown.baseRent')}</span>
+                      <span className="text-text-primary">{fmt.currency(baseTotal)}</span>
+                    </div>
+                    {withHomeDelivery && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-text-muted">{t('reservar.breakdown.homeDeliveryFee')}</span>
+                        <span className="text-text-primary">{fmt.currency(vehicle.homeDeliveryFeeCents ?? 0)}</span>
+                      </div>
+                    )}
+                    {withHomeReturn && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-text-muted">{t('reservar.breakdown.homeReturnFee')}</span>
+                        <span className="text-text-primary">{fmt.currency(vehicle.homeReturnFeeCents ?? 0)}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
               <div className="flex justify-between text-sm">
                 <span className="text-text-muted">{t('reservar.total')}</span>
                 <span className="font-semibold text-text-primary">

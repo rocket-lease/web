@@ -37,6 +37,7 @@ import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { HoldCountdown } from '@/features/reservar/components/HoldCountdown'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
@@ -327,7 +328,7 @@ function PostPaymentActions({
   const [showExtendModal, setShowExtendModal] = useState(false)
   const cancelMutation = useCancelReservation()
 
-  const canCancel = status === RESERVATION_STATUS.confirmed
+  const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
   const canChat =
     status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
@@ -801,9 +802,10 @@ function PendingBalanceSection({ reservation }: { reservation: GetReservationRes
   const depositPaidCents = reservation.depositPaidCents ?? 0
   const balanceCents = reservation.totalCents - depositPaidCents
   const balanceDueAt = reservation.balanceDueAt ?? null
+  const now = useCurrentTime()
   const dueSoon =
     !!balanceDueAt &&
-    new Date(balanceDueAt).getTime() - Date.now() < 24 * 60 * 60 * 1000
+    new Date(balanceDueAt).getTime() - now < 24 * 60 * 60 * 1000
 
   return (
     <>

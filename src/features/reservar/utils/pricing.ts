@@ -5,12 +5,18 @@ export function estimateReservationTotalCents(
   basePriceDaily: number,
   startAt: Date,
   endAt: Date,
+  homeDeliveryFeeCents: number | null = null,
+  homeReturnFeeCents: number | null = null,
 ): number {
   const ms = endAt.getTime() - startAt.getTime()
-  if (ms <= 0) return 0
-  if (ms >= DAY_MS) {
-    return Math.ceil(ms / DAY_MS) * basePriceDaily
+  let base = 0
+  if (ms > 0) {
+    if (ms >= DAY_MS) {
+      base = Math.ceil(ms / DAY_MS) * basePriceDaily
+    } else {
+      const hourly = Math.round(basePriceDaily / 24)
+      base = Math.ceil(ms / HOUR_MS) * hourly
+    }
   }
-  const hourly = Math.round(basePriceDaily / 24)
-  return Math.ceil(ms / HOUR_MS) * hourly
+  return base + (homeDeliveryFeeCents ?? 0) + (homeReturnFeeCents ?? 0)
 }

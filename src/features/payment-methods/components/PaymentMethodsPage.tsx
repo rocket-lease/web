@@ -47,9 +47,7 @@ export function PaymentMethodsPage() {
         await createPaymentMethod(data as CreateSavedPaymentMethod)
       }
       handleCloseDrawer()
-    } catch (_error) {
-      // handled by hook
-    }
+    } catch (_) {}
   }
 
   return (

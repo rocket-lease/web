@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { PaymentMethodPicker } from '@/features/reservar/components/PaymentMethodPicker'
 import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
+import { useCurrentTime } from '@/hooks/useCurrentTime'
 
 export function PagarReservaPage() {
   const { id = '' } = useParams({ strict: false })
@@ -42,9 +43,10 @@ export function PagarReservaPage() {
   const depositPaidCents = reservation?.depositPaidCents ?? 0
   const balanceCents = totalCents - depositPaidCents
   const balanceDueAt = reservation?.balanceDueAt ?? null
+  const now = useCurrentTime()
   const balanceDueSoon =
     !!balanceDueAt &&
-    new Date(balanceDueAt).getTime() - Date.now() < 24 * 60 * 60 * 1000
+    new Date(balanceDueAt).getTime() - now < 24 * 60 * 60 * 1000
 
   const handleConfirm = async () => {
     if (!selectedMethod) return

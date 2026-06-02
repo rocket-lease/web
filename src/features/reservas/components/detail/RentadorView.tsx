@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { X as PhosphorX } from '@phosphor-icons/react'
+import { X as PhosphorX, Star } from '@phosphor-icons/react'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X, MoreVertical } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
@@ -228,7 +228,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         />
       )}
 
-      {reservation.status === RESERVATION_STATUS.confirmed && (
+      {reservation.status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId && (
         <PickupAction reservationId={reservation.id} />
       )}
 
@@ -251,6 +251,44 @@ export function RentadorView({ reservation }: RentadorViewProps) {
             </span>
           )}
         </Link>
+      )}
+
+      {reservation.status === RESERVATION_STATUS.completed && reservation.review && (
+        <div className="rounded-xl bg-surface-1 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-text-primary">
+              {t('reservas.detail.review.title')}
+            </p>
+            <span className="text-xs text-text-muted">
+              {fmt.dateShort(reservation.review.createdAt)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-0.5">
+            {Array.from({ length: 5 }, (_, i) => (
+              <Star
+                key={i}
+                size={14}
+                weight={i < (reservation.review?.rating ?? 0) ? 'fill' : 'regular'}
+                className={i < (reservation.review?.rating ?? 0) ? 'text-amber-400' : 'text-white/20'}
+              />
+            ))}
+            <span className="ml-1.5 text-xs text-text-muted">
+              {fmt.rating(reservation.review?.rating ?? 0)}
+            </span>
+          </div>
+
+          {reservation.review.comment && (
+            <p className="text-sm text-text-secondary leading-relaxed">
+              {reservation.review.comment}
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <User className="h-3 w-3" />
+            <span>{reservation.review.reviewerName}</span>
+          </div>
+        </div>
       )}
     </div>
   )

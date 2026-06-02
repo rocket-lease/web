@@ -165,6 +165,13 @@
 .animate-slide-up  { animation: slideUp  300ms cubic-bezier(0.32, 0.72, 0, 1) both; }
 .animate-overlay-in { animation: overlayIn 200ms ease-out both; }
 
+/* Fade-up sutil para staggered list entries (cards, items que aparecen juntos). */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-rise-in { animation: riseIn 280ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+
 /* ─── Page transitions ─── */
 [data-status="entering"] {
   animation: fadeSlideIn 200ms ease-out both;

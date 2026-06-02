@@ -44,9 +44,7 @@ export function WithdrawDrawer({ open, onOpenChange, balanceInCents }: WithdrawD
         amountCents: Math.round(parsedAmount * 100),
       })
       onOpenChange(false)
-    } catch {
-      // handled by mutation hook
-    }
+    } catch (_) {}
   }
 
   return (
