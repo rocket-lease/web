@@ -7,6 +7,7 @@ import type {
 } from '@rocket-lease/contracts'
 import { rulesApi } from '../api/rules.api'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const ruleSetQueryKey = (id: string) => ['reservation-rules', id] as const
 const ruleSetListQueryKey = () => ['reservation-rules', 'list'] as const
@@ -73,7 +74,7 @@ export function useCreateReservationRuleSet() {
       return response
     },
     onError: (error) => {
-      toast.error(t('error.default'))
+      toast.error(getErrorMessage(error))
       console.error('Error creating rule set:', error)
     },
   })
@@ -93,7 +94,7 @@ export function useUpdateReservationRuleSet(id: string) {
       toast.success(t('reservationRules.updated'))
     },
     onError: (error) => {
-      toast.error(t('error.default'))
+      toast.error(getErrorMessage(error))
       console.error('Error updating rule set:', error)
     },
   })
@@ -112,7 +113,7 @@ export function useDeleteReservationRuleSet() {
       toast.success(t('reservationRules.deleted'))
     },
     onError: (error) => {
-      toast.error(t('error.default'))
+      toast.error(getErrorMessage(error))
       console.error('Error deleting rule set:', error)
     },
   })
@@ -132,7 +133,7 @@ export function useAssignRuleSetToVehicle() {
       toast.success(t('reservationRules.assigned'))
     },
     onError: (error) => {
-      toast.error(t('error.default'))
+      toast.error(getErrorMessage(error))
       console.error('Error assigning rule set:', error)
     },
   })

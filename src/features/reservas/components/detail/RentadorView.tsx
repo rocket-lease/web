@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { X as PhosphorX, Star } from '@phosphor-icons/react'
+import { X as PhosphorX, Star, WarningCircle } from '@phosphor-icons/react'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X, MoreVertical } from 'lucide-react'
 import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
@@ -17,6 +17,7 @@ import { profileApi } from '@/features/perfil/api/profile.api'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
+import { ReservaPricingBreakdown } from './ReservaPricingBreakdown'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { ConfirmationModal } from '../modals/ConfirmationModal'
 import { RejectReasonModal } from '../modals/RejectReasonModal'
@@ -31,6 +32,9 @@ import { useRejectReservation } from '../../hooks/useRejectReservation'
 import { useConfirmPickup } from '../../hooks/useConfirmPickup'
 import { useCancelReservation } from '../../hooks/useCancelReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
+import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
+import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
+import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
 
 interface RentadorViewProps {
   reservation: GetReservationResponse
@@ -56,6 +60,13 @@ export function RentadorView({ reservation }: RentadorViewProps) {
     reservation.status === RESERVATION_STATUS.confirmed ||
     reservation.status === RESERVATION_STATUS.in_progress
   const { data: unreadCount = 0 } = useUnreadCount(reservation.id, canChat)
+  const canReport =
+    reservation.status === RESERVATION_STATUS.in_progress ||
+    reservation.status === RESERVATION_STATUS.completed
+  const [reportarOpen, setReportarOpen] = useState(false)
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasRentadorTicket = reservationTickets?.some((t) => t.reportedBy === 'rentador') ?? false
 
   const photo = reservation.vehicle.photo
   const pendingExtension = getPendingExtension(reservation)
@@ -191,6 +202,11 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         </p>
       </div>
 
+      <ReservaPricingBreakdown
+        reservation={reservation}
+        totalLabel={t('rentador.reservas.detalle.total')}
+      />
+
       {reservation.paidAt && reservation.paymentMethod && (
         <div className="flex items-center justify-between text-sm">
           <p className="text-text-muted">
@@ -284,6 +300,28 @@ export function RentadorView({ reservation }: RentadorViewProps) {
           </div>
         </div>
       )}
+
+      {canReport && hasAnyTicket && (
+        <ReservaTicketInfo reservationId={reservation.id} myRole="rentador" />
+      )}
+
+      {canReport && !hasRentadorTicket && (
+        <button
+          type="button"
+          onClick={() => setReportarOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+        >
+          <WarningCircle className="h-4 w-4" weight="regular" />
+          {t('reservas.detail.actions.reportar')}
+        </button>
+      )}
+
+      <ReportarProblemaSheet
+        reservationId={reservation.id}
+        type="vehicle_issue"
+        open={reportarOpen}
+        onOpenChange={setReportarOpen}
+      />
     </div>
   )
 }

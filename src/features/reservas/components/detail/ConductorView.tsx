@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { X as PhosphorX } from '@phosphor-icons/react'
+import { X as PhosphorX, WarningCircle } from '@phosphor-icons/react'
 import {
   AlertOctagon,
   CalendarDays,
@@ -12,7 +12,6 @@ import {
   Clock,
   FileText,
   Inbox,
-  LifeBuoy,
   MessageSquare,
   QrCode,
   ShieldCheck,
@@ -30,6 +29,7 @@ import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
@@ -41,6 +41,7 @@ import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
 import { ExtendReservationModal } from './ExtendReservationModal'
+import { ReservaPricingBreakdown } from './ReservaPricingBreakdown'
 import { ReservaUbicacion } from './ReservaUbicacion'
 import { formatApprovalCountdown } from '../../utils/approval-countdown'
 import {
@@ -55,6 +56,9 @@ import {
   type EffectiveReservationRules,
 } from '../../utils/cancellation-policy'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
+import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
+import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
+import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -106,6 +110,11 @@ export function ConductorView({ reservation }: ConductorViewProps) {
    * — para cancelar después del pago debe contactar soporte).
    */
   const isPostPayment = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
+  const isCompleted = status === RESERVATION_STATUS.completed
+  const [reportarOpen, setReportarOpen] = useState(false)
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasConductorTicket = reservationTickets?.some((t) => t.reportedBy === 'conductor') ?? false
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -227,6 +236,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         <p className="text-xl font-bold text-brand-400">{fmt.currency(displayTotalCents)}</p>
       </div>
 
+      <ReservaPricingBreakdown reservation={reservation} />
+
       <CancellationPolicyCard reservation={reservation} />
 
       {canPay && (
@@ -256,6 +267,32 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {status === RESERVATION_STATUS.in_progress && (
         <ReturnAction reservationId={reservation.id} />
       )}
+
+      {isCompleted && (
+        <>
+          <Separator />
+          {hasAnyTicket && (
+            <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
+          )}
+          {!hasConductorTicket && (
+            <button
+              type="button"
+              onClick={() => setReportarOpen(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+            >
+              <WarningCircle className="h-4 w-4" weight="regular" />
+              {t('reservas.detail.actions.reportar')}
+            </button>
+          )}
+        </>
+      )}
+
+      <ReportarProblemaSheet
+        reservationId={reservation.id}
+        type="vehicle_issue"
+        open={reportarOpen}
+        onOpenChange={setReportarOpen}
+      />
     </div>
   )
 }
@@ -323,7 +360,11 @@ function PostPaymentActions({
 }) {
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [showExtendModal, setShowExtendModal] = useState(false)
+  const [reportarOpen, setReportarOpen] = useState(false)
   const cancelMutation = useCancelReservation()
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasConductorTicket = reservationTickets?.some((t) => t.reportedBy === 'conductor') ?? false
 
   const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
@@ -341,8 +382,8 @@ function PostPaymentActions({
           : t('reservas.detail.cancel.success'),
       )
       setShowCancelModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -384,14 +425,37 @@ function PostPaymentActions({
             </span>
           )}
         </Link>
-        <Link
-          to="/soporte"
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
-        >
-          <LifeBuoy className="h-4 w-4" />
-          {t('reservas.detail.actions.reportar')}
-        </Link>
+        {status === RESERVATION_STATUS.confirmed && (
+          <Link
+            to="/soporte"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+          >
+            <WarningCircle className="h-4 w-4" weight="regular" />
+            {t('reservas.detail.actions.reportar')}
+          </Link>
+        )}
+        {status === RESERVATION_STATUS.in_progress && !hasConductorTicket && (
+          <button
+            type="button"
+            onClick={() => setReportarOpen(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+          >
+            <WarningCircle className="h-4 w-4" weight="regular" />
+            {t('reservas.detail.actions.reportar')}
+          </button>
+        )}
       </div>
+
+      {status === RESERVATION_STATUS.in_progress && hasAnyTicket && (
+        <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
+      )}
+
+      <ReportarProblemaSheet
+        reservationId={reservation.id}
+        type="vehicle_issue"
+        open={reportarOpen}
+        onOpenChange={setReportarOpen}
+      />
 
       {showCancelModal && (
         <CancelConfirmModal
@@ -561,8 +625,8 @@ function PendingApprovalSection({ reservationId, holdExpiresAt }: PendingApprova
       await cancelMutation.mutateAsync(reservationId)
       toast.success(t('conductor.reservas.retirar.success'))
       setShowWithdrawModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -716,8 +780,8 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
           : t('reservas.detail.cancel.success'),
       )
       setShowCancelModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -772,7 +836,7 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
           to="/soporte"
           className="flex w-full items-center justify-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary py-2"
         >
-          <LifeBuoy className="h-4 w-4" />
+          <WarningCircle className="h-4 w-4" weight="regular" />
           {t('reservas.detail.actions.reportar')}
         </Link>
       </div>

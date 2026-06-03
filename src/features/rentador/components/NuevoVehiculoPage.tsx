@@ -10,9 +10,10 @@ import { Button } from '@/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/ui/dialog'
 import { Input } from '@/ui/input'
 import { t } from '@/i18n/es'
-import type { Characteristic, CreateVehicleRequest } from '@rocket-lease/contracts'
+import type { Characteristic, CreateVehicleRequest, PricingDiscountTier } from '@rocket-lease/contracts'
 import { ALL_CHARACTERISTICS, getCharacteristicLabel } from '@/features/vehiculos/utils/characteristics'
 import { LocationPicker } from './LocationPicker'
+import { DiscountTiersEditor, areDiscountTiersValid, normalizeDiscountTiers } from './DiscountTiersEditor'
 
 const steps = [
   t('nuevoVehiculo.step.datos'),
@@ -52,6 +53,7 @@ type VehicleFormData = {
   latitude: number | null
   longitude: number | null
   dailyPrice: string
+  discountTiers: PricingDiscountTier[]
   photos: Array<VehiclePhoto>
   characteristics: Characteristic[]
   autoAccept: boolean | null
@@ -76,6 +78,7 @@ const initialFormData: VehicleFormData = {
   latitude: null,
   longitude: null,
   dailyPrice: '',
+  discountTiers: [],
   photos: [],
   characteristics: [],
   autoAccept: null,
@@ -196,7 +199,7 @@ export function NuevoVehiculoPage() {
       formData.latitude !== null &&
       formData.longitude !== null,
   )
-  const canContinueFromPricing = Number(formData.dailyPrice) > 0
+  const canContinueFromPricing = Number(formData.dailyPrice) > 0 && areDiscountTiersValid(formData.discountTiers)
 
   const transmissionLabel = formData.transmission === 'Automatico'
     ? 'Automático'
@@ -275,6 +278,7 @@ export function NuevoVehiculoPage() {
         longitude: formData.longitude ?? 0,
         characteristics: formData.characteristics,
         autoAccept: formData.autoAccept,
+        discountTiers: normalizeDiscountTiers(formData.discountTiers),
       } as CreateVehicleRequest
 
       const created = await vehiclesApi.publishVehicle(payload)
@@ -560,6 +564,11 @@ export function NuevoVehiculoPage() {
               </p>
             </div>
 
+            <DiscountTiersEditor
+              value={formData.discountTiers}
+              onChange={(discountTiers) => handleFieldChange('discountTiers', discountTiers)}
+            />
+
             <div className="rounded-2xl border border-white/8 bg-surface-2 p-4">
               <label className="mb-1 block text-xs font-medium text-text-secondary uppercase tracking-wider">
                 {t('vehiculo.autoAccept.label')}
@@ -608,6 +617,12 @@ export function NuevoVehiculoPage() {
                 <p><span className="font-medium text-text-primary">Disponible desde:</span> {formData.availableFrom || '-'}</p>
                 <p><span className="font-medium text-text-primary">Ubicación:</span> {formData.address || '-'}</p>
                 <p><span className="font-medium text-text-primary">Precio por día:</span> {formData.dailyPrice || '-'} </p>
+                <p>
+                  <span className="font-medium text-text-primary">{t('vehiculo.discountTiers.title')}:</span>{' '}
+                  {formData.discountTiers.length > 0
+                    ? t('vehiculo.discountTiers.summary').replace('{count}', String(formData.discountTiers.length))
+                    : t('vehiculo.discountTiers.empty')}
+                </p>
                 <p><span className="font-medium text-text-primary">Fotos cargadas:</span> {formData.photos.length}</p>
               </div>
             </div>

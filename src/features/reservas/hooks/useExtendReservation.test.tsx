@@ -40,6 +40,17 @@ describe('useExtendReservation', () => {
       holdExpiresAt: HOLD,
       totalCents: 50000,
       currency: 'ARS',
+      pricingSnapshot: {
+        vehicleId: '33333333-3333-3333-3333-333333333333',
+        currency: 'ARS',
+        basePriceCents: 10000,
+        durationDays: 5,
+        subtotalCents: 50000,
+        appliedDiscountTier: null,
+        appliedDiscountPercentage: 0,
+        discountCents: 0,
+        totalCents: 50000,
+      },
       requiresApproval: false,
     })
 
@@ -68,6 +79,17 @@ describe('useExtendReservation', () => {
       holdExpiresAt: HOLD,
       totalCents: 50000,
       currency: 'ARS',
+      pricingSnapshot: {
+        vehicleId: '33333333-3333-3333-3333-333333333333',
+        currency: 'ARS',
+        basePriceCents: 10000,
+        durationDays: 5,
+        subtotalCents: 50000,
+        appliedDiscountTier: null,
+        appliedDiscountPercentage: 0,
+        discountCents: 0,
+        totalCents: 50000,
+      },
       requiresApproval: true,
     })
 

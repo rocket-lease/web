@@ -7,6 +7,7 @@ import { Slider } from '@/ui/slider'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { Pencil } from '@phosphor-icons/react'
 
 export function DatosPerfilPage() {
@@ -53,8 +54,8 @@ export function DatosPerfilPage() {
       await uploadAvatar(selectedAvatarFile)
       setSelectedAvatarFile(null)
       toast.success(t('perfil.saveSuccess'))
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -74,8 +75,8 @@ export function DatosPerfilPage() {
     try {
       await updateProfile(payload)
       toast.success(t('perfil.saveSuccess'))
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 

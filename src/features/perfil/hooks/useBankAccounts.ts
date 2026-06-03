@@ -6,6 +6,7 @@ import type {
 } from '@rocket-lease/contracts'
 import { bankAccountsApi } from '@/features/perfil/api/bankAccounts.api'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const myBankAccountsKey = ['bankAccounts', 'mine'] as const
 
@@ -25,8 +26,8 @@ export function useCreateBankAccount() {
       qc.invalidateQueries({ queryKey: myBankAccountsKey })
       toast.success(t('bankAccount.addSuccess'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 }
@@ -39,8 +40,8 @@ export function useDeleteBankAccount() {
       qc.invalidateQueries({ queryKey: myBankAccountsKey })
       toast.success(t('bankAccount.deleteSuccess'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 }

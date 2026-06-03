@@ -20,12 +20,12 @@ import {
   formatMaxKilometrage,
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
+import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
 import { usePaymentMethods } from '@/features/payment-methods/hooks/usePaymentMethods'
 import { useInitiateTransfer } from '../hooks/useInitiateTransfer'
-import { estimateReservationTotalCents } from '../utils/pricing'
 import { formatRentalDays, getRentalDurationViolation } from '../utils/rental-duration'
 import { useCurrentTime } from '@/hooks/useCurrentTime'
 import { HoldCountdown } from './HoldCountdown'
@@ -426,32 +426,12 @@ export function ReservarVehiculoPage() {
 
   const withHomeDelivery = !!(vehicle?.homeDeliveryEnabled && deliveryUseCustom)
   const withHomeReturn = !!(vehicle?.homeReturnEnabled && returnUseCustom)
-
-  const estimatedTotal = useMemo(() => {
-    if (!vehicle || !startAtLocal || !endAtLocal) return 0
-    const startAt = new Date(startAtLocal)
-    const endAt = new Date(endAtLocal)
-    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
-      return 0
-    }
-    const deliveryFee = withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : null
-    const returnFee = withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : null
-    return estimateReservationTotalCents(vehicle.basePriceCents, startAt, endAt, deliveryFee, returnFee)
-  }, [vehicle, startAtLocal, endAtLocal, withHomeDelivery, withHomeReturn])
-
   // US-26: opción de pagar seña. Solo se ofrece si el rentador la habilitó
   // (depositPercentage en el set del vehículo) y el retiro es lo bastante
   // futuro como para que la fecha límite del saldo (piso de 1h en el backend)
   // quede antes del retiro. Con un margen de 2h alcanza.
   const depositPercentage = vehicle?.reservationRuleSet?.depositPercentage ?? null
-  const payableTotal = createReservation.data?.totalCents ?? estimatedTotal
-  const depositCents =
-    depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
   const now = useCurrentTime()
-  const startFarEnough =
-    !!startAtLocal &&
-    new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
-  const depositAvailable = depositPercentage !== null && startFarEnough
 
   const rentalDurationViolation = useMemo(() => {
     return getRentalDurationViolation(
@@ -476,6 +456,23 @@ export function ReservarVehiculoPage() {
       return s < re && e > rs
     })
   }, [validRange, startAtLocal, endAtLocal, busyRanges])
+
+  const pricingQuoteQuery = usePricingQuote({
+    vehicleId,
+    startAt: startAtLocal,
+    endAt: endAtLocal,
+    enabled: !!vehicle && validRange && !overlapsBusy && !rentalDurationViolation,
+  })
+
+  const payableTotal =
+    createReservation.data?.totalCents ?? pricingQuoteQuery.totalCents
+  const depositCents =
+    depositPercentage !== null ? Math.floor((payableTotal * depositPercentage) / 100) : 0
+  const startFarEnough =
+    !!startAtLocal &&
+    new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
+  const depositAvailable = depositPercentage !== null && startFarEnough
+  const pricingQuote = pricingQuoteQuery.pricingQuote
 
   const canContinueToContract =
     validRange &&
@@ -853,39 +850,44 @@ export function ReservarVehiculoPage() {
             )}
 
             <Separator />
-            {vehicle && (withHomeDelivery || withHomeReturn) ? (
+            {pricingQuote ? (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-text-muted">{t('reservar.breakdown.baseRent')}</span>
-                  <span className="text-xs text-text-muted">
-                    {fmt.currency(
-                      estimatedTotal -
-                        (withHomeDelivery ? (vehicle.homeDeliveryFeeCents ?? 0) : 0) -
-                        (withHomeReturn ? (vehicle.homeReturnFeeCents ?? 0) : 0),
-                    )}
-                  </span>
+                  <span className="text-xs text-text-muted">{t('reservar.breakdown.subtotal')}</span>
+                  <span className="text-xs text-text-muted">{fmt.currency(pricingQuote.subtotalCents)}</span>
                 </div>
-                {withHomeDelivery && (vehicle.homeDeliveryFeeCents ?? 0) > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeDeliveryFee')}</span>
-                    <span className="text-xs text-text-muted">{fmt.currency(vehicle.homeDeliveryFeeCents ?? 0)}</span>
+                {pricingQuote.appliedDiscountTier && (
+                  <div className="flex items-center justify-between text-brand-400">
+                    <span className="text-xs">
+                      {t('reservar.breakdown.discount')}{' '}
+                      {t('reservar.breakdown.appliedTier')
+                        .replace('{days}', String(pricingQuote.appliedDiscountTier.minimumDays))
+                        .replace('{percentage}', String(pricingQuote.appliedDiscountTier.discountPercentage))}
+                    </span>
+                    <span className="text-xs">-{fmt.currency(pricingQuote.discountCents)}</span>
                   </div>
                 )}
-                {withHomeReturn && (vehicle.homeReturnFeeCents ?? 0) > 0 && (
+                {withHomeDelivery && (vehicle?.homeDeliveryFeeCents ?? 0) > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-text-muted">{t('reservar.breakdown.homeDeliveryFee')}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle!.homeDeliveryFeeCents ?? 0)}</span>
+                  </div>
+                )}
+                {withHomeReturn && (vehicle?.homeReturnFeeCents ?? 0) > 0 && (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-text-muted">{t('reservar.breakdown.homeReturnFee')}</span>
-                    <span className="text-xs text-text-muted">{fmt.currency(vehicle.homeReturnFeeCents ?? 0)}</span>
+                    <span className="text-xs text-text-muted">{fmt.currency(vehicle!.homeReturnFeeCents ?? 0)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between pt-1 border-t border-white/8">
                   <span className="text-sm text-text-muted">{t('reservar.total')}</span>
-                  <span className="text-base font-semibold text-text-primary">{fmt.currency(estimatedTotal)}</span>
+                  <span className="text-base font-semibold text-text-primary">{fmt.currency(payableTotal)}</span>
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-text-muted">{t('reservar.total')}</span>
-                <span className="text-base font-semibold text-text-primary">{fmt.currency(estimatedTotal)}</span>
+                <span className="text-base font-semibold text-text-primary">{fmt.currency(payableTotal)}</span>
               </div>
             )}
             <Button
