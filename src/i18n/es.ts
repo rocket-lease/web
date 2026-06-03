@@ -1249,6 +1249,14 @@ export const es = {  // --- App ---
   'tickets.status.under_review': 'En revisión',
   'tickets.status.resolved': 'Resuelto',
   'tickets.status.rejected': 'Rechazado',
+  'tickets.reserva.tuReporte': 'Tu reporte',
+  'tickets.reserva.reporteContraparte': 'Reporte de la contraparte',
+  'tickets.contra.title': 'Reportados contra mí',
+  'tickets.contra.empty': 'No tenés reportes en contra.',
+  'perfil.reportes.title': 'Mis incidentes',
+  'perfil.reportes.row': 'Incidentes',
+  'perfil.reportes.tabMios': 'Generados por mí',
+  'perfil.reportes.tabContra': 'Contra mí',
 } as const
 
 export type I18nKey = keyof typeof es

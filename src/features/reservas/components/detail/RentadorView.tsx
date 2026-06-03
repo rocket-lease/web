@@ -33,6 +33,8 @@ import { useConfirmPickup } from '../../hooks/useConfirmPickup'
 import { useCancelReservation } from '../../hooks/useCancelReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
+import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
+import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
 
 interface RentadorViewProps {
   reservation: GetReservationResponse
@@ -62,6 +64,8 @@ export function RentadorView({ reservation }: RentadorViewProps) {
     reservation.status === RESERVATION_STATUS.in_progress ||
     reservation.status === RESERVATION_STATUS.completed
   const [reportarOpen, setReportarOpen] = useState(false)
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasRentadorTicket = reservationTickets?.some((tk) => tk.reportedBy === 'rentador') ?? false
 
   const photo = reservation.vehicle.photo
   const pendingExtension = getPendingExtension(reservation)
@@ -297,6 +301,10 @@ export function RentadorView({ reservation }: RentadorViewProps) {
       )}
 
       {canReport && (
+        <ReservaTicketInfo reservationId={reservation.id} myRole="rentador" />
+      )}
+
+      {canReport && !hasRentadorTicket && (
         <button
           type="button"
           onClick={() => setReportarOpen(true)}

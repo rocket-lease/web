@@ -56,6 +56,8 @@ import {
 } from '../../utils/cancellation-policy'
 import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
+import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
+import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -109,6 +111,8 @@ export function ConductorView({ reservation }: ConductorViewProps) {
   const isPostPayment = status === RESERVATION_STATUS.confirmed || status === RESERVATION_STATUS.in_progress
   const isCompleted = status === RESERVATION_STATUS.completed
   const [reportarOpen, setReportarOpen] = useState(false)
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasConductorTicket = reservationTickets?.some((tk) => tk.reportedBy === 'conductor') ?? false
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -265,14 +269,17 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {isCompleted && (
         <>
           <Separator />
-          <button
-            type="button"
-            onClick={() => setReportarOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
-          >
-            <WarningCircle className="h-4 w-4" weight="regular" />
-            {t('reservas.detail.actions.reportar')}
-          </button>
+          <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
+          {!hasConductorTicket && (
+            <button
+              type="button"
+              onClick={() => setReportarOpen(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+            >
+              <WarningCircle className="h-4 w-4" weight="regular" />
+              {t('reservas.detail.actions.reportar')}
+            </button>
+          )}
         </>
       )}
 
@@ -351,6 +358,8 @@ function PostPaymentActions({
   const [showExtendModal, setShowExtendModal] = useState(false)
   const [reportarOpen, setReportarOpen] = useState(false)
   const cancelMutation = useCancelReservation()
+  const { data: reservationTickets } = useReservationTickets(reservation.id)
+  const hasConductorTicket = reservationTickets?.some((tk) => tk.reportedBy === 'conductor') ?? false
 
   const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
@@ -420,7 +429,7 @@ function PostPaymentActions({
             {t('reservas.detail.actions.reportar')}
           </Link>
         )}
-        {status === RESERVATION_STATUS.in_progress && (
+        {status === RESERVATION_STATUS.in_progress && !hasConductorTicket && (
           <button
             type="button"
             onClick={() => setReportarOpen(true)}
@@ -431,6 +440,10 @@ function PostPaymentActions({
           </button>
         )}
       </div>
+
+      {status === RESERVATION_STATUS.in_progress && (
+        <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
+      )}
 
       <ReportarProblemaSheet
         reservationId={reservation.id}

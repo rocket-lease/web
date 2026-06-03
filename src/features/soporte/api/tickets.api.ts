@@ -1,9 +1,13 @@
 import {
   GetMyTicketsResponseSchema,
+  GetReservationTicketsResponseSchema,
+  GetTicketsAgainstMeResponseSchema,
   TicketResponseSchema,
   UploadSignResponseSchema,
   type CreateTicketRequest,
   type GetMyTicketsResponse,
+  type GetReservationTicketsResponse,
+  type GetTicketsAgainstMeResponse,
   type TicketResponse,
 } from '@rocket-lease/contracts'
 import { apiClient } from '@/lib/api-client'
@@ -15,6 +19,16 @@ export const ticketsApi = {
 
   async getMine(): Promise<GetMyTicketsResponse> {
     return GetMyTicketsResponseSchema.parse(await apiClient.get('/tickets/mine'))
+  },
+
+  async getAgainstMe(): Promise<GetTicketsAgainstMeResponse> {
+    return GetTicketsAgainstMeResponseSchema.parse(await apiClient.get('/tickets/against-me'))
+  },
+
+  async getByReservation(reservationId: string): Promise<GetReservationTicketsResponse> {
+    return GetReservationTicketsResponseSchema.parse(
+      await apiClient.get(`/tickets/reservation/${reservationId}`),
+    )
   },
 
   async uploadPhoto(file: File): Promise<string> {
