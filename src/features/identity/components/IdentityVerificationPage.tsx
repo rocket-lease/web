@@ -14,6 +14,7 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { useMyIdentityVerification } from '../hooks/useMyIdentityVerification'
 
 type SelectedDocument = {
@@ -62,8 +63,8 @@ export function IdentityVerificationPage() {
 
       toast.success(t('identidad.toast.submitted'))
       await refetch()
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 

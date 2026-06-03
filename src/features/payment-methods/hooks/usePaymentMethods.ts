@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { paymentMethodsApi } from '../api/payment-methods.api'
 import type { CreateSavedPaymentMethod, UpdateSavedPaymentMethod } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const QUERY_KEY = ['payment-methods']
 
@@ -20,8 +21,8 @@ export function usePaymentMethods() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast.success(t('paymentMethods.createSuccess'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 
@@ -32,8 +33,8 @@ export function usePaymentMethods() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast.success(t('paymentMethods.updateSuccess'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 
@@ -43,8 +44,8 @@ export function usePaymentMethods() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })
       toast.success(t('paymentMethods.deleteSuccess'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 

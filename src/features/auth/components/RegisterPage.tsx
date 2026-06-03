@@ -8,6 +8,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
 
 function formatDni(value: string): string {
@@ -68,7 +69,7 @@ export function RegisterPage() {
       } else if (problem?.code === ErrorCodes.ENTITY_ALREADY_EXISTS) {
         toast.error(t('auth.register.emailTaken'))
       } else {
-        toast.error(t('error.default'))
+        toast.error(getErrorMessage(err))
       }
     }
   }

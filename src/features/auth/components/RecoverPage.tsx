@@ -10,6 +10,7 @@ import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { supabase } from '@/lib/supabase'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const passwordRule = z
   .string()
@@ -109,8 +110,8 @@ function RequestScreen({ onSent }: { onSent: () => void }) {
     try {
       await authApi.resetPassword(data.email)
       onSent()
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -197,8 +198,8 @@ function NewPasswordScreen({ onSuccess }: { onSuccess: () => void }) {
       await authApi.updatePassword(data.password)
       toast.success(t('auth.recover.newSuccess'))
       onSuccess()
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 

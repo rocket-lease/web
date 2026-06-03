@@ -10,6 +10,7 @@ import type {
   VerificationStatusResponse,
 } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const RESEND_COOLDOWN_SECONDS = 30
 
@@ -65,8 +66,8 @@ export function VerificarPage() {
         } else {
           setIdentifier(maskPhone(sessionPhone))
         }
-      } catch {
-        toast.error(t('error.default'))
+      } catch (err) {
+        toast.error(getErrorMessage(err))
       } finally {
         setLoading(false)
       }
@@ -221,8 +222,8 @@ function ChannelCard({
       setCode('')
       setFailCount(0)
       toast.success(t('auth.verify.sent'))
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     } finally {
       setResending(false)
     }

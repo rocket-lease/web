@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/ui/confirm-dialog'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { fmt } from '@/lib/formatters'
 import { t, type I18nKey } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { photosApi } from '@/features/photos/api/photos.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { SectionCard } from './EditarVehiculo/SectionCard'
@@ -91,7 +92,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       toast.success(t('editVehiculo.deleteSuccess'))
       navigate({ to: '/mis-vehiculos' })
     },
-    onError: () => toast.error(t('error.default')),
+    onError: (err) => toast.error(getErrorMessage(err)),
   })
 
   if (vehicleQuery.isLoading) {
