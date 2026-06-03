@@ -112,7 +112,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
   const isCompleted = status === RESERVATION_STATUS.completed
   const [reportarOpen, setReportarOpen] = useState(false)
   const { data: reservationTickets } = useReservationTickets(reservation.id)
-  const hasConductorTicket = reservationTickets?.some((tk) => tk.reportedBy === 'conductor') ?? false
+  const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -269,8 +269,10 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {isCompleted && (
         <>
           <Separator />
-          <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
-          {!hasConductorTicket && (
+          {hasAnyTicket && (
+            <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
+          )}
+          {!hasAnyTicket && (
             <button
               type="button"
               onClick={() => setReportarOpen(true)}
@@ -359,7 +361,7 @@ function PostPaymentActions({
   const [reportarOpen, setReportarOpen] = useState(false)
   const cancelMutation = useCancelReservation()
   const { data: reservationTickets } = useReservationTickets(reservation.id)
-  const hasConductorTicket = reservationTickets?.some((tk) => tk.reportedBy === 'conductor') ?? false
+  const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
 
   const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
@@ -429,7 +431,7 @@ function PostPaymentActions({
             {t('reservas.detail.actions.reportar')}
           </Link>
         )}
-        {status === RESERVATION_STATUS.in_progress && !hasConductorTicket && (
+        {status === RESERVATION_STATUS.in_progress && !hasAnyTicket && (
           <button
             type="button"
             onClick={() => setReportarOpen(true)}
@@ -441,7 +443,7 @@ function PostPaymentActions({
         )}
       </div>
 
-      {status === RESERVATION_STATUS.in_progress && (
+      {status === RESERVATION_STATUS.in_progress && hasAnyTicket && (
         <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
       )}
 
