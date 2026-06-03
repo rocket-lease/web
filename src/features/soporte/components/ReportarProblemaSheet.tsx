@@ -64,7 +64,7 @@ export function ReportarProblemaSheet({
   async function handleSubmit() {
     if (!description.trim() || isBusy) return
     setUploading(true)
-    let photoUrls: string[] = []
+    let photoUrls: string[]
     try {
       photoUrls = await Promise.all(photoFiles.map((f) => ticketsApi.uploadPhoto(f)))
     } catch {
