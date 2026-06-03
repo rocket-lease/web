@@ -19,7 +19,7 @@ import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection } from './OwnerReviewsSection'
 import { t, type I18nKey } from '@/i18n/es'
-import { Bell, Bank, Coins, Tag, Trophy, Headset } from '@phosphor-icons/react'
+import { Bell, Bank, Coins, Tag, Trophy, Headset, WarningCircle } from '@phosphor-icons/react'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 
 
@@ -212,6 +212,16 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           >
             <Settings className="h-5 w-5 shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('configuracion.title')}</span>
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/perfil/reportes' })}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
+          >
+            <WarningCircle size={20} className="shrink-0 text-text-secondary" />
+            <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.reportes.row')}</span>
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
 
