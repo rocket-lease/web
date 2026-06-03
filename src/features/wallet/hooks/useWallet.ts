@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import type { WithdrawRequest } from '@rocket-lease/contracts'
 import { walletApi } from '@/features/wallet/api/wallet.api'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const walletBalanceKey = ['wallet', 'balance'] as const
 const walletTransactionsKey = ['wallet', 'transactions'] as const
@@ -33,8 +34,8 @@ export function useWithdrawWalletBalance() {
       void queryClient.invalidateQueries({ queryKey: walletTransactionsKey })
       toast.success(t('wallet.withdraw.success'))
     },
-    onError: () => {
-      toast.error(t('error.default'))
+    onError: (err) => {
+      toast.error(getErrorMessage(err))
     },
   })
 }

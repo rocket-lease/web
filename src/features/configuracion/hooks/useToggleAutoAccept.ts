@@ -4,6 +4,7 @@ import { profileApi } from '@/features/perfil/api/profile.api'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { GetMyProfileResponse } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 
 const profileQueryKey = ['profile', 'me'] as const
 
@@ -70,7 +71,7 @@ export function useToggleAutoAccept() {
         : t('configuracion.autoAccept.toast.off'),
     )
     mutation.mutate(next, {
-      onError: () => toast.error(t('error.default')),
+      onError: (err) => toast.error(getErrorMessage(err)),
     })
   }
 

@@ -6,6 +6,7 @@ import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
 
 const CONFIRM_WORD = 'ELIMINAR'
@@ -47,7 +48,7 @@ export function DeleteAccountDialog({ open, onClose }: Props) {
       } else if (problem?.code === ErrorCodes.USER_HAS_VEHICLES) {
         toast.error(t('perfil.deleteAccount.hasVehicles'), { duration: 6000 })
       } else {
-        toast.error(t('error.default'))
+        toast.error(getErrorMessage(err))
       }
     } finally {
       setSubmitting(false)

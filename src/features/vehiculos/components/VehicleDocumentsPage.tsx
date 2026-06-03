@@ -14,6 +14,7 @@ import { Badge } from '@/ui/badge'
 import { Button } from '@/ui/button'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { useVehicleDocuments } from '../hooks/useVehicleDocuments'
 
 interface VehicleDocumentsPageProps {
@@ -68,8 +69,8 @@ export function VehicleDocumentsPage({ vehicleId }: VehicleDocumentsPageProps) {
 
       toast.success(t('documentosVehiculo.toast.submitted'))
       await refetch()
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 

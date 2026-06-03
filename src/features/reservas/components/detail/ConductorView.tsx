@@ -30,6 +30,7 @@ import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
+import { getErrorMessage } from '@/lib/error-mapper'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
@@ -344,8 +345,8 @@ function PostPaymentActions({
           : t('reservas.detail.cancel.success'),
       )
       setShowCancelModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -564,8 +565,8 @@ function PendingApprovalSection({ reservationId, holdExpiresAt }: PendingApprova
       await cancelMutation.mutateAsync(reservationId)
       toast.success(t('conductor.reservas.retirar.success'))
       setShowWithdrawModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
@@ -719,8 +720,8 @@ function PendingPaymentSection({ reservation, holdExpiresAt }: PendingPaymentSec
           : t('reservas.detail.cancel.success'),
       )
       setShowCancelModal(false)
-    } catch {
-      toast.error(t('error.default'))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
     }
   }
 
