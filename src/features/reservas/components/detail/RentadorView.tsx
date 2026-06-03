@@ -66,6 +66,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
   const [reportarOpen, setReportarOpen] = useState(false)
   const { data: reservationTickets } = useReservationTickets(reservation.id)
   const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasRentadorTicket = reservationTickets?.some((t) => t.reportedBy === 'rentador') ?? false
 
   const photo = reservation.vehicle.photo
   const pendingExtension = getPendingExtension(reservation)
@@ -304,7 +305,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         <ReservaTicketInfo reservationId={reservation.id} myRole="rentador" />
       )}
 
-      {canReport && !hasAnyTicket && (
+      {canReport && !hasRentadorTicket && (
         <button
           type="button"
           onClick={() => setReportarOpen(true)}

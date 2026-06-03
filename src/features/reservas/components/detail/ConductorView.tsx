@@ -113,6 +113,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
   const [reportarOpen, setReportarOpen] = useState(false)
   const { data: reservationTickets } = useReservationTickets(reservation.id)
   const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasConductorTicket = reservationTickets?.some((t) => t.reportedBy === 'conductor') ?? false
 
   return (
     <div className="px-4 py-5 space-y-5">
@@ -272,7 +273,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
           {hasAnyTicket && (
             <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
           )}
-          {!hasAnyTicket && (
+          {!hasConductorTicket && (
             <button
               type="button"
               onClick={() => setReportarOpen(true)}
@@ -362,6 +363,7 @@ function PostPaymentActions({
   const cancelMutation = useCancelReservation()
   const { data: reservationTickets } = useReservationTickets(reservation.id)
   const hasAnyTicket = (reservationTickets?.length ?? 0) > 0
+  const hasConductorTicket = reservationTickets?.some((t) => t.reportedBy === 'conductor') ?? false
 
   const canCancel = status === RESERVATION_STATUS.confirmed && !reservation.parentReservationId
   const canExtend = status === RESERVATION_STATUS.in_progress
@@ -431,7 +433,7 @@ function PostPaymentActions({
             {t('reservas.detail.actions.reportar')}
           </Link>
         )}
-        {status === RESERVATION_STATUS.in_progress && !hasAnyTicket && (
+        {status === RESERVATION_STATUS.in_progress && !hasConductorTicket && (
           <button
             type="button"
             onClick={() => setReportarOpen(true)}
