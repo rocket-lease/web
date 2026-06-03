@@ -52,6 +52,7 @@ describe('useExtendReservation', () => {
         totalCents: 50000,
       },
       requiresApproval: false,
+      pricingSnapshot: { vehicleId: PARENT_ID, currency: 'ARS' as const, basePriceCents: 25000, durationDays: 2, subtotalCents: 50000, appliedDiscountTier: null, appliedDiscountPercentage: 0, discountCents: 0, totalCents: 50000 },
     })
 
     const { wrapper } = createWrapper()
@@ -91,6 +92,7 @@ describe('useExtendReservation', () => {
         totalCents: 50000,
       },
       requiresApproval: true,
+      pricingSnapshot: { vehicleId: PARENT_ID, currency: 'ARS' as const, basePriceCents: 25000, durationDays: 2, subtotalCents: 50000, appliedDiscountTier: null, appliedDiscountPercentage: 0, discountCents: 0, totalCents: 50000 },
     })
 
     const { queryClient, wrapper } = createWrapper()
