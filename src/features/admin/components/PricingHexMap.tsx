@@ -89,6 +89,8 @@ export function PricingHexMap({ zones, onHexClick, selectedH3Cell }: PricingHexM
       style={{ width: '100%', height: '100%' }}
       interactiveLayerIds={[HEX_FILL_LAYER_ID]}
       onClick={handleClick}
+      touchZoomRotate
+      dragRotate={false}
     >
       <Source id="pricing-hex" type="geojson" data={geojson}>
         <Layer
