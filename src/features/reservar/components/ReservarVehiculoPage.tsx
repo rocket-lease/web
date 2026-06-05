@@ -21,6 +21,7 @@ import {
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
+import { ErrorCodes } from '@rocket-lease/contracts'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
@@ -378,6 +379,10 @@ function isProblemDetails(value: unknown): value is ProblemDetails {
   )
 }
 
+function isQuoteExpired(err: unknown): boolean {
+  return isProblemDetails(err) && err.code === ErrorCodes.PRICE_QUOTE_EXPIRED
+}
+
 function errorMessageFor(err: unknown): string {
   if (isProblemDetails(err)) {
     const key = `reservar.errors.${err.code}` as I18nKey
@@ -461,6 +466,8 @@ export function ReservarVehiculoPage() {
     vehicleId,
     startAt: startAtLocal,
     endAt: endAtLocal,
+    withHomeDelivery,
+    withHomeReturn,
     enabled: !!vehicle && validRange && !overlapsBusy && !rentalDurationViolation,
   })
 
@@ -524,8 +531,8 @@ export function ReservarVehiculoPage() {
       setStep('pago')
       return
     }
-    try {
-      const created = await createReservation.mutateAsync({
+    const tryCreate = (quoteToken?: string) =>
+      createReservation.mutateAsync({
         vehicleId: vehicle!.id,
         startAt: toIsoUtc(startAtLocal),
         endAt: toIsoUtc(endAtLocal),
@@ -534,7 +541,20 @@ export function ReservarVehiculoPage() {
         deliveryAddress: withHomeDelivery && deliveryCustomAddress ? deliveryCustomAddress : undefined,
         withHomeReturn,
         returnAddress: withHomeReturn && returnCustomAddress ? returnCustomAddress : undefined,
+        quoteToken,
       })
+    try {
+      let created
+      try {
+        created = await tryCreate(pricingQuote?.quoteToken)
+      } catch (err) {
+        if (isQuoteExpired(err)) {
+          const refreshed = await pricingQuoteQuery.refetch()
+          created = await tryCreate(refreshed.data?.quoteToken)
+        } else {
+          throw err
+        }
+      }
       if (created.status === 'pending_approval') {
         navigate({ to: '/reservas/$id', params: { id: created.id } })
         return

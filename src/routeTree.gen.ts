@@ -46,6 +46,7 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppHistorialResenasRouteImport } from './routes/_app/historial_.resenas'
+import { Route as AppAdminPricingRouteImport } from './routes/_app/admin.pricing'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas_.$id_.pago'
 import { Route as AppReservasIdChatRouteImport } from './routes/_app/reservas_.$id_.chat'
@@ -236,6 +237,11 @@ const AppHistorialResenasRoute = AppHistorialResenasRouteImport.update({
   path: '/historial/resenas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminPricingRoute = AppAdminPricingRouteImport.update({
+  id: '/admin/pricing',
+  path: '/admin/pricing',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppVehiculosIdReservarRoute = AppVehiculosIdReservarRouteImport.update({
   id: '/vehiculos/$id_/reservar',
   path: '/vehiculos/$id/reservar',
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -364,6 +372,7 @@ export interface FileRoutesById {
   '/_app/reservas': typeof AppReservasRoute
   '/_app/saldo': typeof AppSaldoRoute
   '/_app/soporte': typeof AppSoporteRoute
+  '/_app/admin/pricing': typeof AppAdminPricingRoute
   '/_app/historial_/resenas': typeof AppHistorialResenasRoute
   '/_app/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/_app/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -493,6 +504,7 @@ export interface FileRouteTypes {
     | '/_app/reservas'
     | '/_app/saldo'
     | '/_app/soporte'
+    | '/_app/admin/pricing'
     | '/_app/historial_/resenas'
     | '/_app/mis-vehiculos/$id'
     | '/_app/mis-vehiculos/nuevo'
@@ -788,6 +800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHistorialResenasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/pricing': {
+      id: '/_app/admin/pricing'
+      path: '/admin/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AppAdminPricingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/vehiculos/$id_/reservar': {
       id: '/_app/vehiculos/$id_/reservar'
       path: '/vehiculos/$id/reservar'
@@ -850,6 +869,7 @@ interface AppRouteChildren {
   AppReservasRoute: typeof AppReservasRoute
   AppSaldoRoute: typeof AppSaldoRoute
   AppSoporteRoute: typeof AppSoporteRoute
+  AppAdminPricingRoute: typeof AppAdminPricingRoute
   AppHistorialResenasRoute: typeof AppHistorialResenasRoute
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCreditosRoute: typeof AppPerfilCreditosRoute
@@ -883,6 +903,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasRoute: AppReservasRoute,
   AppSaldoRoute: AppSaldoRoute,
   AppSoporteRoute: AppSoporteRoute,
+  AppAdminPricingRoute: AppAdminPricingRoute,
   AppHistorialResenasRoute: AppHistorialResenasRoute,
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCreditosRoute: AppPerfilCreditosRoute,

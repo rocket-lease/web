@@ -1299,6 +1299,28 @@ export const es = {  // --- App ---
   'perfil.reportes.row': 'Incidentes',
   'perfil.reportes.tabMios': 'Generados por mí',
   'perfil.reportes.tabContra': 'Contra mí',
+
+  // --- Precios dinámicos (rentador) ---
+  'rentador.vehiculo.dynamicPricing.label': 'Precios dinámicos',
+  'rentador.vehiculo.dynamicPricing.tooltip':
+    'Los precios se ajustan automáticamente según la demanda de tu zona y de tu vehículo, dentro de un rango de 70-200% del precio base.',
+  'rentador.vehiculo.dynamicPricing.activo': 'Precios dinámicos activos',
+
+  // --- Admin: mapa de precios dinámicos ---
+  'admin.pricing.titulo': 'Mapa de precios dinámicos',
+  'admin.pricing.subtitulo': 'Oferta, demanda y multiplier promedio por zona.',
+  'admin.pricing.cargando': 'Cargando zonas...',
+  'admin.pricing.errorCarga': 'No pudimos cargar las zonas. Intentá de nuevo.',
+  'admin.pricing.sinZonas': 'Todavía no hay actividad para mostrar.',
+  'admin.pricing.demanda': 'Demanda (últimos 7 días)',
+  'admin.pricing.oferta': 'Oferta',
+  'admin.pricing.multiplierPromedio': 'Multiplier promedio',
+  'admin.pricing.sinDatos': 'Sin actividad en esta zona',
+  'admin.pricing.drawer.title': 'Detalle de la zona',
+  'admin.pricing.drawer.cell': 'Celda H3',
+  'admin.pricing.drawer.ratio': 'Demanda / Oferta',
+  'admin.pricing.drawer.topVehiculos': 'Vehículos de muestra',
+  'admin.pricing.drawer.close': 'Cerrar',
 } as const
 
 export type I18nKey = keyof typeof es

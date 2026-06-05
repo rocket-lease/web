@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Info } from 'lucide-react'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { Input } from '@/ui/input'
 import { Switch } from '@/ui/switch'
@@ -38,6 +39,7 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
   const [enabled, setEnabled] = useState(Boolean(vehicle.enabled))
   const [basePrice, setBasePrice] = useState(String((vehicle.basePriceCents ?? 0) / 100))
   const [autoAccept, setAutoAccept] = useState<boolean | null>(vehicle.autoAccept ?? null)
+  const [dynamicPricingEnabled, setDynamicPricingEnabled] = useState(Boolean(vehicle.dynamicPricingEnabled))
 
   useEffect(() => {
     if (open) {
@@ -45,6 +47,7 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
       setEnabled(Boolean(vehicle.enabled))
       setBasePrice(String((vehicle.basePriceCents ?? 0) / 100))
       setAutoAccept(vehicle.autoAccept ?? null)
+      setDynamicPricingEnabled(Boolean(vehicle.dynamicPricingEnabled))
     }
   }, [open, vehicle])
 
@@ -71,6 +74,7 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
           enabled,
           basePriceCents: Math.round(price * 100),
           autoAccept,
+          dynamicPricingEnabled,
         })
       }
     >
@@ -121,6 +125,24 @@ export function DisponibilidadSheet({ open, onOpenChange, vehicle }: Disponibili
             {fmt.currency(Math.round(price * 100))} / día
           </p>
         )}
+      </div>
+
+      <div className="flex items-start justify-between gap-3 rounded-xl border border-white/8 bg-surface-2 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-text-primary">
+            {t('rentador.vehiculo.dynamicPricing.label')}
+          </p>
+          <p className="mt-1 flex items-start gap-1.5 text-xs text-text-muted">
+            <Info className="mt-px h-3.5 w-3.5 shrink-0 text-text-muted" />
+            <span>{t('rentador.vehiculo.dynamicPricing.tooltip')}</span>
+          </p>
+        </div>
+        <Switch
+          checked={dynamicPricingEnabled}
+          onCheckedChange={setDynamicPricingEnabled}
+          disabled={mutation.isPending}
+          aria-label={t('rentador.vehiculo.dynamicPricing.label')}
+        />
       </div>
 
       <div className="space-y-2">

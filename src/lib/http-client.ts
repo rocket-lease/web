@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getSessionId } from './session-id'
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000'
 const TOKEN_KEY = 'rocket_lease:access_token'
@@ -8,6 +9,10 @@ async function authHeaders(): Promise<Record<string, string>> {
   const token = session?.access_token ?? localStorage.getItem(TOKEN_KEY)
   if (!token) return {}
   return { Authorization: `Bearer ${token}` }
+}
+
+function sessionHeader(): Record<string, string> {
+  return { 'x-session-id': getSessionId() }
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -24,6 +29,7 @@ async function doFetch(path: string, init?: RequestInit): Promise<Response> {
     ...init,
     headers: {
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...sessionHeader(),
       ...(await authHeaders()),
       ...init?.headers,
     },
