@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps'
 import type { AdminPricingZone } from '@rocket-lease/contracts'
 import {
@@ -44,6 +44,22 @@ function multiplierToColor(multiplier: number): string {
 export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }: PricingHexMapProps) {
   const hexClickedRef = useRef(false)
   const lastHexClickEventRef = useRef<Event | null>(null)
+  const cabaCells = useMemo(
+    () => new Set(cellsInPolygon(CABA_POLYGON_LAT_LON)),
+    [],
+  )
+  const visibleZones = useMemo(
+    () => zones.filter((zone) => cabaCells.has(zone.h3Cell)),
+    [zones, cabaCells],
+  )
+  const activeCells = useMemo(
+    () => new Set(visibleZones.map((zone) => zone.h3Cell)),
+    [visibleZones],
+  )
+  const visibleSelectedH3Cell =
+    selectedH3Cell !== null && cabaCells.has(selectedH3Cell)
+      ? selectedH3Cell
+      : null
 
   if (!GOOGLE_MAPS_API_KEY) {
     return (
@@ -65,9 +81,9 @@ export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }:
         colorScheme="DARK"
         style={{ width: '100%', height: '100%' }}
       >
-        <CabaGridLayer activeCells={new Set(zones.map((z) => z.h3Cell))} />
+        <CabaGridLayer activeCells={activeCells} />
         <ZonesLayer
-          zones={zones}
+          zones={visibleZones}
           onHexClick={onHexClick}
           hexClickedRef={hexClickedRef}
           lastHexClickEventRef={lastHexClickEventRef}
@@ -77,7 +93,7 @@ export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }:
           hexClickedRef={hexClickedRef}
           lastHexClickEventRef={lastHexClickEventRef}
         />
-        <SelectedHexLayer cell={selectedH3Cell} />
+        <SelectedHexLayer cell={visibleSelectedH3Cell} />
       </Map>
       <MapLegend />
     </APIProvider>
