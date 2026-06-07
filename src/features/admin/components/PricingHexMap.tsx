@@ -42,6 +42,9 @@ function multiplierToColor(multiplier: number): string {
  * 3. Outline de selección: borde blanco sobre la celda elegida.
  */
 export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }: PricingHexMapProps) {
+  const hexClickedRef = useRef(false)
+  const lastHexClickEventRef = useRef<Event | null>(null)
+
   if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center text-sm text-text-muted">
@@ -61,15 +64,63 @@ export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }:
         clickableIcons={false}
         colorScheme="DARK"
         style={{ width: '100%', height: '100%' }}
-        onClick={onMapClick}
       >
         <CabaGridLayer activeCells={new Set(zones.map((z) => z.h3Cell))} />
-        <ZonesLayer zones={zones} onHexClick={onHexClick} />
+        <ZonesLayer
+          zones={zones}
+          onHexClick={onHexClick}
+          hexClickedRef={hexClickedRef}
+          lastHexClickEventRef={lastHexClickEventRef}
+        />
+        <MapInteractionHandler
+          onMapClick={onMapClick}
+          hexClickedRef={hexClickedRef}
+          lastHexClickEventRef={lastHexClickEventRef}
+        />
         <SelectedHexLayer cell={selectedH3Cell} />
       </Map>
       <MapLegend />
     </APIProvider>
   )
+}
+
+function MapInteractionHandler({
+  onMapClick,
+  hexClickedRef,
+  lastHexClickEventRef,
+}: {
+  onMapClick: () => void
+  hexClickedRef: { current: boolean }
+  lastHexClickEventRef: { current: Event | null }
+}) {
+  const map = useMap()
+  const onMapClickRef = useRef(onMapClick)
+
+  useLayoutEffect(() => {
+    onMapClickRef.current = onMapClick
+  })
+
+  useEffect(() => {
+    if (!map) return
+    const listener = map.addListener('click', (event: google.maps.MapMouseEvent) => {
+      const domEvent = event.domEvent ?? null
+      const isHexClickEvent =
+        domEvent !== null && domEvent === lastHexClickEventRef.current
+
+      if (hexClickedRef.current || isHexClickEvent) {
+        hexClickedRef.current = false
+        if (isHexClickEvent) {
+          lastHexClickEventRef.current = null
+        }
+        return
+      }
+      lastHexClickEventRef.current = null
+      onMapClickRef.current()
+    })
+    return () => google.maps.event.removeListener(listener)
+  }, [map, hexClickedRef, lastHexClickEventRef])
+
+  return null
 }
 
 /**
@@ -148,14 +199,19 @@ function CabaGridLayer({ activeCells }: { activeCells: Set<string> }) {
 function ZonesLayer({
   zones,
   onHexClick,
+  hexClickedRef,
+  lastHexClickEventRef,
 }: {
   zones: AdminPricingZone[]
   onHexClick: (zone: AdminPricingZone) => void
+  hexClickedRef: { current: boolean }
+  lastHexClickEventRef: { current: Event | null }
 }) {
   const map = useMap()
   const dataRef = useRef<google.maps.Data | null>(null)
   const zonesByCellRef = useRef(new globalThis.Map<string, AdminPricingZone>())
   const handlerRef = useRef(onHexClick)
+  const resetFrameRef = useRef<number | null>(null)
   useLayoutEffect(() => {
     handlerRef.current = onHexClick
   })
@@ -176,18 +232,31 @@ function ZonesLayer({
       }
     })
     const listener = data.addListener('click', (event: google.maps.Data.MouseEvent) => {
-      event.stop()
       const cell = event.feature.getProperty('h3Cell') as string | undefined
       if (!cell) return
       const zone = zonesByCellRef.current.get(cell)
-      if (zone) handlerRef.current(zone)
+      if (!zone) return
+      hexClickedRef.current = true
+      lastHexClickEventRef.current = event.domEvent ?? null
+      if (resetFrameRef.current !== null) {
+        cancelAnimationFrame(resetFrameRef.current)
+      }
+      resetFrameRef.current = requestAnimationFrame(() => {
+        hexClickedRef.current = false
+        resetFrameRef.current = null
+      })
+      handlerRef.current(zone)
     })
     return () => {
       google.maps.event.removeListener(listener)
+      if (resetFrameRef.current !== null) {
+        cancelAnimationFrame(resetFrameRef.current)
+        resetFrameRef.current = null
+      }
       data.setMap(null)
       dataRef.current = null
     }
-  }, [map])
+  }, [map, hexClickedRef, lastHexClickEventRef])
 
   useEffect(() => {
     const data = dataRef.current
