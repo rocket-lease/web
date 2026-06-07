@@ -18,8 +18,7 @@ export function latLonToH3(lat: number, lon: number, resolution: number = DEFAUL
  * (orden GeoJSON), repitiendo el primer vértice al final para cerrarlo.
  */
 export function h3ToGeoBoundary(cell: string): Array<[number, number]> {
-  const boundary = cellToBoundary(cell, true)
-  const ring: Array<[number, number]> = boundary.map(([lat, lon]) => [lon, lat])
+  const ring = cellToBoundary(cell, true) as Array<[number, number]>
   if (ring.length > 0) {
     const first = ring[0]!
     const last = ring[ring.length - 1]!

@@ -74,6 +74,26 @@ export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
   const headline = zone ? buildHeadline(zone) : null
   const open = zone !== null
 
+  useEffect(() => {
+    if (!open) return
+
+    const allowMapInteractions = () => {
+      // Vaul/Radix leaves body with pointer-events: none while the drawer is open.
+      // This drawer is non-modal, so the map above it must stay interactive.
+      document.body.style.pointerEvents = 'auto'
+    }
+
+    allowMapInteractions()
+    const frame = requestAnimationFrame(allowMapInteractions)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      if (document.body.style.pointerEvents === 'auto') {
+        document.body.style.pointerEvents = ''
+      }
+    }
+  }, [open])
+
   return (
     <VaulDrawer.Root
       open={open}
@@ -81,12 +101,13 @@ export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
         if (!next) onClose()
       }}
       modal={false}
+      noBodyStyles
       snapPoints={SNAP_POINTS}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
     >
       <VaulDrawer.Portal>
-        <VaulDrawer.Content className="fixed inset-x-0 bottom-0 z-20 flex h-[70dvh] flex-col rounded-t-3xl border-t border-white/8 bg-surface-1 outline-none shadow-2xl">
+        <VaulDrawer.Content className="fixed inset-x-0 bottom-0 z-20 flex h-dvh flex-col rounded-t-3xl border-t border-white/8 bg-surface-1 outline-none shadow-2xl">
           <VaulDrawer.Title className="sr-only">
             {t('admin.pricing.drawer.title')}
           </VaulDrawer.Title>
