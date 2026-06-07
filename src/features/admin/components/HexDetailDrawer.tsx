@@ -1,90 +1,175 @@
-import { X } from 'lucide-react'
-import type { AdminPricingZone } from '@rocket-lease/contracts'
+import { useEffect, useState } from 'react'
+import { useQueries } from '@tanstack/react-query'
+import { Drawer as VaulDrawer } from 'vaul'
+import type { AdminPricingZone, GetVehicleResponse } from '@rocket-lease/contracts'
+import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
+import { cn } from '@/lib/utils'
+import {
+  MULTIPLIER_TEXT_CLASS,
+  multiplierLevel,
+} from '@/features/admin/lib/multiplier-scale'
 
 interface HexDetailDrawerProps {
   zone: AdminPricingZone | null
   onClose: () => void
 }
 
+type SnapPoint = string | number
+
+const SNAP_POINTS: SnapPoint[] = ['220px', 0.7]
+
+function multiplierToneClass(multiplier: number): string {
+  return MULTIPLIER_TEXT_CLASS[multiplierLevel(multiplier)]
+}
+
+function buildHeadline(zone: AdminPricingZone): string | null {
+  if (zone.supplyCount === 0 && zone.demandCount > 0) {
+    return t('admin.pricing.headline.demandNoSupply')
+  }
+  if (zone.supplyCount > 0 && zone.demandCount === 0) {
+    return t('admin.pricing.headline.supplyIdle')
+  }
+  if (zone.supplyCount > 0 && zone.ratio >= 2) {
+    return t('admin.pricing.headline.highDemand').replace(
+      '{ratio}',
+      zone.ratio.toFixed(1),
+    )
+  }
+  if (zone.supplyCount > 0 && zone.ratio <= 0.5 && zone.demandCount > 0) {
+    return t('admin.pricing.headline.lowDemand')
+  }
+  return null
+}
+
 /**
- * Panel lateral con el detalle de la celda H3 seleccionada en el mapa de
- * pricing del admin: oferta, demanda, ratio y multiplier promedio.
+ * Bottom sheet con el detalle de la celda H3 seleccionada. Lidera con el
+ * `multiplier` aplicado en la zona (color según rango) y una línea de
+ * insight derivada de la relación oferta/demanda. Debajo lista vehículos
+ * de muestra con marca, modelo y patente legible. Usa Vaul con dos snap
+ * points y `modal={false}` para no bloquear la interacción con el mapa.
  */
 export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
-  if (!zone) return null
+  const [snap, setSnap] = useState<SnapPoint | null>(SNAP_POINTS[0]!)
 
-  const ratioLabel = zone.supplyCount === 0
-    ? '—'
-    : zone.ratio.toFixed(2)
+  useEffect(() => {
+    if (zone) setSnap(SNAP_POINTS[0]!)
+  }, [zone])
+
+  const sampleIds = zone?.vehicleSampleIds ?? []
+  const vehicleQueries = useQueries({
+    queries: sampleIds.map((id) => ({
+      queryKey: ['vehicle', id] as const,
+      queryFn: () => vehiclesApi.getById(id),
+      staleTime: 60_000,
+      enabled: zone !== null,
+    })),
+  })
+  const vehicles = vehicleQueries
+    .map((q) => q.data)
+    .filter((v): v is GetVehicleResponse => Boolean(v))
+  const vehiclesLoading = vehicleQueries.some((q) => q.isLoading)
+
+  const headline = zone ? buildHeadline(zone) : null
+  const open = zone !== null
 
   return (
-    <aside
-      role="dialog"
-      aria-label={t('admin.pricing.drawer.title')}
-      className="pointer-events-auto absolute right-4 top-4 flex w-80 max-w-[calc(100%-2rem)] flex-col gap-4 rounded-2xl border border-white/8 bg-surface-1 p-5 shadow-elevated"
+    <VaulDrawer.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose()
+      }}
+      modal={false}
+      snapPoints={SNAP_POINTS}
+      activeSnapPoint={snap}
+      setActiveSnapPoint={setSnap}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wider text-text-muted">
-            {t('admin.pricing.drawer.cell')}
-          </p>
-          <p className="truncate text-sm font-mono text-text-primary">{zone.h3Cell}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('admin.pricing.drawer.close')}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-text-primary"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+      <VaulDrawer.Portal>
+        <VaulDrawer.Content className="fixed inset-x-0 bottom-0 z-20 flex h-dvh flex-col rounded-t-3xl border-t border-white/8 bg-surface-1 outline-none shadow-2xl">
+          <VaulDrawer.Title className="sr-only">
+            {t('admin.pricing.drawer.title')}
+          </VaulDrawer.Title>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Metric label={t('admin.pricing.oferta')} value={zone.supplyCount.toString()} />
-        <Metric label={t('admin.pricing.demanda')} value={zone.demandCount.toString()} />
-        <Metric label={t('admin.pricing.drawer.ratio')} value={ratioLabel} />
-        <Metric
-          label={t('admin.pricing.multiplierPromedio')}
-          value={`×${zone.avgMultiplier.toFixed(2)}`}
-        />
-      </div>
+          {zone && (
+            <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-5 pb-8 pt-6">
+              <div>
+                <p
+                  className={cn(
+                    'text-5xl font-bold leading-none tabular-nums',
+                    multiplierToneClass(zone.avgMultiplier),
+                  )}
+                >
+                  ×{zone.avgMultiplier.toFixed(2)}
+                </p>
+                {headline && (
+                  <p className="mt-2 text-sm text-text-secondary">{headline}</p>
+                )}
+              </div>
 
-      <div>
-        <p className="mb-2 text-xs uppercase tracking-wider text-text-muted">
-          {t('admin.pricing.drawer.topVehiculos')}
-        </p>
-        {zone.vehicleSampleIds.length === 0 ? (
-          <p className="text-xs text-text-muted">{t('admin.pricing.sinDatos')}</p>
-        ) : (
-          <ul className="space-y-1">
-            {zone.vehicleSampleIds.map((id) => (
-              <li
-                key={id}
-                className="truncate font-mono text-xs text-text-secondary"
-                title={id}
-              >
-                {id}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </aside>
+              <div className="flex items-baseline gap-6 text-sm">
+                <Stat
+                  label={t('admin.pricing.oferta')}
+                  value={zone.supplyCount}
+                  unit={t('admin.pricing.unit.vehicles')}
+                />
+                <span className="text-text-muted">·</span>
+                <Stat
+                  label={t('admin.pricing.demanda')}
+                  value={zone.demandCount}
+                  unit={t('admin.pricing.unit.signals')}
+                />
+              </div>
+
+              {sampleIds.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-text-muted">
+                    {t('admin.pricing.enZona')}
+                  </p>
+                  {vehiclesLoading && vehicles.length === 0 ? (
+                    <p className="text-xs text-text-muted">
+                      {t('general.loading')}
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-white/5">
+                      {vehicles.map((v) => (
+                        <li
+                          key={v.id}
+                          className="flex items-baseline justify-between gap-3 py-2 text-sm"
+                        >
+                          <span className="truncate text-text-primary">
+                            {v.brand} {v.model}
+                          </span>
+                          <span className="shrink-0 font-mono text-xs text-text-muted">
+                            {fmt.plate(v.plate)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </VaulDrawer.Content>
+      </VaulDrawer.Portal>
+    </VaulDrawer.Root>
   )
 }
 
-interface MetricProps {
+interface StatProps {
   label: string
-  value: string
+  value: number
+  unit: string
 }
 
-function Metric({ label, value }: MetricProps) {
+function Stat({ label, value, unit }: StatProps) {
   return (
-    <div className="rounded-xl border border-white/8 bg-surface-2 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-text-muted">{label}</p>
-      <p className="mt-1 text-base font-semibold text-text-primary">{value}</p>
-    </div>
+    <span className="text-text-primary">
+      <span className="font-semibold tabular-nums">{value}</span>{' '}
+      <span className="text-text-muted">
+        {unit} · {label}
+      </span>
+    </span>
   )
 }

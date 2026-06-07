@@ -65,6 +65,7 @@ export const es = {  // --- App ---
   'mapa.card.viewVehicles': 'Ver vehiculos',
   'mapa.zone.tapToZoom': 'Toca para acercar',
   'mapa.zone.rentadoras': 'rentadoras',
+  'mapa.googleKeyMissing': 'Falta configurar VITE_GOOGLE_MAPS_API_KEY para mostrar el mapa.',
 
   // --- Selector de ubicacion (rentador) ---
   'location.picker.label': 'Ubicacion del vehiculo',
@@ -702,6 +703,8 @@ export const es = {  // --- App ---
   'configuracion.section.seguridad': 'Seguridad',
   'configuracion.section.rentador': 'Rentador',
   'configuracion.section.cuenta': 'Cuenta',
+  'configuracion.section.admin': 'Administración',
+  'configuracion.admin.pricingZones': 'Mapa de precios dinámicos',
   'configuracion.verify.pending': 'Sin verificar',
   'configuracion.autoAccept.toast.on': 'Auto-aceptación activada',
   'configuracion.autoAccept.toast.off': 'Auto-aceptación desactivada',
@@ -1157,6 +1160,11 @@ export const es = {  // --- App ---
   'reservar.errors.VEHICLE_HOME_RETURN_NOT_ENABLED': 'Este vehículo no tiene retiro a domicilio habilitado.',
   'reservar.errors.HOME_DELIVERY_ADDRESS_REQUIRED': 'Ingresá la dirección de entrega.',
   'reservar.errors.HOME_RETURN_ADDRESS_REQUIRED': 'Ingresá la dirección de retiro.',
+  'reservar.quote.validFor.label': 'Tiempo para completar tu reserva',
+  'reservar.quote.refreshing': 'Actualizando precio…',
+  'reservar.quote.priceChanged': 'Precio actualizado: {old} → {new}',
+  'reservar.quote.expired.title': 'Tiempo finalizado',
+  'reservar.quote.expired.message': 'Estamos recalculando el valor de tu reserva…',
   'reservar.errors.PRICE_QUOTE_NOT_FOUND': 'No encontramos la cotización. Volvé a cotizar.',
   'reservar.errors.PRICE_QUOTE_EXPIRED': 'La cotización venció. Volvé a cotizar para confirmar el precio.',
   'reservar.errors.PRICE_QUOTE_VEHICLE_MISMATCH': 'La cotización no corresponde a este vehículo.',
@@ -1310,6 +1318,17 @@ export const es = {  // --- App ---
   'rentador.vehiculo.dynamicPricing.tooltip':
     'Los precios se ajustan automáticamente según la demanda de tu zona y de tu vehículo, dentro de un rango de 70-200% del precio base.',
   'rentador.vehiculo.dynamicPricing.activo': 'Precios dinámicos activos',
+  'rentador.vehiculo.dynamicPricing.estado.activo': 'Activo',
+  'rentador.vehiculo.dynamicPricing.estado.inactivo': 'Inactivo',
+  'rentador.vehiculo.dynamicPricing.activoHint':
+    'El precio se ajusta automáticamente según la demanda de tu zona (70–200% del base).',
+  'rentador.vehiculo.dynamicPricing.inactivoHint':
+    'Se cobra siempre el precio base sin importar la demanda de la zona.',
+
+  // --- Admin: acceso restringido ---
+  'admin.gate.deniedTitle': 'Acceso restringido',
+  'admin.gate.deniedMessage': 'Esta sección es solo para administradores de la plataforma.',
+  'admin.gate.backHome': 'Volver al inicio',
 
   // --- Admin: mapa de precios dinámicos ---
   'admin.pricing.titulo': 'Mapa de precios dinámicos',
@@ -1326,6 +1345,18 @@ export const es = {  // --- App ---
   'admin.pricing.drawer.ratio': 'Demanda / Oferta',
   'admin.pricing.drawer.topVehiculos': 'Vehículos de muestra',
   'admin.pricing.drawer.close': 'Cerrar',
+  'admin.pricing.unit.vehicles': 'autos',
+  'admin.pricing.unit.signals': 'señales',
+  'admin.pricing.enZona': 'En esta zona',
+  'admin.pricing.headline.highDemand': 'Demanda ×{ratio} la oferta',
+  'admin.pricing.headline.lowDemand': 'Oferta sobra para la demanda actual',
+  'admin.pricing.headline.demandNoSupply': 'Hay demanda pero no hay autos publicados',
+  'admin.pricing.headline.supplyIdle': 'Hay autos pero sin demanda registrada',
+  'admin.pricing.legend.title': 'Multiplier',
+  'admin.pricing.legend.high': 'Alta demanda (≥1.5×)',
+  'admin.pricing.legend.elevated': 'Demanda elevada (≥1.15×)',
+  'admin.pricing.legend.normal': 'Demanda normal',
+  'admin.pricing.legend.low': 'Baja demanda (≤0.85×)',
 } as const
 
 export type I18nKey = keyof typeof es

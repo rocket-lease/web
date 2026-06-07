@@ -2,16 +2,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { PricingHexMap } from './PricingHexMap'
 
-vi.mock('maplibre-gl/dist/maplibre-gl.css', () => ({}))
-vi.mock('maplibre-gl', () => ({ default: {} }))
-vi.mock('react-map-gl/maplibre', () => ({
+vi.mock('@vis.gl/react-google-maps', () => ({
+  APIProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   Map: ({ children }: { children?: React.ReactNode }) => (
     <div data-testid="mock-map">{children}</div>
   ),
-  Source: ({ children }: { children?: React.ReactNode }) => (
-    <div data-testid="mock-source">{children}</div>
-  ),
-  Layer: () => <div data-testid="mock-layer" />,
+  useMap: () => null,
 }))
 
 describe('PricingHexMap', () => {

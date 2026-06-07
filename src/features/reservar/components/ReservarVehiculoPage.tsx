@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { CheckCircle2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import type {
   PaymentMethod,
@@ -21,6 +22,8 @@ import {
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
+import { useQuoteCountdown } from '@/features/pricing/hooks/useQuoteCountdown'
+import { QuoteExpirationBanner } from '@/features/pricing/components/QuoteExpirationBanner'
 import { ErrorCodes } from '@rocket-lease/contracts'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
@@ -480,6 +483,57 @@ export function ReservarVehiculoPage() {
     new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
   const depositAvailable = depositPercentage !== null && startFarEnough
   const pricingQuote = pricingQuoteQuery.pricingQuote
+  const quoteCountdown = useQuoteCountdown(pricingQuote?.expiresAt)
+  const previousTotalCentsRef = useRef<number | null>(null)
+  const expirationRefetchPendingRef = useRef(false)
+  const recalculatingStartedAtRef = useRef(0)
+  const [isRecalculating, setIsRecalculating] = useState(false)
+
+  useEffect(() => {
+    if (isRecalculating) return
+    if (!pricingQuote?.expiresAt) return
+    if (!quoteCountdown.isExpired) return
+    if (pricingQuoteQuery.isFetching) return
+    expirationRefetchPendingRef.current = true
+    recalculatingStartedAtRef.current = Date.now()
+    setIsRecalculating(true)
+    void pricingQuoteQuery.refetch()
+  }, [
+    isRecalculating,
+    pricingQuote?.expiresAt,
+    quoteCountdown.isExpired,
+    pricingQuoteQuery.isFetching,
+    pricingQuoteQuery,
+  ])
+
+  useEffect(() => {
+    if (!isRecalculating) return
+    if (pricingQuoteQuery.isFetching) return
+    const elapsedMs = Date.now() - recalculatingStartedAtRef.current
+    const remainingMs = Math.max(0, 2000 - elapsedMs)
+    const timer = window.setTimeout(() => setIsRecalculating(false), remainingMs)
+    return () => window.clearTimeout(timer)
+  }, [isRecalculating, pricingQuoteQuery.isFetching])
+
+  useEffect(() => {
+    const total = pricingQuote?.totalCents
+    if (total === undefined) return
+    const previousTotal = previousTotalCentsRef.current
+    if (previousTotal === null) {
+      previousTotalCentsRef.current = total
+      return
+    }
+    if (previousTotal === total) return
+    if (expirationRefetchPendingRef.current) {
+      toast(
+        t('reservar.quote.priceChanged')
+          .replace('{old}', fmt.currency(previousTotal))
+          .replace('{new}', fmt.currency(total)),
+      )
+    }
+    previousTotalCentsRef.current = total
+    expirationRefetchPendingRef.current = false
+  }, [pricingQuote?.totalCents])
 
   const canContinueToContract =
     validRange &&
@@ -487,7 +541,9 @@ export function ReservarVehiculoPage() {
     !rentalDurationViolation &&
     (!vehicle?.reservationRuleSet || rulesAcknowledged) &&
     !(deliveryUseCustom && !deliveryCustomAddress) &&
-    !(returnUseCustom && !returnCustomAddress)
+    !(returnUseCustom && !returnCustomAddress) &&
+    !pricingQuoteQuery.isFetching &&
+    !isRecalculating
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
@@ -592,7 +648,17 @@ export function ReservarVehiculoPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <PageHeader title={t('reservar.title')} showBack sticky />
+      <div className="sticky top-0 z-40">
+        <PageHeader title={t('reservar.title')} showBack />
+        {pricingQuote?.expiresAt && (
+          <QuoteExpirationBanner
+            secondsLeft={quoteCountdown.secondsLeft}
+            percentLeft={quoteCountdown.percentLeft}
+            isRecalculating={isRecalculating}
+            label={quoteCountdown.label}
+          />
+        )}
+      </div>
 
       <div className="px-4 py-5 space-y-5">
         <div className="rounded-2xl border border-white/8 bg-surface-1 p-4">

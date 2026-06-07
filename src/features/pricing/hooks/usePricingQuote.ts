@@ -53,7 +53,7 @@ export function usePricingQuote({
 
   const query = useQuery<PricingQuoteResponse>({
     queryKey,
-    queryFn: () => pricingApi.quote(request!),
+    queryFn: () => pricingApi.quote(request as PricingQuoteRequest),
     enabled: enabled && !!request,
     staleTime: 4 * 60 * 1000,
     gcTime: 5 * 60 * 1000,

@@ -1,4 +1,4 @@
-import { latLngToCell, cellToBoundary } from 'h3-js'
+import { cellToBoundary, latLngToCell, polygonToCells } from 'h3-js'
 
 /**
  * Resolución H3 por defecto para Rocket Lease. Aprox. 460 m por celda,
@@ -28,4 +28,42 @@ export function h3ToGeoBoundary(cell: string): Array<[number, number]> {
     }
   }
   return ring
+}
+
+/**
+ * Polígono aproximado de CABA (Ciudad Autónoma de Buenos Aires) en formato
+ * `[lat, lon]`. Sigue Av. Gral. Paz al N/O, el Río de la Plata al E y el
+ * Riachuelo al S. No es exacto al milímetro pero alcanza para dibujar la
+ * grilla de zonas en el admin map.
+ */
+export const CABA_POLYGON_LAT_LON: Array<[number, number]> = [
+  [-34.5265, -58.5301],
+  [-34.5290, -58.4530],
+  [-34.5410, -58.4170],
+  [-34.5550, -58.3850],
+  [-34.5670, -58.3620],
+  [-34.5990, -58.3360],
+  [-34.6300, -58.3360],
+  [-34.6500, -58.3540],
+  [-34.6630, -58.3720],
+  [-34.6790, -58.4020],
+  [-34.6860, -58.4380],
+  [-34.6850, -58.4780],
+  [-34.6720, -58.5180],
+  [-34.6420, -58.5320],
+  [-34.6020, -58.5320],
+  [-34.5640, -58.5260],
+  [-34.5265, -58.5301],
+]
+
+/**
+ * Computa todas las celdas H3 a una resolución dada que están dentro del
+ * polígono indicado (formato `[lat, lon]`). Pensado para grillas estáticas
+ * sobre regiones acotadas como CABA.
+ */
+export function cellsInPolygon(
+  polygonLatLon: Array<[number, number]>,
+  resolution: number = DEFAULT_H3_RESOLUTION,
+): string[] {
+  return polygonToCells(polygonLatLon, resolution)
 }

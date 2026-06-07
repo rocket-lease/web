@@ -15,10 +15,10 @@ export function AdminPricingPage() {
   const hasZones = zones.length > 0
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <PageHeader title={t('admin.pricing.titulo')} subtitle={t('admin.pricing.subtitulo')} showBack />
 
-      <div className="relative flex flex-1 flex-col">
+      <div className="relative flex min-h-0 flex-1 flex-col">
         {isLoading && (
           <div className="flex flex-1 items-center justify-center px-6 py-24">
             <p className="text-sm text-text-muted">{t('admin.pricing.cargando')}</p>

@@ -6,14 +6,12 @@ import { adminPricingApi } from '../api/admin-pricing.api'
 import { createWrapper } from '@/test/query-wrapper'
 
 vi.mock('../api/admin-pricing.api')
-vi.mock('maplibre-gl/dist/maplibre-gl.css', () => ({}))
-vi.mock('maplibre-gl', () => ({ default: {} }))
-vi.mock('react-map-gl/maplibre', () => ({
+vi.mock('@vis.gl/react-google-maps', () => ({
+  APIProvider: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   Map: ({ children }: { children?: React.ReactNode }) => (
     <div data-testid="mock-map">{children}</div>
   ),
-  Source: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-  Layer: () => null,
+  useMap: () => null,
 }))
 
 const mockApi = vi.mocked(adminPricingApi)

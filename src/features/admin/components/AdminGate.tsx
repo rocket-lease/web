@@ -1,6 +1,8 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect } from 'react'
-import { useAuth } from '@/features/auth/hooks/useAuth'
+import { ShieldWarning } from '@phosphor-icons/react'
+import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
+import { Button } from '@/ui/button'
+import { t } from '@/i18n/es'
 
 interface AdminGateProps {
   children: React.ReactNode
@@ -11,38 +13,38 @@ interface AdminGateProps {
  * `user.app_metadata.role` que viene firmado en el token de Supabase, por lo
  * que un usuario común no puede impostarlo desde el cliente.
  *
- * Mientras carga la sesión renderea `null` y, si el usuario no es admin o no
- * está autenticado, redirige a la home como medida de defensa en profundidad
- * (el backend igual rechaza con 403 ADMIN_FORBIDDEN).
+ * Mientras carga la sesión renderea `null`. Si el usuario no es admin muestra
+ * un aviso explícito de acceso restringido (en vez de redirigir en silencio,
+ * que dejaba al usuario sin saber qué pasó). El backend igual rechaza con
+ * 403 ADMIN_FORBIDDEN como defensa en profundidad.
  */
 export function AdminGate({ children }: AdminGateProps) {
-  const { user, isLoading, isAuthenticated } = useAuth()
+  const { isAdmin, isLoading } = useIsAdmin()
   const navigate = useNavigate()
 
-  const role = readRole(user as unknown as RoleHolder | null)
-  const isAdmin = isAuthenticated && role === 'admin'
+  if (isLoading) return null
 
-  useEffect(() => {
-    if (isLoading) return
-    if (!isAdmin) {
-      void navigate({ to: '/', replace: true })
-    }
-  }, [isLoading, isAdmin, navigate])
+  if (!isAdmin) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+        <ShieldWarning className="h-10 w-10 text-text-muted" weight="duotone" />
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-text-primary">
+            {t('admin.gate.deniedTitle')}
+          </p>
+          <p className="text-sm text-text-muted">
+            {t('admin.gate.deniedMessage')}
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          onClick={() => void navigate({ to: '/', replace: true })}
+        >
+          {t('admin.gate.backHome')}
+        </Button>
+      </div>
+    )
+  }
 
-  if (isLoading || !isAdmin) return null
   return <>{children}</>
-}
-
-interface RoleHolder {
-  app_metadata?: { role?: unknown } | null
-  user_metadata?: { role?: unknown } | null
-}
-
-function readRole(user: RoleHolder | null): string | null {
-  if (!user) return null
-  const fromApp = user.app_metadata?.role
-  if (typeof fromApp === 'string') return fromApp
-  const fromUser = user.user_metadata?.role
-  if (typeof fromUser === 'string') return fromUser
-  return null
 }

@@ -21,6 +21,7 @@ import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
 import { fmt } from '@/lib/formatters'
+import { useLogVehicleView } from '@/features/admin/hooks/useLogVehicleView'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { VehicleLocationMap } from '@/features/mapa/components/VehicleLocationMap'
@@ -48,6 +49,8 @@ export function VehiculoDetailPage() {
     queryKey: ['vehicle', id],
     queryFn: () => vehiclesApi.getById(id),
   })
+
+  useLogVehicleView(vehicle?.id)
 
   if (isLoading) {
     return (
