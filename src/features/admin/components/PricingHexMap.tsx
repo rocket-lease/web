@@ -176,6 +176,7 @@ function ZonesLayer({
       }
     })
     const listener = data.addListener('click', (event: google.maps.Data.MouseEvent) => {
+      event.stop()
       const cell = event.feature.getProperty('h3Cell') as string | undefined
       if (!cell) return
       const zone = zonesByCellRef.current.get(cell)
