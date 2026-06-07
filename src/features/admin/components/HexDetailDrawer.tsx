@@ -86,7 +86,7 @@ export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
       setActiveSnapPoint={setSnap}
     >
       <VaulDrawer.Portal>
-        <VaulDrawer.Content className="fixed inset-x-0 bottom-0 z-20 flex h-dvh flex-col rounded-t-3xl border-t border-white/8 bg-surface-1 outline-none shadow-2xl">
+        <VaulDrawer.Content className="fixed inset-x-0 bottom-0 z-20 flex h-[70dvh] flex-col rounded-t-3xl border-t border-white/8 bg-surface-1 outline-none shadow-2xl">
           <VaulDrawer.Title className="sr-only">
             {t('admin.pricing.drawer.title')}
           </VaulDrawer.Title>
