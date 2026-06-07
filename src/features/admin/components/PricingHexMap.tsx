@@ -23,6 +23,7 @@ import { t } from '@/i18n/es'
 interface PricingHexMapProps {
   zones: AdminPricingZone[]
   onHexClick: (zone: AdminPricingZone) => void
+  onMapClick: () => void
   selectedH3Cell: string | null
 }
 
@@ -40,7 +41,7 @@ function multiplierToColor(multiplier: number): string {
  * 2. Zonas activas: celdas con oferta/demanda/quotes, coloreadas y clickeables.
  * 3. Outline de selección: borde blanco sobre la celda elegida.
  */
-export function PricingHexMap({ zones, onHexClick, selectedH3Cell }: PricingHexMapProps) {
+export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }: PricingHexMapProps) {
   if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center text-sm text-text-muted">
@@ -60,6 +61,7 @@ export function PricingHexMap({ zones, onHexClick, selectedH3Cell }: PricingHexM
         clickableIcons={false}
         colorScheme="DARK"
         style={{ width: '100%', height: '100%' }}
+        onClick={onMapClick}
       >
         <CabaGridLayer activeCells={new Set(zones.map((z) => z.h3Cell))} />
         <ZonesLayer zones={zones} onHexClick={onHexClick} />

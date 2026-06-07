@@ -40,6 +40,7 @@ export function AdminPricingPage() {
               <PricingHexMap
                 zones={zones}
                 onHexClick={setSelected}
+                onMapClick={() => setSelected(null)}
                 selectedH3Cell={selected?.h3Cell ?? null}
               />
             </div>
