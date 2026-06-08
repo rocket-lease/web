@@ -17,7 +17,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
-import { OwnerReviewsSection } from './OwnerReviewsSection'
+import { OwnerReviewsSection, OwnReviewsSection } from './OwnerReviewsSection'
 import { t, type I18nKey } from '@/i18n/es'
 import { Bell, Bank, Coins, Tag, Trophy, Headset, WarningCircle } from '@phosphor-icons/react'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
@@ -136,11 +136,10 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
       {canEdit && <Separator />}
 
-      {/* Vehículos publicados + reseñas del rentador (perfil ajeno) */}
+      {/* Vehículos publicados (perfil ajeno) */}
       {!canEdit && profile && (
         <>
           <OwnerVehiclesSection ownerId={profile.id} />
-          <OwnerReviewsSection />
         </>
       )}
 
@@ -274,6 +273,15 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
           </button>
         </div>
+      )}
+
+      {/* Reseñas recibidas */}
+      {profile && (
+        canEdit ? (
+          <OwnReviewsSection />
+        ) : (
+          <OwnerReviewsSection userId={profile.id} />
+        )
       )}
 
       {canEdit && (
