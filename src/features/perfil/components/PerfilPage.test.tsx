@@ -64,6 +64,7 @@ vi.mock('./OwnerVehiclesSection', () => ({
 
 vi.mock('./OwnerReviewsSection', () => ({
   OwnerReviewsSection: () => null,
+  OwnReviewsSection: () => null,
 }))
 
 describe('PerfilPage', () => {
