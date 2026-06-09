@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX, Star, WarningCircle } from '@phosphor-icons/react'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X, MoreVertical } from 'lucide-react'
-import { RESERVATION_STATUS, type GetReservationResponse } from '@rocket-lease/contracts'
+import { RESERVATION_STATUS, type GetReservationResponse, type ReviewItem } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -35,6 +35,7 @@ import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
 import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
 import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
+import { CrearResenaSheet } from '@/features/reviews/components/CrearResenaSheet'
 
 interface RentadorViewProps {
   reservation: GetReservationResponse
@@ -263,42 +264,8 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         </Link>
       )}
 
-      {reservation.status === RESERVATION_STATUS.completed && reservation.review && (
-        <div className="rounded-xl bg-surface-1 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-text-primary">
-              {t('reservas.detail.review.title')}
-            </p>
-            <span className="text-xs text-text-muted">
-              {fmt.dateShort(reservation.review.createdAt)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-0.5">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                size={14}
-                weight={i < (reservation.review?.rating ?? 0) ? 'fill' : 'regular'}
-                className={i < (reservation.review?.rating ?? 0) ? 'text-amber-400' : 'text-white/20'}
-              />
-            ))}
-            <span className="ml-1.5 text-xs text-text-muted">
-              {fmt.rating(reservation.review?.rating ?? 0)}
-            </span>
-          </div>
-
-          {reservation.review.comment && (
-            <p className="text-sm text-text-secondary leading-relaxed">
-              {reservation.review.comment}
-            </p>
-          )}
-
-          <div className="flex items-center gap-2 text-xs text-text-muted">
-            <User className="h-3 w-3" />
-            <span>{reservation.review.reviewerName}</span>
-          </div>
-        </div>
+      {reservation.status === RESERVATION_STATUS.completed && (
+        <ReviewSectionRentador reservation={reservation} />
       )}
 
       {canReport && hasAnyTicket && (
@@ -321,6 +288,103 @@ export function RentadorView({ reservation }: RentadorViewProps) {
         type="vehicle_issue"
         open={reportarOpen}
         onOpenChange={setReportarOpen}
+      />
+    </div>
+  )
+}
+
+/**
+ * US-38: Sección de reseñas para la vista del rentador en reservas completadas.
+ *
+ * Muestra todas las reseñas existentes y un botón para crear la que falte.
+ * El rentador solo puede reseñar al conductor.
+ * La contraparte (conductor) puede reseñar vehículo o rentador.
+ */
+function ReviewSectionRentador({ reservation }: { reservation: GetReservationResponse }) {
+  const reviews = reservation.reviews ?? []
+  const [resenaOpen, setResenaOpen] = useState(false)
+
+  const ownReviewCount = reviews.filter((r) => r.targetType === 'conductor').length
+  const availableTargets: ('conductor')[] = ownReviewCount > 0 ? [] : ['conductor']
+
+  const TARGET_LABEL: Record<string, string> = {
+    vehicle: t('resenas.create.targetType.vehicle'),
+    rentador: t('resenas.create.targetType.rentador'),
+    conductor: t('resenas.create.targetType.conductor'),
+  }
+
+  function ReviewCard({ review }: { review: ReviewItem }) {
+    const isOwn = review.targetType === 'conductor'
+    return (
+      <div className="rounded-xl bg-surface-1 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-text-primary">
+              {isOwn
+                ? t('reservas.detail.review.own')
+                : t('reservas.detail.review.counterparty').replace('{name}', review.reviewerName)}
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              {TARGET_LABEL[review.targetType]}
+            </p>
+          </div>
+          <span className="text-xs text-text-muted">
+            {fmt.dateShort(review.createdAt)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Star
+              key={i}
+              size={14}
+              weight={i < review.rating ? 'fill' : 'regular'}
+              className={i < review.rating ? 'text-amber-400' : 'text-white/20'}
+            />
+          ))}
+          <span className="ml-1.5 text-xs text-text-muted">
+            {fmt.rating(review.rating)}
+          </span>
+        </div>
+
+        {review.comment && (
+          <p className="text-sm text-text-secondary leading-relaxed">
+            {review.comment}
+          </p>
+        )}
+
+        {!isOwn && (
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <User className="h-3 w-3" />
+            <span>{review.reviewerName}</span>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {reviews.map((review) => (
+        <ReviewCard key={review.id} review={review} />
+      ))}
+
+      {availableTargets.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setResenaOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+        >
+          <Star className="h-4 w-4" weight="regular" />
+          {t('reservas.detail.review.cta')}
+        </button>
+      )}
+
+      <CrearResenaSheet
+        reservationId={reservation.id}
+        availableTargets={availableTargets}
+        open={resenaOpen}
+        onOpenChange={setResenaOpen}
       />
     </div>
   )

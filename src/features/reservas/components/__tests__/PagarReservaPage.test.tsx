@@ -71,6 +71,7 @@ function makeReservation(overrides: Partial<Awaited<ReturnType<typeof reservarAp
     returnAddress: null,
     vehicle: { id: 'veh-1', plate: 'AB123CD', brand: 'Toyota', model: 'Etios', year: 2020, photo: null },
     rentador: { id: 'ren-1', name: 'Lucas', avatarUrl: null },
+    reviews: [],
     ...overrides,
   }
 }

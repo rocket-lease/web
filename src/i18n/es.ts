@@ -500,6 +500,10 @@ export const es = {  // --- App ---
   'perfil.reviewsTitle': 'Reseñas',
   'perfil.reviewsEmpty': 'Este rentador todavía no tiene reseñas.',
   'perfil.reviewsEmptyHint': 'Cuando alguien complete un alquiler con él y deje una opinión, vas a verla acá.',
+  'perfil.reviews.tabRentador': 'Como rentador',
+  'perfil.reviews.tabConductor': 'Como conductor',
+  'perfil.reviews.emptyRentador': 'Todavía no recibiste reseñas como rentador.',
+  'perfil.reviews.emptyConductor': 'Todavía no recibiste reseñas como conductor.',
   'perfil.settings': 'Configuracion',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
@@ -1304,6 +1308,7 @@ export const es = {  // --- App ---
   'historial.resenas.emptyHint': 'Cuando un conductor complete un alquiler y deje una opinión, la vas a ver acá.',
   'historial.resenas.targetType.vehicle': 'Sobre vehículo',
   'historial.resenas.targetType.rentador': 'Sobre ti',
+  'historial.resenas.targetType.conductor': 'Sobre conductor',
   'historial.resenas.error': 'No pudimos cargar tus reseñas. Intenta de nuevo.',
   'historial.resenas.cargando': 'Cargando reseñas',
   'historial.resenas.rating': 'Calificación',
@@ -1337,6 +1342,25 @@ export const es = {  // --- App ---
   'perfil.reportes.row': 'Incidentes',
   'perfil.reportes.tabMios': 'Generados por mí',
   'perfil.reportes.tabContra': 'Contra mí',
+
+  // --- Crear reseña (US-38) ---
+  'resenas.create.title': 'Dejar reseña',
+  'resenas.create.targetType.label': '¿Sobre qué querés opinar?',
+  'resenas.create.targetType.vehicle': 'Sobre el vehículo',
+  'resenas.create.targetType.rentador': 'Sobre el rentador',
+  'resenas.create.targetType.conductor': 'Sobre el conductor',
+  'resenas.create.rating.label': 'Calificación',
+  'resenas.create.comment.label': 'Comentario',
+  'resenas.create.comment.placeholder': 'Contá tu experiencia...',
+  'resenas.create.cta': 'Enviar reseña',
+  'resenas.create.sending': 'Enviando...',
+  'resenas.create.success': 'Reseña publicada.',
+
+  // --- Sección de reseñas en detalle (US-38) ---
+  'reservas.detail.review.own': 'Tu reseña',
+  'reservas.detail.review.counterparty': 'Reseña de {name}',
+  'reservas.detail.review.cta': 'Dejar reseña',
+  'reservas.detail.review.alreadyReviewed': 'Ya reseñaste',
 } as const
 
 export type I18nKey = keyof typeof es
