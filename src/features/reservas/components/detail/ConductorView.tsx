@@ -316,8 +316,8 @@ function ReviewSectionConductor({ reservation }: { reservation: GetReservationRe
 
   const ownTargets = reviews
     .filter((r) => r.targetType !== 'conductor')
-    .map((r) => r.targetType)
-  const availableTargets: ('vehicle' | 'rentador')[] = ['vehicle', 'rentador'].filter(
+    .map((r) => r.targetType) as ('vehicle' | 'rentador')[]
+  const availableTargets = (['vehicle', 'rentador'] as const).filter(
     (t) => !ownTargets.includes(t),
   )
 

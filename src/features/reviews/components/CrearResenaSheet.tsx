@@ -5,7 +5,7 @@ import { Drawer, DrawerContent } from '@/ui/drawer'
 import { Label } from '@/ui/label'
 import { Textarea } from '@/ui/textarea'
 import { Button } from '@/ui/button'
-import { t } from '@/i18n/es'
+import { t, type I18nKey } from '@/i18n/es'
 import { useCreateReview } from '../hooks/useCreateReview'
 
 type TargetType = CreateReviewRequest['targetType']
@@ -18,7 +18,7 @@ interface CrearResenaSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
-const TARGET_LABELS: Record<TargetType, string> = {
+const TARGET_LABELS: Record<TargetType, I18nKey> = {
   vehicle: 'resenas.create.targetType.vehicle',
   rentador: 'resenas.create.targetType.rentador',
   conductor: 'resenas.create.targetType.conductor',
