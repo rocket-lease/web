@@ -9,11 +9,20 @@ vi.mock('../../api/reputation')
 
 const MOCK_REPUTATION: GetReputationResponse = {
   userId: 'user-1',
-  score: 4.9,
-  reviewCount: 15,
-  badges: ['conductor_destacado'],
-  isLowReputation: false,
-  penaltyCount: 0,
+  asDriver: {
+    score: 4.9,
+    reviewCount: 15,
+    badges: ['conductor_destacado'],
+    isLowReputation: false,
+    penaltyCount: 0,
+  },
+  asRenter: {
+    score: 5.0,
+    reviewCount: 2,
+    badges: [],
+    isLowReputation: false,
+    penaltyCount: 0,
+  },
 }
 
 describe('useReputation', () => {

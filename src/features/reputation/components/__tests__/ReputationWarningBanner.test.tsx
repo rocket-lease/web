@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ReputationWarningBanner } from '../ReputationWarningBanner'
-import * as i18n from '@/i18n/es'
+import '@/i18n/es'
 
 vi.mock('@/i18n/es', () => ({
   t: (key: string) => key,

@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from '@tanstack/react-router'
 import {
   ChevronRight,
-  Star,
   Award,
   Settings,
   UserCircle,
@@ -74,7 +73,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
   const currentReputation = displayRole === 'conductor' ? reputation?.asDriver : reputation?.asRenter
   const reviewCount = currentReputation?.reviewCount ?? 0
-  const reputationScore = currentReputation?.score ?? profile?.reputationScore ?? 0
+  const reputationScore = currentReputation?.score ?? 0
 
   const handleSwitchRole = () => {
     const next = activeRole === 'rentador' ? 'conductor' : 'rentador'

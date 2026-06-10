@@ -48,7 +48,7 @@ export function LealtadPage() {
                 <p className="text-sm font-medium text-text-primary">Reputación</p>
                 <p className="text-xs text-text-muted">Basada en reseñas de conductores y rentadores</p>
               </div>
-              <p className="text-xl font-bold text-text-primary tabular-nums">{profile.reputationScore}</p>
+              <p className="text-xl font-bold text-text-primary tabular-nums">{0}</p>
             </div>
           </div>
 
