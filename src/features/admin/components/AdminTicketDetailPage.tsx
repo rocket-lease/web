@@ -64,27 +64,17 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
   const [compResponsibleId, setCompResponsibleId] = useState('')
   const [compAmount, setCompAmount] = useState('')
 
-  async function handleSendMessage() {
-    const body = messageBody.trim()
-    if (!body) return
-    setMessageBody('')
-    try {
-      await sendMessage.mutateAsync(body)
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-    } catch {
-      toast.error(t('ticketMessages.error.send'))
-    }
-  }
+  type AdminStatus = 'under_review' | 'resolved' | 'rejected'
 
   function handleStatusClick(status: TicketStatus) {
     if (COMPENSATION_STATUSES.has(status)) {
       setPendingStatus(status)
     } else {
-      void confirmStatusChange(status)
+      void confirmStatusChange(status as AdminStatus)
     }
   }
 
-  async function confirmStatusChange(status: TicketStatus, compensation?: { responsibleUserId: string; amountCents: number }) {
+  async function confirmStatusChange(status: AdminStatus, compensation?: { responsibleUserId: string; amountCents: number }) {
     try {
       await updateStatus.mutateAsync({ status, compensation })
       toast.success(`Estado actualizado a: ${STATUS_LABELS[status]}`)
