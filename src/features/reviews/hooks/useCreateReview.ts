@@ -14,6 +14,9 @@ export function useCreateReview(reservationId: string) {
       toast.success(t('resenas.create.success'))
       queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] })
       queryClient.invalidateQueries({ queryKey: ['reviews'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['reputation'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
     onError: (err) => {
       toast.error(getErrorMessage(err))

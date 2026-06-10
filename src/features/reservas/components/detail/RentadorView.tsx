@@ -14,6 +14,8 @@ import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from '@/ui/drawer'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { profileApi } from '@/features/perfil/api/profile.api'
+import { useReputation } from '@/features/reputation/hooks/useReputation'
+import { ReputationSummary } from '@/features/reputation/components/ReputationSummary'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { QrScanner } from '../QrScanner'
 import { ReservaStatusBadge } from '../ReservaStatusBadge'
@@ -56,6 +58,8 @@ export function RentadorView({ reservation }: RentadorViewProps) {
     staleTime: 60_000,
   })
   const conductor = conductorQuery.data
+
+  const { data: conductorReputation } = useReputation(reservation.conductorId)
 
   const canChat =
     reservation.status === RESERVATION_STATUS.confirmed ||
@@ -176,9 +180,16 @@ export function RentadorView({ reservation }: RentadorViewProps) {
             <p className="text-xs text-text-muted">
               {t('rentador.reservas.detalle.conductor')}
             </p>
-            <p className="font-semibold text-text-primary truncate">
+            <p className="font-semibold text-text-primary truncate mb-1">
               {conductor.name}
             </p>
+            {conductorReputation && (
+              <ReputationSummary
+                score={conductorReputation.asDriver.score}
+                reviewCount={conductorReputation.asDriver.reviewCount}
+                badges={conductorReputation.asDriver.badges}
+              />
+            )}
           </div>
           <ChevronRight className="h-5 w-5 text-text-muted shrink-0" />
         </Link>
