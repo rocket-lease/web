@@ -1,5 +1,6 @@
 import type { ProblemDetails } from '@rocket-lease/contracts'
 import { supabase } from './supabase'
+import { getSessionId } from './session-id'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
 
@@ -8,6 +9,10 @@ async function authHeaders(): Promise<Record<string, string>> {
   const token = session?.access_token ?? localStorage.getItem('rocket_lease:access_token')
   if (!token) return {}
   return { Authorization: `Bearer ${token}` }
+}
+
+function sessionHeader(): Record<string, string> {
+  return { 'x-session-id': getSessionId() }
 }
 
 async function forceLogout() {
@@ -26,6 +31,7 @@ async function doFetch(path: string, init?: RequestInit) {
     ...init,
     headers: {
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...sessionHeader(),
       ...(await authHeaders()),
       ...init?.headers,
     },

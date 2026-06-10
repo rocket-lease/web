@@ -6,6 +6,8 @@ export interface UsePricingQuoteParams {
   vehicleId: string
   startAt: string | null
   endAt: string | null
+  withHomeDelivery?: boolean
+  withHomeReturn?: boolean
   enabled?: boolean
 }
 
@@ -15,8 +17,28 @@ function toIsoUtc(local: string): string {
   return date.toISOString()
 }
 
-export function usePricingQuote({ vehicleId, startAt, endAt, enabled = true }: UsePricingQuoteParams) {
-  const queryKey: unknown[] = ['pricing', 'quote', vehicleId, startAt, endAt]
+/**
+ * Cotiza el precio de una reserva potencial respetando el congelamiento del
+ * `quoteToken` (5 min). El `staleTime` se setea en 4 minutos para no refetchear
+ * antes de que expire el token y dejar 1 minuto de margen.
+ */
+export function usePricingQuote({
+  vehicleId,
+  startAt,
+  endAt,
+  withHomeDelivery,
+  withHomeReturn,
+  enabled = true,
+}: UsePricingQuoteParams) {
+  const queryKey: unknown[] = [
+    'pricing',
+    'quote',
+    vehicleId,
+    startAt,
+    endAt,
+    withHomeDelivery ?? false,
+    withHomeReturn ?? false,
+  ]
 
   const request: PricingQuoteRequest | null =
     startAt && endAt
@@ -24,14 +46,17 @@ export function usePricingQuote({ vehicleId, startAt, endAt, enabled = true }: U
           vehicleId,
           startAt: toIsoUtc(startAt),
           endAt: toIsoUtc(endAt),
+          withHomeDelivery,
+          withHomeReturn,
         }
       : null
 
   const query = useQuery<PricingQuoteResponse>({
     queryKey,
-    queryFn: () => pricingApi.quote(request!),
+    queryFn: () => pricingApi.quote(request as PricingQuoteRequest),
     enabled: enabled && !!request,
-    staleTime: 0,
+    staleTime: 4 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   })
 
   return {

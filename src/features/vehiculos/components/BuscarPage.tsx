@@ -17,6 +17,19 @@ import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import { Route, type BuscarSearch } from '@/routes/_app/buscar'
 
+const LOCATION_BY_CITY: Record<string, { locationCode: string; locationLabel: string }> = {
+  CABA: { locationCode: 'caba', locationLabel: 'CABA' },
+  Bariloche: { locationCode: 'bariloche', locationLabel: 'Bariloche' },
+  'Mar del Plata': { locationCode: 'mar-del-plata', locationLabel: 'Mar del Plata' },
+  Mendoza: { locationCode: 'mendoza', locationLabel: 'Mendoza' },
+  Córdoba: { locationCode: 'cordoba', locationLabel: 'Cordoba' },
+  Cordoba: { locationCode: 'cordoba', locationLabel: 'Cordoba' },
+  Salta: { locationCode: 'salta', locationLabel: 'Salta' },
+  Rosario: { locationCode: 'rosario', locationLabel: 'Rosario' },
+  'San Martín de los Andes': { locationCode: 'san-martin-de-los-andes', locationLabel: 'San Martin de los Andes' },
+  'San Martin de los Andes': { locationCode: 'san-martin-de-los-andes', locationLabel: 'San Martin de los Andes' },
+}
+
 /**
  * Mapea los search params planos de la URL al shape `VehiculoFilters` que
  * espera `FilterSheet` y la lógica de filtrado client-side.
@@ -79,9 +92,10 @@ export function BuscarPage() {
 
   const serverCharacteristics = filters.characteristics ?? []
   const { data: vehicles = [], isLoading, isError } = useQuery({
-    queryKey: ['vehicles', serverCharacteristics, search.city ?? null, search.start, search.end],
+    queryKey: ['vehicles', serverCharacteristics, search.city ?? null, search.locationCode ?? null, search.start, search.end],
     queryFn: () => vehiclesApi.getAll({
       city:            search.city,
+      locationCode:    search.locationCode,
       characteristics: serverCharacteristics,
       from:            search.start,
       to:              search.end,
@@ -171,10 +185,17 @@ export function BuscarPage() {
   // Modo "exploración con mapa" se activa cuando hay al menos un criterio
   // primario en la URL. Antes de buscar, /buscar es un feed plano de
   // vehículos sin mapa — la home conductor.
-  const hasSearch = !!(search.city || search.start || search.end || search.searched)
+  const hasSearch = !!(search.city || search.locationCode || search.start || search.end || search.searched)
 
   /** Limpia los criterios primarios para volver al feed home sin recargar. */
-  const exitSearch = () => updateSearch({ city: undefined, start: undefined, end: undefined, searched: undefined })
+  const exitSearch = () => updateSearch({
+    city: undefined,
+    locationCode: undefined,
+    locationLabel: undefined,
+    start: undefined,
+    end: undefined,
+    searched: undefined,
+  })
 
   const filterButton = (
     <button
@@ -214,6 +235,7 @@ export function BuscarPage() {
       <div className="flex-1 min-w-0">
         <SearchPill
           city={search.city}
+          locationLabel={search.locationLabel}
           start={search.start}
           end={search.end}
           onClick={() => setSearchOpen(true)}
@@ -229,6 +251,7 @@ export function BuscarPage() {
       <div className="flex-1 min-w-0">
         <SearchPill
           city={search.city}
+          locationLabel={search.locationLabel}
           start={search.start}
           end={search.end}
           onClick={() => setSearchOpen(true)}
@@ -318,15 +341,33 @@ export function BuscarPage() {
           vehicles={sorted}
           isLoading={isLoading}
           isError={isError}
-          onPickCity={(city) => updateSearch({ city, searched: true })}
+          onPickCity={(city) => updateSearch({
+            city,
+            locationCode: LOCATION_BY_CITY[city]?.locationCode,
+            locationLabel: LOCATION_BY_CITY[city]?.locationLabel ?? city,
+            searched: true,
+          })}
         />
       )}
 
       <SearchOverlay
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        initial={{ city: search.city, start: search.start, end: search.end }}
-        onSearch={({ city, start, end }) => updateSearch({ city, start, end, searched: true })}
+        initial={{
+          city: search.city,
+          locationCode: search.locationCode,
+          locationLabel: search.locationLabel,
+          start: search.start,
+          end: search.end,
+        }}
+        onSearch={({ city, locationCode, locationLabel, start, end }) => updateSearch({
+          city,
+          locationCode,
+          locationLabel,
+          start,
+          end,
+          searched: true,
+        })}
       />
 
       <FilterSheet

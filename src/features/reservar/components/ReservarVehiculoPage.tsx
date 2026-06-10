@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { CheckCircle2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import type {
   PaymentMethod,
@@ -21,6 +22,9 @@ import {
   formatRentalTimeConstraints,
 } from '@/features/vehiculos/utils/rules-formatter'
 import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
+import { useQuoteCountdown } from '@/features/pricing/hooks/useQuoteCountdown'
+import { QuoteExpirationBanner } from '@/features/pricing/components/QuoteExpirationBanner'
+import { ErrorCodes } from '@rocket-lease/contracts'
 import { reservarApi } from '../api/reservar.api'
 import { useCreateReservation } from '../hooks/useCreateReservation'
 import { useConfirmPayment } from '../hooks/useConfirmPayment'
@@ -369,6 +373,16 @@ function joinLocal(date: string, time: string): string {
   return `${date}T${time}`
 }
 
+/**
+ * Normaliza una fecha llegada por query param (`YYYY-MM-DD` desde la
+ * búsqueda, o ya con hora) al formato datetime-local del formulario,
+ * usando la misma hora default que el calendario.
+ */
+function searchParamToLocal(param: string | undefined): string {
+  if (!param) return ''
+  return param.includes('T') ? param : `${param}T06:00`
+}
+
 function isProblemDetails(value: unknown): value is ProblemDetails {
   return (
     typeof value === 'object' &&
@@ -376,6 +390,10 @@ function isProblemDetails(value: unknown): value is ProblemDetails {
     'code' in value &&
     typeof (value as { code?: unknown }).code === 'string'
   )
+}
+
+function isQuoteExpired(err: unknown): boolean {
+  return isProblemDetails(err) && err.code === ErrorCodes.PRICE_QUOTE_EXPIRED
 }
 
 function errorMessageFor(err: unknown): string {
@@ -389,6 +407,9 @@ function errorMessageFor(err: unknown): string {
 
 export function ReservarVehiculoPage() {
   const { id: vehicleId } = useParams({ from: '/_app/vehiculos/$id_/reservar' })
+  const { start: startParam, end: endParam } = useSearch({
+    from: '/_app/vehiculos/$id_/reservar',
+  })
   const navigate = useNavigate()
 
   const { data: vehicle, isLoading, isError, refetch: refetchVehicle } = useQuery({
@@ -403,8 +424,8 @@ export function ReservarVehiculoPage() {
   const busyRanges = useMemo(() => busyData?.items ?? [], [busyData])
 
   const [step, setStep] = useState<Step>('fechas')
-  const [startAtLocal, setStartAtLocal] = useState('')
-  const [endAtLocal, setEndAtLocal] = useState('')
+  const [startAtLocal, setStartAtLocal] = useState(() => searchParamToLocal(startParam))
+  const [endAtLocal, setEndAtLocal] = useState(() => searchParamToLocal(endParam))
   const [contractAccepted, setContractAccepted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [walletProvider, setWalletProvider] = useState<string | null>(null)
@@ -461,6 +482,8 @@ export function ReservarVehiculoPage() {
     vehicleId,
     startAt: startAtLocal,
     endAt: endAtLocal,
+    withHomeDelivery,
+    withHomeReturn,
     enabled: !!vehicle && validRange && !overlapsBusy && !rentalDurationViolation,
   })
 
@@ -473,6 +496,57 @@ export function ReservarVehiculoPage() {
     new Date(startAtLocal).getTime() - now >= 2 * 60 * 60 * 1000
   const depositAvailable = depositPercentage !== null && startFarEnough
   const pricingQuote = pricingQuoteQuery.pricingQuote
+  const quoteCountdown = useQuoteCountdown(pricingQuote?.expiresAt)
+  const previousTotalCentsRef = useRef<number | null>(null)
+  const expirationRefetchPendingRef = useRef(false)
+  const recalculatingStartedAtRef = useRef(0)
+  const [isRecalculating, setIsRecalculating] = useState(false)
+
+  useEffect(() => {
+    if (isRecalculating) return
+    if (!pricingQuote?.expiresAt) return
+    if (!quoteCountdown.isExpired) return
+    if (pricingQuoteQuery.isFetching) return
+    expirationRefetchPendingRef.current = true
+    recalculatingStartedAtRef.current = Date.now()
+    setIsRecalculating(true)
+    void pricingQuoteQuery.refetch()
+  }, [
+    isRecalculating,
+    pricingQuote?.expiresAt,
+    quoteCountdown.isExpired,
+    pricingQuoteQuery.isFetching,
+    pricingQuoteQuery,
+  ])
+
+  useEffect(() => {
+    if (!isRecalculating) return
+    if (pricingQuoteQuery.isFetching) return
+    const elapsedMs = Date.now() - recalculatingStartedAtRef.current
+    const remainingMs = Math.max(0, 2000 - elapsedMs)
+    const timer = window.setTimeout(() => setIsRecalculating(false), remainingMs)
+    return () => window.clearTimeout(timer)
+  }, [isRecalculating, pricingQuoteQuery.isFetching])
+
+  useEffect(() => {
+    const total = pricingQuote?.totalCents
+    if (total === undefined) return
+    const previousTotal = previousTotalCentsRef.current
+    if (previousTotal === null) {
+      previousTotalCentsRef.current = total
+      return
+    }
+    if (previousTotal === total) return
+    if (expirationRefetchPendingRef.current) {
+      toast(
+        t('reservar.quote.priceChanged')
+          .replace('{old}', fmt.currency(previousTotal))
+          .replace('{new}', fmt.currency(total)),
+      )
+    }
+    previousTotalCentsRef.current = total
+    expirationRefetchPendingRef.current = false
+  }, [pricingQuote?.totalCents])
 
   const canContinueToContract =
     validRange &&
@@ -480,7 +554,9 @@ export function ReservarVehiculoPage() {
     !rentalDurationViolation &&
     (!vehicle?.reservationRuleSet || rulesAcknowledged) &&
     !(deliveryUseCustom && !deliveryCustomAddress) &&
-    !(returnUseCustom && !returnCustomAddress)
+    !(returnUseCustom && !returnCustomAddress) &&
+    !pricingQuoteQuery.isFetching &&
+    !isRecalculating
 
   const durationViolationMessage = rentalDurationViolation
     ? rentalDurationViolation.kind === 'min'
@@ -524,8 +600,8 @@ export function ReservarVehiculoPage() {
       setStep('pago')
       return
     }
-    try {
-      const created = await createReservation.mutateAsync({
+    const tryCreate = (quoteToken?: string) =>
+      createReservation.mutateAsync({
         vehicleId: vehicle!.id,
         startAt: toIsoUtc(startAtLocal),
         endAt: toIsoUtc(endAtLocal),
@@ -534,7 +610,20 @@ export function ReservarVehiculoPage() {
         deliveryAddress: withHomeDelivery && deliveryCustomAddress ? deliveryCustomAddress : undefined,
         withHomeReturn,
         returnAddress: withHomeReturn && returnCustomAddress ? returnCustomAddress : undefined,
+        quoteToken,
       })
+    try {
+      let created
+      try {
+        created = await tryCreate(pricingQuote?.quoteToken)
+      } catch (err) {
+        if (isQuoteExpired(err)) {
+          const refreshed = await pricingQuoteQuery.refetch()
+          created = await tryCreate(refreshed.data?.quoteToken)
+        } else {
+          throw err
+        }
+      }
       if (created.status === 'pending_approval') {
         navigate({ to: '/reservas/$id', params: { id: created.id } })
         return
@@ -572,7 +661,17 @@ export function ReservarVehiculoPage() {
 
   return (
     <div className="flex flex-col min-h-full">
-      <PageHeader title={t('reservar.title')} showBack sticky />
+      <div className="sticky top-0 z-40">
+        <PageHeader title={t('reservar.title')} showBack />
+        {pricingQuote?.expiresAt && (
+          <QuoteExpirationBanner
+            secondsLeft={quoteCountdown.secondsLeft}
+            percentLeft={quoteCountdown.percentLeft}
+            isRecalculating={isRecalculating}
+            label={quoteCountdown.label}
+          />
+        )}
+      </div>
 
       <div className="px-4 py-5 space-y-5">
         <div className="rounded-2xl border border-white/8 bg-surface-1 p-4">

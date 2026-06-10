@@ -38,7 +38,8 @@ function isImmersiveRoute(pathname: string): boolean {
     pathname.startsWith('/vehiculos/') ||
     pathname.startsWith('/reservas/') ||
     pathname.startsWith('/reservas-transferencia/') ||
-    pathname.startsWith('/perfil/')
+    pathname.startsWith('/perfil/') ||
+    pathname.startsWith('/admin/')
   )
 }
 

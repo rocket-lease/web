@@ -160,6 +160,9 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
   vehicle.availableFrom
     ? `Desde ${vehicle.availableFrom}`
     : null,
+  vehicle.dynamicPricingEnabled
+    ? t('rentador.vehiculo.dynamicPricing.activo')
+    : null,
 ]
   .filter(Boolean)
   .join(' · ')

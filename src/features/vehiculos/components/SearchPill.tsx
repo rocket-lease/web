@@ -2,6 +2,7 @@ import { MagnifyingGlass } from '@phosphor-icons/react'
 
 interface SearchPillProps {
   city?:    string
+  locationLabel?: string
   start?:   string
   end?:     string
   onClick:  () => void
@@ -26,11 +27,12 @@ function formatDateRange(start?: string, end?: string): string | null {
  * Cuando no hay criterios muestra un placeholder neutro; cuando los hay
  * los condensa en una sola línea ("Buenos Aires · 12 mar – 15 mar").
  */
-export function SearchPill({ city, start, end, onClick }: SearchPillProps) {
+export function SearchPill({ city, locationLabel, start, end, onClick }: SearchPillProps) {
   const datesLabel = formatDateRange(start, end)
-  const summary = city && datesLabel
-    ? `${city} · ${datesLabel}`
-    : city ?? datesLabel ?? 'Empezá tu búsqueda'
+  const placeLabel = locationLabel ?? city
+  const summary = placeLabel && datesLabel
+    ? `${placeLabel} · ${datesLabel}`
+    : placeLabel ?? datesLabel ?? 'Empezá tu búsqueda'
 
   return (
     <button

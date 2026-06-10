@@ -67,6 +67,7 @@ export const es = {  // --- App ---
   'mapa.card.viewVehicles': 'Ver vehiculos',
   'mapa.zone.tapToZoom': 'Toca para acercar',
   'mapa.zone.rentadoras': 'rentadoras',
+  'mapa.googleKeyMissing': 'Falta configurar VITE_GOOGLE_MAPS_API_KEY para mostrar el mapa.',
 
   // --- Selector de ubicacion (rentador) ---
   'location.picker.label': 'Ubicacion del vehiculo',
@@ -196,6 +197,7 @@ export const es = {  // --- App ---
   'vehiculo.fuel.hibrido': 'Hibrido',
   'vehiculo.seats': 'asientos',
   'vehiculo.perDay': '/ dia',
+  'vehiculo.dynamicPricingFor': 'por {days} dias',
   'vehiculo.perWeek': '/ semana',
   'vehiculo.perMonth': '/ mes',
   'vehiculo.owner': 'Rentador',
@@ -507,6 +509,7 @@ export const es = {  // --- App ---
   'perfil.reviews.emptyRentador': 'Todavía no recibiste reseñas como rentador.',
   'perfil.reviews.emptyConductor': 'Todavía no recibiste reseñas como conductor.',
   'perfil.settings': 'Configuracion',
+  'perfil.adminPanel': 'Panel de administracion',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
 
@@ -708,6 +711,8 @@ export const es = {  // --- App ---
   'configuracion.section.seguridad': 'Seguridad',
   'configuracion.section.rentador': 'Rentador',
   'configuracion.section.cuenta': 'Cuenta',
+  'configuracion.section.admin': 'Administración',
+  'configuracion.admin.pricingZones': 'Mapa de precios dinámicos',
   'configuracion.verify.pending': 'Sin verificar',
   'configuracion.autoAccept.toast.on': 'Auto-aceptación activada',
   'configuracion.autoAccept.toast.off': 'Auto-aceptación desactivada',
@@ -928,6 +933,7 @@ export const es = {  // --- App ---
   'error.default': 'Algo salio mal. Intenta de nuevo.',
   'error.IDENTITY_VERIFICATION_REQUIRED': 'Necesitas verificar tu identidad antes de continuar.',
   'error.DRIVER_LICENSE_VERIFICATION_REQUIRED': 'Necesitas verificar tu licencia de conducir antes de continuar.',
+  'error.ADMIN_FORBIDDEN': 'No tenés permisos de administrador.',
   'error.USER_HAS_VEHICLES': 'No podes eliminar tu cuenta mientras tengas vehiculos publicados.',
   'error.USER_HAS_ACTIVE_RESERVATIONS': 'No podes eliminar tu cuenta mientras tengas reservas activas.',
   'error.BANK_ACCOUNT_REQUIRED': 'Necesitas vincular una cuenta bancaria para recibir pagos.',
@@ -1200,6 +1206,15 @@ export const es = {  // --- App ---
   'reservar.errors.VEHICLE_HOME_RETURN_NOT_ENABLED': 'Este vehículo no tiene retiro a domicilio habilitado.',
   'reservar.errors.HOME_DELIVERY_ADDRESS_REQUIRED': 'Ingresá la dirección de entrega.',
   'reservar.errors.HOME_RETURN_ADDRESS_REQUIRED': 'Ingresá la dirección de retiro.',
+  'reservar.quote.validFor.label': 'Tiempo para completar tu reserva',
+  'reservar.quote.refreshing': 'Actualizando precio…',
+  'reservar.quote.priceChanged': 'Precio actualizado: {old} → {new}',
+  'reservar.quote.expired.title': 'Tiempo finalizado',
+  'reservar.quote.expired.message': 'Estamos recalculando el valor de tu reserva…',
+  'reservar.errors.PRICE_QUOTE_NOT_FOUND': 'No encontramos la cotización. Volvé a cotizar.',
+  'reservar.errors.PRICE_QUOTE_EXPIRED': 'La cotización venció. Volvé a cotizar para confirmar el precio.',
+  'reservar.errors.PRICE_QUOTE_VEHICLE_MISMATCH': 'La cotización no corresponde a este vehículo.',
+  'reservar.errors.PRICE_QUOTE_CONDUCTOR_MISMATCH': 'Esta cotización ya está asociada a otro conductor. Volvé a cotizar.',
   'reservar.address.original': 'Dirección original',
   'reservar.address.custom': 'Personalizada',
   'reservar.homeDelivery.sectionTitle': 'Entrega del vehículo',
@@ -1344,6 +1359,51 @@ export const es = {  // --- App ---
   'perfil.reportes.row': 'Incidentes',
   'perfil.reportes.tabMios': 'Generados por mí',
   'perfil.reportes.tabContra': 'Contra mí',
+
+  // --- Precios dinámicos (rentador) ---
+  'rentador.vehiculo.dynamicPricing.label': 'Precios dinámicos',
+  'rentador.vehiculo.dynamicPricing.tooltip':
+    'Los precios se ajustan automáticamente según la demanda de tu zona y de tu vehículo, dentro de un rango de 70-200% del precio base.',
+  'rentador.vehiculo.dynamicPricing.activo': 'Precios dinámicos activos',
+  'rentador.vehiculo.dynamicPricing.estado.activo': 'Activo',
+  'rentador.vehiculo.dynamicPricing.estado.inactivo': 'Inactivo',
+  'rentador.vehiculo.dynamicPricing.activoHint':
+    'El precio se ajusta automáticamente según la demanda de tu zona (70–200% del base).',
+  'rentador.vehiculo.dynamicPricing.inactivoHint':
+    'Se cobra siempre el precio base sin importar la demanda de la zona.',
+
+  // --- Admin: acceso restringido ---
+  'admin.gate.deniedTitle': 'Acceso restringido',
+  'admin.gate.deniedMessage': 'Esta sección es solo para administradores de la plataforma.',
+  'admin.gate.backHome': 'Volver al inicio',
+
+  // --- Admin: mapa de precios dinámicos ---
+  'admin.pricing.titulo': 'Mapa de precios dinámicos',
+  'admin.pricing.subtitulo': 'Oferta, demanda y multiplier promedio por zona.',
+  'admin.pricing.cargando': 'Cargando zonas...',
+  'admin.pricing.errorCarga': 'No pudimos cargar las zonas. Intentá de nuevo.',
+  'admin.pricing.sinZonas': 'Todavía no hay actividad para mostrar.',
+  'admin.pricing.demanda': 'Demanda (últimos 7 días)',
+  'admin.pricing.oferta': 'Oferta',
+  'admin.pricing.multiplierPromedio': 'Multiplier promedio',
+  'admin.pricing.sinDatos': 'Sin actividad en esta zona',
+  'admin.pricing.drawer.title': 'Detalle de la zona',
+  'admin.pricing.drawer.cell': 'Celda H3',
+  'admin.pricing.drawer.ratio': 'Demanda / Oferta',
+  'admin.pricing.drawer.topVehiculos': 'Vehículos de muestra',
+  'admin.pricing.drawer.close': 'Cerrar',
+  'admin.pricing.unit.vehicles': 'autos',
+  'admin.pricing.unit.signals': 'señales',
+  'admin.pricing.enZona': 'En esta zona',
+  'admin.pricing.headline.highDemand': 'Demanda ×{ratio} la oferta',
+  'admin.pricing.headline.lowDemand': 'Oferta sobra para la demanda actual',
+  'admin.pricing.headline.demandNoSupply': 'Hay demanda pero no hay autos publicados',
+  'admin.pricing.headline.supplyIdle': 'Hay autos pero sin demanda registrada',
+  'admin.pricing.legend.title': 'Multiplier',
+  'admin.pricing.legend.veryHigh': 'Demanda muy alta (≥1.5×)',
+  'admin.pricing.legend.high': 'Demanda alta (≥1.3×)',
+  'admin.pricing.legend.elevated': 'Demanda elevada (≥1.15×)',
+  'admin.pricing.legend.normal': 'Tarifa base',
 
   // --- Tickets US-59: subject + soporte general ---
   'tickets.reportar.subjectLabel': 'Asunto',

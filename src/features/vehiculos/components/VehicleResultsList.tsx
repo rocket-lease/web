@@ -99,6 +99,7 @@ export function VehicleResultsList({
             <div
               key={v.id}
               data-vehicle-id={v.id}
+              data-vaul-no-drag
               onMouseEnter={() => onHoverVehicle?.(v.id)}
               onMouseLeave={() => onHoverVehicle?.(null)}
               onClick={() => onClickVehicle?.(v.id)}

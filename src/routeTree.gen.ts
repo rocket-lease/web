@@ -48,6 +48,7 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppHistorialResenasRouteImport } from './routes/_app/historial_.resenas'
+import { Route as AppAdminPricingRouteImport } from './routes/_app/admin.pricing'
 import { Route as AdminTicketsIdRouteImport } from './routes/_admin/tickets_.$id'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
 import { Route as AppSoporteTicketsIdRouteImport } from './routes/_app/soporte_.tickets.$id'
@@ -250,6 +251,11 @@ const AppHistorialResenasRoute = AppHistorialResenasRouteImport.update({
   path: '/historial/resenas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminPricingRoute = AppAdminPricingRouteImport.update({
+  id: '/admin/pricing',
+  path: '/admin/pricing',
+  getParentRoute: () => AppRoute,
+} as any)
 const AdminTicketsIdRoute = AdminTicketsIdRouteImport.update({
   id: '/tickets_/$id',
   path: '/tickets/$id',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
   '/tickets/$id': typeof AdminTicketsIdRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByTo {
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
   '/tickets/$id': typeof AdminTicketsIdRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -404,6 +412,7 @@ export interface FileRoutesById {
   '/_app/saldo': typeof AppSaldoRoute
   '/_app/soporte': typeof AppSoporteRoute
   '/_admin/tickets_/$id': typeof AdminTicketsIdRoute
+  '/_app/admin/pricing': typeof AppAdminPricingRoute
   '/_app/historial_/resenas': typeof AppHistorialResenasRoute
   '/_app/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/_app/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -452,6 +461,7 @@ export interface FileRouteTypes {
     | '/saldo'
     | '/soporte'
     | '/tickets/$id'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -498,6 +508,7 @@ export interface FileRouteTypes {
     | '/saldo'
     | '/soporte'
     | '/tickets/$id'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -546,6 +557,7 @@ export interface FileRouteTypes {
     | '/_app/saldo'
     | '/_app/soporte'
     | '/_admin/tickets_/$id'
+    | '/_app/admin/pricing'
     | '/_app/historial_/resenas'
     | '/_app/mis-vehiculos/$id'
     | '/_app/mis-vehiculos/nuevo'
@@ -858,6 +870,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHistorialResenasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/pricing': {
+      id: '/_app/admin/pricing'
+      path: '/admin/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AppAdminPricingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_admin/tickets_/$id': {
       id: '/_admin/tickets_/$id'
       path: '/tickets/$id'
@@ -953,6 +972,7 @@ interface AppRouteChildren {
   AppReservasRoute: typeof AppReservasRoute
   AppSaldoRoute: typeof AppSaldoRoute
   AppSoporteRoute: typeof AppSoporteRoute
+  AppAdminPricingRoute: typeof AppAdminPricingRoute
   AppHistorialResenasRoute: typeof AppHistorialResenasRoute
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCreditosRoute: typeof AppPerfilCreditosRoute
@@ -988,6 +1008,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasRoute: AppReservasRoute,
   AppSaldoRoute: AppSaldoRoute,
   AppSoporteRoute: AppSoporteRoute,
+  AppAdminPricingRoute: AppAdminPricingRoute,
   AppHistorialResenasRoute: AppHistorialResenasRoute,
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCreditosRoute: AppPerfilCreditosRoute,
