@@ -18,6 +18,7 @@ export interface MapSearchParams {
   bounds?: MapBoundsParam
   center?: { lat: number; lng: number }
   radiusKm?: number
+  locationCode?: string
   zoom: number
   transmission?: Transmission
   maxPriceDaily?: number
@@ -40,6 +41,7 @@ function buildQuery(params: MapSearchParams): string {
     qs.set('lng', String(params.center.lng))
     qs.set('radiusKm', String(params.radiusKm))
   }
+  if (params.locationCode) qs.set('locationCode', params.locationCode)
   qs.set('zoom', String(params.zoom))
   if (params.transmission) qs.set('transmission', params.transmission)
   if (params.maxPriceDaily !== undefined)

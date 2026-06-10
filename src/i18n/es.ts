@@ -195,6 +195,7 @@ export const es = {  // --- App ---
   'vehiculo.fuel.hibrido': 'Hibrido',
   'vehiculo.seats': 'asientos',
   'vehiculo.perDay': '/ dia',
+  'vehiculo.dynamicPricingFor': 'por {days} dias',
   'vehiculo.perWeek': '/ semana',
   'vehiculo.perMonth': '/ mes',
   'vehiculo.owner': 'Rentador',
@@ -502,6 +503,7 @@ export const es = {  // --- App ---
   'perfil.reviewsEmpty': 'Este rentador todavía no tiene reseñas.',
   'perfil.reviewsEmptyHint': 'Cuando alguien complete un alquiler con él y deje una opinión, vas a verla acá.',
   'perfil.settings': 'Configuracion',
+  'perfil.adminPanel': 'Panel de administracion',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
 
@@ -1353,10 +1355,10 @@ export const es = {  // --- App ---
   'admin.pricing.headline.demandNoSupply': 'Hay demanda pero no hay autos publicados',
   'admin.pricing.headline.supplyIdle': 'Hay autos pero sin demanda registrada',
   'admin.pricing.legend.title': 'Multiplier',
-  'admin.pricing.legend.high': 'Alta demanda (≥1.5×)',
+  'admin.pricing.legend.veryHigh': 'Demanda muy alta (≥1.5×)',
+  'admin.pricing.legend.high': 'Demanda alta (≥1.3×)',
   'admin.pricing.legend.elevated': 'Demanda elevada (≥1.15×)',
-  'admin.pricing.legend.normal': 'Demanda normal',
-  'admin.pricing.legend.low': 'Baja demanda (≤0.85×)',
+  'admin.pricing.legend.normal': 'Tarifa base',
 } as const
 
 export type I18nKey = keyof typeof es

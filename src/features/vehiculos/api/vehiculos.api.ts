@@ -19,14 +19,16 @@ const parseVehicles = (input: unknown): GetVehicleResponse[] => GetVehicleRespon
 
 interface GetAllParams {
   city?: string
+  locationCode?: string
   characteristics?: Characteristic[]
   from?: string
   to?: string
 }
 
-const buildVehicleQuery = ({ city, characteristics, from, to }: GetAllParams): string => {
+const buildVehicleQuery = ({ city, locationCode, characteristics, from, to }: GetAllParams): string => {
   const params = new URLSearchParams()
   if (city) params.set('city', city)
+  if (locationCode) params.set('locationCode', locationCode)
   if (characteristics && characteristics.length > 0) params.set('characteristics', characteristics.join(','))
   if (from) params.set('from', from)
   if (to) params.set('to', to)

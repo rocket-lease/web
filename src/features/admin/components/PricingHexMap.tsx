@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps'
+import { APIProvider, AdvancedMarker, Map, useMap } from '@vis.gl/react-google-maps'
 import type { AdminPricingZone } from '@rocket-lease/contracts'
 import {
   CABA_POLYGON_LAT_LON,
   cellsInPolygon,
+  h3CellCenter,
   h3ToGeoBoundary,
 } from '@/lib/h3'
 import {
@@ -93,6 +94,7 @@ export function PricingHexMap({ zones, onHexClick, onMapClick, selectedH3Cell }:
           hexClickedRef={hexClickedRef}
           lastHexClickEventRef={lastHexClickEventRef}
         />
+        <ZoneLabelsLayer zones={visibleZones} />
         <SelectedHexLayer cell={visibleSelectedH3Cell} />
       </Map>
       <MapLegend />
@@ -296,6 +298,32 @@ function ZonesLayer({
   }, [zones])
 
   return null
+}
+
+/**
+ * Etiqueta numérica centrada en cada zona con oferta: la cantidad de vehículos
+ * disponibles en la celda. La presión de demanda ya la comunica el color del
+ * hexágono, así que las celdas sin oferta no muestran número. Los markers no
+ * capturan eventos para que el click siga llegando al hexágono de abajo.
+ */
+function ZoneLabelsLayer({ zones }: { zones: AdminPricingZone[] }) {
+  return (
+    <>
+      {zones
+        .filter((zone) => zone.supplyCount > 0)
+        .map((zone) => (
+          <AdvancedMarker
+            key={zone.h3Cell}
+            position={h3CellCenter(zone.h3Cell)}
+            clickable={false}
+          >
+            <span className="pointer-events-none rounded-full bg-surface-0/80 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white/90 backdrop-blur-sm">
+              {zone.supplyCount}
+            </span>
+          </AdvancedMarker>
+        ))}
+    </>
+  )
 }
 
 /**

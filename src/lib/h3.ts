@@ -1,4 +1,4 @@
-import { cellToBoundary, latLngToCell, polygonToCells } from 'h3-js'
+import { cellToBoundary, cellToLatLng, latLngToCell, polygonToCells } from 'h3-js'
 
 /**
  * Resolución H3 por defecto para Rocket Lease. Aprox. 460 m por celda,
@@ -27,6 +27,15 @@ export function h3ToGeoBoundary(cell: string): Array<[number, number]> {
     }
   }
   return ring
+}
+
+/**
+ * Devuelve el centro de la celda H3 como `{lat, lng}`, listo para anclar
+ * markers de Google Maps.
+ */
+export function h3CellCenter(cell: string): { lat: number; lng: number } {
+  const [lat, lng] = cellToLatLng(cell)
+  return { lat, lng }
 }
 
 /**

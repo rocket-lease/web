@@ -9,6 +9,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { pricingApi } from '@/features/pricing/api/pricing.api'
 import { usePricingQuote } from './usePricingQuote'
 import { createWrapper } from '@/test/query-wrapper'
+import type { PricingQuote } from '@rocket-lease/contracts'
 
 const mockQuote = vi.mocked(pricingApi.quote)
 
@@ -16,7 +17,7 @@ const VEHICLE_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
 const START_AT = '2026-06-10'
 const END_AT = '2026-06-13'
 
-const MOCK_QUOTE_RESPONSE = {
+const MOCK_QUOTE_RESPONSE: PricingQuote = {
   vehicleId: VEHICLE_ID,
   currency: 'ARS',
   basePriceCents: 10000,

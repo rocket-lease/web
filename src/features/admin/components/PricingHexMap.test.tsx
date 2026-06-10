@@ -7,13 +7,19 @@ vi.mock('@vis.gl/react-google-maps', () => ({
   Map: ({ children }: { children?: React.ReactNode }) => (
     <div data-testid="mock-map">{children}</div>
   ),
+  AdvancedMarker: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   useMap: () => null,
 }))
 
 describe('PricingHexMap', () => {
   it('renderea sin crashear con la lista de zonas vacía', () => {
     const { getByTestId } = render(
-      <PricingHexMap zones={[]} selectedH3Cell={null} onHexClick={() => {}} />,
+      <PricingHexMap
+        zones={[]}
+        selectedH3Cell={null}
+        onHexClick={() => {}}
+        onMapClick={() => {}}
+      />,
     )
     expect(getByTestId('mock-map')).toBeInTheDocument()
   })
@@ -21,6 +27,7 @@ describe('PricingHexMap', () => {
   it('renderea con zonas con geometría', () => {
     const { getByTestId } = render(
       <PricingHexMap
+        onMapClick={() => {}}
         zones={[
           {
             h3Cell: '88754e6499fffff',

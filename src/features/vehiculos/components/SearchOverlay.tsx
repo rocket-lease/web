@@ -1,26 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MagnifyingGlass, MapPin, NavigationArrow, ArrowLeft } from '@phosphor-icons/react'
+import { MagnifyingGlass, MapPin, NavigationArrow, ArrowLeft, CaretRight } from '@phosphor-icons/react'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ScrollingCalendar } from './ScrollingCalendar'
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll'
 import { cn } from '@/lib/utils'
+import { locationsApi, type GeoLocationOption } from '../api/locations.api'
 
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
 
 /**
- * Ciudades sugeridas en el step "¿Dónde?". `value` es el filtro real del
- * backend; `label`/`hint` son presentación. Cuando el step está expandido y
- * no hay query, mostramos solo las primeras `TOP_DESTINATIONS_COUNT`.
+ * Fallback del step "Donde" hasta que responda `/geo/locations`. La fuente
+ * de verdad vive en DB; esto evita un estado vacio si la API tarda o falla.
  */
-const SUGGESTED_DESTINATIONS: ReadonlyArray<{ value: string; label: string; hint: string }> = [
-  { value: 'CABA',                    label: 'Buenos Aires',          hint: 'CABA' },
-  { value: 'Bariloche',               label: 'Bariloche',             hint: 'Río Negro' },
-  { value: 'Mar del Plata',           label: 'Mar del Plata',         hint: 'Buenos Aires' },
-  { value: 'Mendoza',                 label: 'Mendoza',               hint: 'Cuyo' },
-  { value: 'Córdoba',                 label: 'Córdoba',               hint: 'Centro' },
-  { value: 'Salta',                   label: 'Salta',                 hint: 'NOA' },
-  { value: 'Rosario',                 label: 'Rosario',               hint: 'Santa Fe' },
-  { value: 'San Martín de los Andes', label: 'San Martín de los Andes', hint: 'Neuquén' },
+const FALLBACK_DESTINATIONS: ReadonlyArray<GeoLocationOption> = [
+  {
+    code: 'caba',
+    name: 'CABA',
+    type: 'city',
+    city: 'CABA',
+    children: [{ code: 'caba-palermo', name: 'Palermo', type: 'neighborhood', parentCode: 'caba', city: 'CABA' }],
+  },
+  { code: 'bariloche', name: 'Bariloche', type: 'city', city: 'Bariloche' },
+  { code: 'mar-del-plata', name: 'Mar del Plata', type: 'city', city: 'Mar del Plata' },
+  { code: 'mendoza', name: 'Mendoza', type: 'city', city: 'Mendoza' },
+  { code: 'cordoba', name: 'Cordoba', type: 'city', city: 'Cordoba' },
+  { code: 'salta', name: 'Salta', type: 'city', city: 'Salta' },
+  { code: 'rosario', name: 'Rosario', type: 'city', city: 'Rosario' },
+  { code: 'san-martin-de-los-andes', name: 'San Martin de los Andes', type: 'city', city: 'San Martin de los Andes' },
 ]
 
 const TOP_DESTINATIONS_COUNT = 3
@@ -28,9 +35,11 @@ const TOP_DESTINATIONS_COUNT = 3
 type Step = 'where' | 'when'
 
 export interface SearchOverlayValue {
-  city?:  string
-  start?: string
-  end?:   string
+  city?:          string
+  locationCode?:  string
+  locationLabel?: string
+  start?:         string
+  end?:           string
 }
 
 interface SearchOverlayProps {
@@ -64,8 +73,15 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   const [prevStep, setPrevStep] = useState<Step>(step)
   const [whereExpanded, setWhereExpanded] = useState(false)
   const [cityDraft, setCityDraft] = useState<string | undefined>(initial.city)
+  const [locationCodeDraft, setLocationCodeDraft] = useState<string | undefined>(initial.locationCode)
+  const [locationLabelDraft, setLocationLabelDraft] = useState<string | undefined>(initial.locationLabel)
   const [startDraft, setStartDraft] = useState<string | undefined>(initial.start)
   const [endDraft, setEndDraft] = useState<string | undefined>(initial.end)
+  const { data: catalog = FALLBACK_DESTINATIONS } = useQuery({
+    queryKey: ['geo', 'locations', 'search'],
+    queryFn: locationsApi.listSearchLocations,
+    staleTime: 1000 * 60 * 10,
+  })
 
   // El swap del contenido a su versión colapsada se demora 200ms (250ms
   // antes que la animación de 450ms del max-height) para que el cambio a
@@ -80,16 +96,20 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
   useEffect(() => {
     if (!open) return
     setCityDraft(initial.city)
+    setLocationCodeDraft(initial.locationCode)
+    setLocationLabelDraft(initial.locationLabel)
     setStartDraft(initial.start)
     setEndDraft(initial.end)
     setStep(initial.city ? 'when' : 'where')
     setWhereExpanded(false)
-  }, [open, initial.city, initial.start, initial.end])
+  }, [open, initial.city, initial.locationCode, initial.locationLabel, initial.start, initial.end])
 
   const close = () => onOpenChange(false)
 
-  const pickCity = (value: string) => {
-    setCityDraft(value)
+  const pickLocation = (location: GeoLocationOption) => {
+    setCityDraft(location.city ?? location.name)
+    setLocationCodeDraft(location.code)
+    setLocationLabelDraft(location.name)
     setWhereExpanded(false)
     setStep('when')
   }
@@ -101,7 +121,8 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
     }
     navigator.geolocation.getCurrentPosition(
       () => {
-        pickCity('CABA')
+        const caba = catalog.find(location => location.code === 'caba')
+        if (caba) pickLocation(caba)
         toast.success('Mostrando opciones en Buenos Aires')
       },
       () => toast.error('No pudimos obtener tu ubicación'),
@@ -111,17 +132,25 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
 
   const clearAll = () => {
     setCityDraft(undefined)
+    setLocationCodeDraft(undefined)
+    setLocationLabelDraft(undefined)
     setStartDraft(undefined)
     setEndDraft(undefined)
     setStep('where')
   }
 
   const submit = () => {
-    onSearch({ city: cityDraft, start: startDraft, end: endDraft })
+    onSearch({
+      city: cityDraft,
+      locationCode: locationCodeDraft,
+      locationLabel: locationLabelDraft,
+      start: startDraft,
+      end: endDraft,
+    })
     close()
   }
 
-  const cityLabel = SUGGESTED_DESTINATIONS.find(d => d.value === cityDraft)?.label ?? cityDraft
+  const cityLabel = locationLabelDraft ?? cityDraft
   const datesLabel = formatRange(startDraft, endDraft)
 
   const phase = useExitPhase(open, 450)
@@ -137,11 +166,13 @@ export function SearchOverlay({ open, onOpenChange, initial, onSearch }: SearchO
         whereExpanded={whereExpanded}
         setWhereExpanded={setWhereExpanded}
         cityDraft={cityDraft}
+        locationCodeDraft={locationCodeDraft}
         startDraft={startDraft}
         endDraft={endDraft}
         cityLabel={cityLabel}
         datesLabel={datesLabel}
-        pickCity={pickCity}
+        pickLocation={pickLocation}
+        locations={catalog}
         onNearby={handleNearby}
         setRange={(r) => { setStartDraft(r.from); setEndDraft(r.to) }}
         clearAll={clearAll}
@@ -210,11 +241,13 @@ interface OverlayBodyProps {
   whereExpanded:    boolean
   setWhereExpanded: (v: boolean) => void
   cityDraft?:       string
+  locationCodeDraft?: string
   startDraft?:      string
   endDraft?:        string
   cityLabel?:       string
   datesLabel:       string | null
-  pickCity:         (v: string) => void
+  pickLocation:     (location: GeoLocationOption) => void
+  locations:        ReadonlyArray<GeoLocationOption>
   onNearby:         () => void
   setRange:         (r: { from?: string; to?: string }) => void
   clearAll:         () => void
@@ -223,8 +256,8 @@ interface OverlayBodyProps {
 
 function OverlayBody({
   isOpen, step, prevStep, setStep, whereExpanded, setWhereExpanded,
-  cityDraft, startDraft, endDraft, cityLabel, datesLabel,
-  pickCity, onNearby, setRange, clearAll, submit,
+  cityDraft, locationCodeDraft, startDraft, endDraft, cityLabel, datesLabel,
+  pickLocation, locations, onNearby, setRange, clearAll, submit,
 }: OverlayBodyProps) {
   // En modo expanded el card de Dónde toma toda la pantalla y el de
   // Cuándo se oculta temporalmente para no distraer del search.
@@ -250,8 +283,10 @@ function OverlayBody({
           {showWhereContent ? (
             <WhereExpanded
               currentCity={cityDraft}
-              onPick={pickCity}
+              currentLocationCode={locationCodeDraft}
+              onPick={pickLocation}
               onNearby={onNearby}
+              locations={locations}
               expanded={whereExpanded}
               onExpand={() => setWhereExpanded(true)}
               onCollapse={() => setWhereExpanded(false)}
@@ -377,8 +412,10 @@ function CardCollapsed({ label, value, onClick }: CardCollapsedProps) {
 
 interface WhereExpandedProps {
   currentCity?: string
-  onPick:       (city: string) => void
+  currentLocationCode?: string
+  onPick:       (location: GeoLocationOption) => void
   onNearby:     () => void
+  locations:    ReadonlyArray<GeoLocationOption>
   expanded:     boolean
   onExpand:     () => void
   onCollapse:   () => void
@@ -394,8 +431,18 @@ interface WhereExpandedProps {
  */
 const COLLAPSE_THRESHOLD_PX = 100
 
-function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCollapse }: WhereExpandedProps) {
+function WhereExpanded({
+  currentCity,
+  currentLocationCode,
+  onPick,
+  onNearby,
+  locations,
+  expanded,
+  onExpand,
+  onCollapse,
+}: WhereExpandedProps) {
   const [query, setQuery] = useState('')
+  const [parentCode, setParentCode] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const dragStartY = useRef<number | null>(null)
@@ -404,18 +451,36 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
   useEffect(() => {
     if (!expanded) {
       setQuery('')
+      setParentCode(null)
       setDragOffset(0)
     }
   }, [expanded])
 
+  const parent = locations.find(location => location.code === parentCode) ?? null
+  const candidates = parent
+    ? [parent, ...(parent.children ?? [])]
+    : locations
+  const searchCandidates = parent
+    ? candidates
+    : locations.flatMap(location => [location, ...(location.children ?? [])])
   const trimmed = query.trim().toLowerCase()
   const matches = trimmed
-    ? SUGGESTED_DESTINATIONS.filter(
-        d => d.label.toLowerCase().includes(trimmed) || d.hint.toLowerCase().includes(trimmed),
+    ? searchCandidates.filter(
+        d => d.name.toLowerCase().includes(trimmed) || (d.city ?? '').toLowerCase().includes(trimmed),
       )
     : expanded
-      ? SUGGESTED_DESTINATIONS
-      : SUGGESTED_DESTINATIONS.slice(0, TOP_DESTINATIONS_COUNT)
+      ? candidates
+      : candidates.slice(0, TOP_DESTINATIONS_COUNT)
+
+  const selectOrDrill = (location: GeoLocationOption) => {
+    if (location.children?.length && !parent) {
+      setParentCode(location.code)
+      setQuery('')
+      if (!expanded) onExpand()
+      return
+    }
+    onPick(location)
+  }
 
   /**
    * Drag-down desde cualquier parte del card para colapsar. Respeta el
@@ -491,7 +556,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
               type="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar ciudad"
+              placeholder={parent ? `Buscar en ${parent.name}` : 'Buscar ciudad'}
               autoFocus
               className="w-full h-11 rounded-xl bg-surface-2 border border-white/8 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-500/50"
             />
@@ -512,7 +577,7 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
         ref={listRef}
         className={cn('px-3 pb-4 space-y-1', expanded ? 'flex-1 min-h-0 overflow-y-auto touch-pan-y' : '')}
       >
-        {!trimmed && (
+        {!parent && !trimmed && (
           <DestinationRow
             icon={<NavigationArrow size={18} weight="fill" className="text-brand-400" />}
             label="Cerca mío"
@@ -520,14 +585,23 @@ function WhereExpanded({ currentCity, onPick, onNearby, expanded, onExpand, onCo
             onClick={onNearby}
           />
         )}
+        {parent && !trimmed && (
+          <DestinationRow
+            icon={<ArrowLeft size={18} weight="bold" className="text-text-muted" />}
+            label="Volver a destinos"
+            hint="Elegir otra ciudad"
+            onClick={() => setParentCode(null)}
+          />
+        )}
         {matches.map(d => (
           <DestinationRow
-            key={d.value}
+            key={d.code}
             icon={<MapPin size={18} weight="fill" className="text-text-muted" />}
-            label={d.label}
-            hint={d.hint}
-            active={currentCity === d.value}
-            onClick={() => onPick(d.value)}
+            label={parent && d.code === parent.code ? `${d.name} completa` : d.name}
+            hint={d.children?.length ? 'Ver barrios' : d.city ?? locationTypeLabel(d.type)}
+            active={currentLocationCode ? currentLocationCode === d.code : currentCity === (d.city ?? d.name)}
+            trailing={d.children?.length && !parent ? <CaretRight size={16} weight="bold" /> : undefined}
+            onClick={() => selectOrDrill(d)}
           />
         ))}
         {matches.length === 0 && (
@@ -545,10 +619,18 @@ interface DestinationRowProps {
   label:   string
   hint:    string
   active?: boolean
+  trailing?: React.ReactNode
   onClick: () => void
 }
 
-function DestinationRow({ icon, label, hint, active, onClick }: DestinationRowProps) {
+function locationTypeLabel(type: GeoLocationOption['type']): string {
+  if (type === 'neighborhood') return 'Barrio'
+  if (type === 'locality') return 'Localidad'
+  if (type === 'province') return 'Provincia'
+  return 'Ciudad'
+}
+
+function DestinationRow({ icon, label, hint, active, trailing, onClick }: DestinationRowProps) {
   return (
     <button
       onClick={onClick}
@@ -560,12 +642,17 @@ function DestinationRow({ icon, label, hint, active, onClick }: DestinationRowPr
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2 shrink-0">
         {icon}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className={cn('text-sm font-medium truncate', active ? 'text-brand-300' : 'text-text-primary')}>
           {label}
         </p>
         <p className="text-xs text-text-muted truncate">{hint}</p>
       </div>
+      {trailing && (
+        <div className="ml-auto shrink-0 text-text-muted">
+          {trailing}
+        </div>
+      )}
     </button>
   )
 }

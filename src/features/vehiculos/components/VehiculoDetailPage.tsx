@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from '@tanstack/react-router'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import {
@@ -22,6 +22,7 @@ import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
 import { fmt } from '@/lib/formatters'
 import { useLogVehicleView } from '@/features/admin/hooks/useLogVehicleView'
+import { usePricingQuote } from '@/features/pricing/hooks/usePricingQuote'
 import { t, type I18nKey } from '@/i18n/es'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { VehicleLocationMap } from '@/features/mapa/components/VehicleLocationMap'
@@ -40,6 +41,7 @@ const SWIPE_THRESHOLD_PX = 40
 
 export function VehiculoDetailPage() {
   const { id } = useParams({ from: '/_app/vehiculos/$id' })
+  const { from, to } = useSearch({ from: '/_app/vehiculos/$id' })
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
   const [photoIndex, setPhotoIndex] = useState(0)
@@ -51,6 +53,14 @@ export function VehiculoDetailPage() {
   })
 
   useLogVehicleView(vehicle?.id)
+
+  const ownsVehicle = !!user && vehicle?.ownerId === user.id
+  const { pricingQuote } = usePricingQuote({
+    vehicleId: id,
+    startAt: from ?? null,
+    endAt: to ?? null,
+    enabled: !!vehicle?.dynamicPricingEnabled && !ownsVehicle,
+  })
 
   if (isLoading) {
     return (
@@ -203,8 +213,21 @@ export function VehiculoDetailPage() {
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs text-text-muted">Tarifa</p>
-              <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(vehicle.basePriceCents)}</p>
-              <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
+              {pricingQuote ? (
+                <>
+                  <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(pricingQuote.totalCents)}</p>
+                  <p className="text-xs text-text-muted">
+                    {t('vehiculo.dynamicPricingFor').replace('{days}', String(pricingQuote.durationDays))}
+                    {' · '}
+                    {fmt.currency(Math.round(pricingQuote.totalCents / pricingQuote.durationDays))}{t('vehiculo.perDay')}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-bold text-text-primary leading-tight">{fmt.currency(Math.round(vehicle.basePriceCents * (vehicle.demandMultiplier ?? 1)))}</p>
+                  <p className="text-xs text-text-muted">{t('vehiculo.perDay')}</p>
+                </>
+              )}
             </div>
             {!vehicle.enabled ? (
               <Button size="lg" disabled className="shrink-0">
@@ -218,6 +241,7 @@ export function VehiculoDetailPage() {
               <Link
                 to="/vehiculos/$id/reservar"
                 params={{ id: vehicle.id }}
+                search={{ start: from, end: to }}
                 className="shrink-0"
                 onClick={handleReservarClick}
               >

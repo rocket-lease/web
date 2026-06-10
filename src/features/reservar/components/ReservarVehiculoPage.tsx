@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { CheckCircle2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -373,6 +373,16 @@ function joinLocal(date: string, time: string): string {
   return `${date}T${time}`
 }
 
+/**
+ * Normaliza una fecha llegada por query param (`YYYY-MM-DD` desde la
+ * búsqueda, o ya con hora) al formato datetime-local del formulario,
+ * usando la misma hora default que el calendario.
+ */
+function searchParamToLocal(param: string | undefined): string {
+  if (!param) return ''
+  return param.includes('T') ? param : `${param}T06:00`
+}
+
 function isProblemDetails(value: unknown): value is ProblemDetails {
   return (
     typeof value === 'object' &&
@@ -397,6 +407,9 @@ function errorMessageFor(err: unknown): string {
 
 export function ReservarVehiculoPage() {
   const { id: vehicleId } = useParams({ from: '/_app/vehiculos/$id_/reservar' })
+  const { start: startParam, end: endParam } = useSearch({
+    from: '/_app/vehiculos/$id_/reservar',
+  })
   const navigate = useNavigate()
 
   const { data: vehicle, isLoading, isError, refetch: refetchVehicle } = useQuery({
@@ -411,8 +424,8 @@ export function ReservarVehiculoPage() {
   const busyRanges = useMemo(() => busyData?.items ?? [], [busyData])
 
   const [step, setStep] = useState<Step>('fechas')
-  const [startAtLocal, setStartAtLocal] = useState('')
-  const [endAtLocal, setEndAtLocal] = useState('')
+  const [startAtLocal, setStartAtLocal] = useState(() => searchParamToLocal(startParam))
+  const [endAtLocal, setEndAtLocal] = useState(() => searchParamToLocal(endParam))
   const [contractAccepted, setContractAccepted] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [walletProvider, setWalletProvider] = useState<string | null>(null)

@@ -24,6 +24,16 @@ function multiplierToneClass(multiplier: number): string {
   return MULTIPLIER_TEXT_CLASS[multiplierLevel(multiplier)]
 }
 
+/**
+ * Formatea la demanda ponderada para el detalle. La demanda de un barrio se
+ * reparte entre sus celdas (1/n), así que un valor menor a uno es esperable:
+ * se muestra con decimales en vez de redondear a cero y aparentar sin señales.
+ */
+function formatSignals(value: number): string {
+  if (Number.isInteger(value)) return String(value)
+  return value.toFixed(2).replace(/\.?0+$/, '')
+}
+
 function buildHeadline(zone: AdminPricingZone): string | null {
   if (zone.supplyCount === 0 && zone.demandCount > 0) {
     return t('admin.pricing.headline.demandNoSupply')
@@ -137,7 +147,7 @@ export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
                 <span className="text-text-muted">·</span>
                 <Stat
                   label={t('admin.pricing.demanda')}
-                  value={zone.demandCount}
+                  value={formatSignals(zone.demandCount)}
                   unit={t('admin.pricing.unit.signals')}
                 />
               </div>
@@ -180,7 +190,7 @@ export function HexDetailDrawer({ zone, onClose }: HexDetailDrawerProps) {
 
 interface StatProps {
   label: string
-  value: number
+  value: string | number
   unit: string
 }
 

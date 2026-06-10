@@ -12,6 +12,8 @@ import { BuscarPage } from '@/features/vehiculos/components/BuscarPage'
  */
 const buscarSearchSchema = z.object({
   city:            z.string().optional(),
+  locationCode:    z.string().optional(),
+  locationLabel:   z.string().optional(),
   start:           z.string().optional(),
   end:             z.string().optional(),
   searched:        z.boolean().optional(),
