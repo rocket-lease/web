@@ -312,7 +312,7 @@ export function RentadorView({ reservation }: RentadorViewProps) {
  * La contraparte (conductor) puede reseñar vehículo o rentador.
  */
 function ReviewSectionRentador({ reservation }: { reservation: GetReservationResponse }) {
-  const reviews = reservation.reviews ?? []
+  const reviews = reservation.review ? [reservation.review] : []
   const [resenaOpen, setResenaOpen] = useState(false)
 
   const ownReviewCount = reviews.filter((r) => r.targetType === 'conductor').length

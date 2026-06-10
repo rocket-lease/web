@@ -44,6 +44,7 @@ const MOCK_PROFILE: GetMyProfileResponse = {
   },
   level: 'bronze',
   balanceInCents: 0,
+  reputationScore: 0,
   preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
   autoAccept: false,
   isAdmin: false,

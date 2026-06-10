@@ -60,11 +60,11 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
   const { data: dispute } = useTicketDispute(ticketId)
 
   // Compensation form state (for status changes to resolved/rejected)
-  const [pendingStatus, setPendingStatus] = useState<TicketStatus | null>(null)
+  type AdminStatus = 'under_review' | 'resolved' | 'rejected'
+
+  const [pendingStatus, setPendingStatus] = useState<AdminStatus | null>(null)
   const [compResponsibleId, setCompResponsibleId] = useState('')
   const [compAmount, setCompAmount] = useState('')
-
-  type AdminStatus = 'under_review' | 'resolved' | 'rejected'
 
   function handleStatusClick(status: TicketStatus) {
     if (COMPENSATION_STATUSES.has(status)) {

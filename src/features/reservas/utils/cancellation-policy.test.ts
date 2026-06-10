@@ -76,7 +76,7 @@ function makeReservation(
       name: 'Rentador',
       avatarUrl: null,
     },
-    reviews: [],
+    review: null,
     ...overrides,
   }
 }
