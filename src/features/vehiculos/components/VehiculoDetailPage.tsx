@@ -37,6 +37,7 @@ import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useVehicleReviews } from '@/features/reviews/hooks/useVehicleReviews'
 import { ReviewCard } from '@/features/reviews/components/ReviewCard'
+import { useReputation } from '@/features/reputation/hooks/useReputation'
 
 const SWIPE_THRESHOLD_PX = 40
 
@@ -51,6 +52,8 @@ export function VehiculoDetailPage() {
     queryKey: ['vehicle', id],
     queryFn: () => vehiclesApi.getById(id),
   })
+
+  const { data: ownerReputation } = useReputation(vehicle?.owner?.id)
 
   if (isLoading) {
     return (
@@ -382,7 +385,8 @@ export function VehiculoDetailPage() {
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-text-muted">
                     <span className="flex items-center gap-1">
                       <Star size={14} className="text-warning" weight="fill" />
-                      {fmt.rating(vehicle.owner.reputationScore)}
+                      {fmt.rating(ownerReputation?.asRenter.score ?? vehicle.owner.reputationScore)}
+                      <span className="text-text-muted/60 ml-0.5">({ownerReputation?.asRenter.reviewCount ?? 0})</span>
                     </span>
                     <Badge variant="default">
                       {t(`perfil.level.${vehicle.owner.level}` as I18nKey)}

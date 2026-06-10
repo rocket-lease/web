@@ -45,8 +45,8 @@ export function FilterSheet({ open, filters, sortBy, onClose, onApply }: FilterS
   const handleClear = () => {
     const empty: VehiculoFilters = {}
     setLocalFilters(empty)
-    setLocalSort('price_asc')
-    onApply(empty, 'price_asc')
+    setLocalSort('rating')
+    onApply(empty, 'rating')
     onClose()
   }
 

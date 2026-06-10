@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, Link } from '@tanstack/react-router'
 import {
   ChevronRight,
@@ -23,6 +23,7 @@ import { Bell, Bank, Coins, Tag, Trophy, Headset, WarningCircle } from '@phospho
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { ReputationSummary } from '@/features/reputation/components/ReputationSummary'
 import { ReputationWarningBanner } from '@/features/reputation/components/ReputationWarningBanner'
+import { useReputation } from '@/features/reputation/hooks/useReputation'
 
 const levelColors: Record<string, string> = {
   bronze: 'text-amber-600',
@@ -65,12 +66,15 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
     driverLicenseVerification?.status === 'pending'
   const allVerifDone = identityVerified && licenseVerified && emailVerified
 
-  const reviewCount = useMemo(() => {
-    if (!profile) return 0
-    return Math.max(0, Math.round(profile.reputationScore * 10))
-  }, [profile])
-
+  const { data: reputation } = useReputation(profile?.id)
+  
   const canEdit = isOwnProfile || user?.id === profile?.id
+  const [localViewingRole, setLocalViewingRole] = useState<'conductor' | 'rentador'>('rentador')
+  const displayRole = canEdit ? activeRole : localViewingRole
+
+  const currentReputation = displayRole === 'conductor' ? reputation?.asDriver : reputation?.asRenter
+  const reviewCount = currentReputation?.reviewCount ?? 0
+  const reputationScore = currentReputation?.score ?? profile?.reputationScore ?? 0
 
   const handleSwitchRole = () => {
     const next = activeRole === 'rentador' ? 'conductor' : 'rentador'
@@ -117,11 +121,29 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
 
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-text-primary leading-tight truncate">{profile.name}</h2>
+          
+          {!canEdit && (
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => setLocalViewingRole('rentador')}
+                className={`text-xs px-2 py-0.5 rounded-full border ${displayRole === 'rentador' ? 'bg-brand-500/20 border-brand-500 text-brand-400' : 'border-white/10 text-text-muted hover:text-text-secondary'}`}
+              >
+                Como Rentador
+              </button>
+              <button
+                onClick={() => setLocalViewingRole('conductor')}
+                className={`text-xs px-2 py-0.5 rounded-full border ${displayRole === 'conductor' ? 'bg-client/20 border-client text-client' : 'border-white/10 text-text-muted hover:text-text-secondary'}`}
+              >
+                Como Conductor
+              </button>
+            </div>
+          )}
+
           {canEdit && (
             <p className="text-sm text-text-muted truncate mt-0.5">{profile.email}</p>
           )}
           <div className="flex items-center gap-3 mt-2">
-            <ReputationSummary score={profile.reputationScore} reviewCount={reviewCount} badges={profile.badges} />
+            <ReputationSummary score={reputationScore} reviewCount={reviewCount} badges={currentReputation?.badges ?? []} />
             <div className="h-3.5 w-px bg-white/10" />
             <div className="flex items-center gap-1">
               <Award className={`h-3.5 w-3.5 shrink-0 ${levelColors[profile.level]}`} />
@@ -131,8 +153,11 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         </div>
       </div>
 
-      {canEdit && profile && (
-        <ReputationWarningBanner isLowReputation={profile.isLowReputation} penaltyCount={profile.penaltyCount} />
+      {canEdit && profile && currentReputation && (
+        <ReputationWarningBanner 
+          isLowReputation={currentReputation.isLowReputation} 
+          penaltyCount={currentReputation.penaltyCount} 
+        />
       )}
 
       {canEdit && <Separator />}

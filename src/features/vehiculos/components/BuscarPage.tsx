@@ -75,7 +75,7 @@ export function BuscarPage() {
   }
 
   const filters = searchToFilters(search)
-  const sortBy: SortCriteria = search.sort ?? 'price_asc'
+  const sortBy: SortCriteria = search.sort ?? 'rating'
 
   const serverCharacteristics = filters.characteristics ?? []
   const { data: vehicles = [], isLoading, isError } = useQuery({
@@ -130,6 +130,7 @@ export function BuscarPage() {
     if (!a.isPromoted && b.isPromoted) return 1
     if (sortBy === 'price_asc')  return a.basePriceCents - b.basePriceCents
     if (sortBy === 'price_desc') return b.basePriceCents - a.basePriceCents
+    if (sortBy === 'rating') return 0 // The backend already sorted by rating
     return 0
   })
 
@@ -148,7 +149,7 @@ export function BuscarPage() {
   const handleApplyFilters = (newFilters: VehiculoFilters, sort: SortCriteria) => {
     updateSearch({
       ...filtersToSearchPatch(newFilters),
-      sort: sort === 'price_asc' ? undefined : sort,
+      sort: sort === 'rating' ? undefined : sort,
     })
   }
 

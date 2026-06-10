@@ -12,7 +12,7 @@ interface SortOption {
 const SORT_OPTIONS: SortOption[] = [
   { key: 'price_asc',  label: t('buscar.sort.priceAsc') },
   { key: 'price_desc', label: t('buscar.sort.priceDesc') },
-  { key: 'rating',     label: t('buscar.sort.rating'),   disabled: true, hint: t('buscar.sort.soon') },
+  { key: 'rating',     label: t('buscar.sort.rating') },
   { key: 'distance',   label: t('buscar.sort.distance'), disabled: true, hint: t('buscar.sort.soon') },
 ]
 

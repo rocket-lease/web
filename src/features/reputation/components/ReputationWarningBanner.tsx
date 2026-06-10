@@ -7,11 +7,14 @@ interface ReputationWarningBannerProps {
 }
 
 export function ReputationWarningBanner({ isLowReputation, penaltyCount }: ReputationWarningBannerProps) {
-  if (!isLowReputation && penaltyCount === 0) {
+  const isLow = isLowReputation || false;
+  const count = penaltyCount || 0;
+
+  if (!isLow && count === 0) {
     return null
   }
 
-  const isSuspended = penaltyCount >= 3
+  const isSuspended = count >= 3
 
   let message = ''
   let variantClass = ''
@@ -21,11 +24,11 @@ export function ReputationWarningBanner({ isLowReputation, penaltyCount }: Reput
     message = t('reputation.banner.suspended')
     variantClass = 'bg-danger-bg border-danger/20 text-danger'
     iconClass = 'text-danger'
-  } else if (penaltyCount > 0) {
+  } else if (count > 0) {
     message = t('reputation.banner.warning')
     variantClass = 'bg-warning-bg border-warning/20 text-warning'
     iconClass = 'text-warning'
-  } else if (isLowReputation) {
+  } else if (isLow) {
     message = t('reputation.banner.lowScore')
     variantClass = 'bg-warning-bg border-warning/20 text-warning'
     iconClass = 'text-warning'
