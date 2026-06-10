@@ -47,6 +47,7 @@ const MOCK_PROFILE: GetMyProfileResponse = {
   balanceInCents: 0,
   preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
   autoAccept: false,
+  isAdmin: false,
 }
 
 describe('useMyProfile', () => {

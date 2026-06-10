@@ -36,17 +36,22 @@ export function MisTicketsSection() {
           {tickets.map((ticket) => (
             <Link
               key={ticket.id}
-              to="/reservas/$id"
-              params={{ id: ticket.reservationId }}
+              to="/soporte/tickets/$id"
+              params={{ id: ticket.id }}
               className="flex items-center justify-between rounded-xl bg-surface-2 px-4 py-3 gap-3"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <WarningCircle className="h-5 w-5 text-warning shrink-0" weight="duotone" />
                 <div className="min-w-0">
-                  <p className="text-xs text-text-muted truncate">
-                    {t('tickets.misTickets.reservaPrefix')}{ticket.reservationId.slice(0, 8)}
+                  <p className="text-sm font-medium text-text-primary truncate">
+                    {ticket.subject || t('tickets.misTickets.soporte')}
                   </p>
-                  <p className="text-xs text-text-muted">{fmt.dateShort(ticket.createdAt)}</p>
+                  <p className="text-xs text-text-muted">
+                    {ticket.reservationId
+                      ? `${t('tickets.misTickets.reservaPrefix')}${ticket.reservationId.slice(0, 8)}`
+                      : t('tickets.misTickets.soporte')}
+                    {' · '}{fmt.dateShort(ticket.createdAt)}
+                  </p>
                 </div>
               </div>
               <Badge className={statusStyles[ticket.status]}>

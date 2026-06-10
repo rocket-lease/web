@@ -1,20 +1,28 @@
 import {
+  GetAdminTicketsResponseSchema,
   GetMyTicketsResponseSchema,
   GetReservationTicketsResponseSchema,
   GetTicketsAgainstMeResponseSchema,
   TicketResponseSchema,
   UploadSignResponseSchema,
   type CreateTicketRequest,
+  type GetAdminTicketsResponse,
   type GetMyTicketsResponse,
   type GetReservationTicketsResponse,
   type GetTicketsAgainstMeResponse,
+  type RateTicketRequest,
   type TicketResponse,
+  type UpdateTicketStatusRequest,
 } from '@rocket-lease/contracts'
 import { apiClient } from '@/lib/api-client'
 
 export const ticketsApi = {
   async create(data: CreateTicketRequest): Promise<TicketResponse> {
     return TicketResponseSchema.parse(await apiClient.post('/tickets', data))
+  },
+
+  async getById(ticketId: string): Promise<TicketResponse> {
+    return TicketResponseSchema.parse(await apiClient.get(`/tickets/${ticketId}`))
   },
 
   async getMine(): Promise<GetMyTicketsResponse> {
@@ -29,6 +37,18 @@ export const ticketsApi = {
     return GetReservationTicketsResponseSchema.parse(
       await apiClient.get(`/tickets/reservation/${reservationId}`),
     )
+  },
+
+  async rateTicket(ticketId: string, data: RateTicketRequest): Promise<TicketResponse> {
+    return TicketResponseSchema.parse(await apiClient.post(`/tickets/${ticketId}/rating`, data))
+  },
+
+  async adminGetQueue(): Promise<GetAdminTicketsResponse> {
+    return GetAdminTicketsResponseSchema.parse(await apiClient.get('/admin/tickets'))
+  },
+
+  async adminUpdateStatus(ticketId: string, data: UpdateTicketStatusRequest): Promise<TicketResponse> {
+    return TicketResponseSchema.parse(await apiClient.patch(`/admin/tickets/${ticketId}/status`, data))
   },
 
   async uploadPhoto(file: File): Promise<string> {
