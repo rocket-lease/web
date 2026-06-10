@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { PerfilPage } from './PerfilPage'
+import { createWrapper } from '@/test/query-wrapper'
 
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
@@ -69,7 +70,7 @@ vi.mock('./OwnerReviewsSection', () => ({
 
 describe('PerfilPage', () => {
   it('muestra la fila de RocketTokens con el saldo en la sección Beneficios', () => {
-    render(<PerfilPage />)
+    render(<PerfilPage />, { wrapper: createWrapper() })
 
     expect(screen.getByText('RocketTokens')).toBeInTheDocument()
     expect(screen.getByText(/12\.500/)).toBeInTheDocument()
