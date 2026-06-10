@@ -95,7 +95,7 @@ describe('DashboardPage', () => {
     // Sección General (independiente de la fecha)
     expect(screen.getByText('Activas hoy')).toBeInTheDocument()
     expect(screen.getByText('3')).toBeInTheDocument()
-    expect(screen.getByText('Calificacion promedio')).toBeInTheDocument()
+    expect(screen.getByText(/Calificacion promedio/)).toBeInTheDocument()
     // Sección por período
     expect(screen.getByText('Tasa de cancelacion')).toBeInTheDocument()
     expect(screen.getByText('8%')).toBeInTheDocument()

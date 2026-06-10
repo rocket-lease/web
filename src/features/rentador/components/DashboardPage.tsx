@@ -27,6 +27,7 @@ import { t } from '@/i18n/es'
 import type { I18nKey } from '@/i18n/es'
 import { PromocionarDialog } from '@/features/promocionar/components/PromocionarDialog'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
+import { useReputation } from '@/features/reputation/hooks/useReputation'
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics'
 import { LineChart, OccupancyRing } from './DashboardCharts'
 
@@ -180,6 +181,7 @@ function LowOccupancyCard({
 
 export function DashboardPage() {
   const { data: profile } = useMyProfile()
+  const { data: reputation } = useReputation(profile?.id)
   const name = profile?.name?.split(' ')[0] ?? '...'
 
   const [period, setPeriod] = useState<DashboardPeriod>('month')
@@ -250,8 +252,8 @@ export function DashboardPage() {
               icon={
                 <Star size={16} weight="fill" color="var(--color-warning)" />
               }
-              value={fmt.rating(data.reputationScore)}
-              label={t('dashboard.calificacion')}
+              value={fmt.rating(reputation?.asRenter.score ?? data.reputationScore)}
+              label={`${t('dashboard.calificacion')} (${reputation?.asRenter.reviewCount ?? 0})`}
             />
             <MetricCard
               icon={

@@ -158,6 +158,7 @@ function makeReservation(opts: MakeOpts = {}) {
     returnAddress: null,
     vehicle: { id: VEH, plate: 'AB123CD', brand: 'Toyota', model: 'Etios', year: 2020, photo: null, reservationRuleSet },
     rentador: { id: RENT, name: 'Lucas', avatarUrl: null },
+    reviews: [],
   }
 }
 

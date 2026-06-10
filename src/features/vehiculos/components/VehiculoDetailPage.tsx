@@ -14,6 +14,7 @@ import {
   WarningCircle,
   ChatCircleText,
   CaretRight,
+  Spinner,
 } from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -34,6 +35,9 @@ import {
 } from '../utils/rules-formatter'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useVehicleReviews } from '@/features/reviews/hooks/useVehicleReviews'
+import { ReviewCard } from '@/features/reviews/components/ReviewCard'
+import { useReputation } from '@/features/reputation/hooks/useReputation'
 
 const SWIPE_THRESHOLD_PX = 40
 
@@ -48,6 +52,8 @@ export function VehiculoDetailPage() {
     queryKey: ['vehicle', id],
     queryFn: () => vehiclesApi.getById(id),
   })
+
+  const { data: ownerReputation } = useReputation(vehicle?.owner?.id)
 
   if (isLoading) {
     return (
@@ -379,7 +385,8 @@ export function VehiculoDetailPage() {
                   <div className="flex items-center gap-3 mt-0.5 text-xs text-text-muted">
                     <span className="flex items-center gap-1">
                       <Star size={14} className="text-warning" weight="fill" />
-                      {fmt.rating(vehicle.owner.reputationScore)}
+                      {fmt.rating(ownerReputation?.asRenter.score ?? vehicle.owner.reputationScore)}
+                      <span className="text-text-muted/60 ml-0.5">({ownerReputation?.asRenter.reviewCount ?? 0})</span>
                     </span>
                     <Badge variant="default">
                       {t(`perfil.level.${vehicle.owner.level}` as I18nKey)}
@@ -392,27 +399,59 @@ export function VehiculoDetailPage() {
           </>
         )}
 
-        {/* Reseñas del vehículo (empty state hasta que exista el módulo de reviews) */}
+        {/* Reseñas del vehículo */}
         <Separator />
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-text-muted">{t('vehiculo.reviewsTitle')}</p>
-            <div className="flex items-center gap-1.5 text-xs text-text-muted">
-              <Star size={14} className="text-text-muted" weight="regular" />
-              <span>0.0</span>
-              <span>·</span>
-              <span>{t('vehiculo.reviewsCount').replace('{count}', '0')}</span>
-            </div>
-          </div>
-          <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
-              <ChatCircleText size={20} className="text-text-muted" weight="regular" />
-            </div>
-            <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
-            <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>
-          </div>
+        <ReviewsSection vehicleId={vehicle.id} />
+      </div>
+    </div>
+  )
+}
+
+function ReviewsSection({ vehicleId }: { vehicleId: string }) {
+  const { data: reviews, isLoading, isError } = useVehicleReviews(vehicleId)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner className="h-6 w-6 animate-spin text-text-muted" />
+      </div>
+    )
+  }
+
+  if (isError) {
+    return null
+  }
+
+  const avgRating = reviews && reviews.length > 0
+    ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+    : 0
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-text-muted">{t('vehiculo.reviewsTitle')}</p>
+        <div className="flex items-center gap-1.5 text-xs text-text-muted">
+          <Star size={14} className="text-text-muted" weight="regular" />
+          <span>{avgRating.toFixed(1)}</span>
+          <span>·</span>
+          <span>{t('vehiculo.reviewsCount').replace('{count}', String(reviews?.length ?? 0))}</span>
         </div>
       </div>
+      {reviews?.length === 0 ? (
+        <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
+          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
+            <ChatCircleText size={20} className="text-text-muted" weight="regular" />
+          </div>
+          <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
+          <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {reviews?.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

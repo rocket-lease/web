@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { X as PhosphorX, WarningCircle } from '@phosphor-icons/react'
+import { X as PhosphorX, Star, WarningCircle } from '@phosphor-icons/react'
 import {
   AlertOctagon,
   CalendarDays,
@@ -23,6 +23,7 @@ import {
   type GetReservationResponse,
   type PaymentMethod,
   type ReservationRuleSetPublic,
+  type ReviewItem,
 } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
@@ -59,6 +60,7 @@ import { useConfirmReturn } from '../../hooks/useConfirmReturn'
 import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
 import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
 import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
+import { CrearResenaSheet } from '@/features/reviews/components/CrearResenaSheet'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
@@ -271,6 +273,10 @@ export function ConductorView({ reservation }: ConductorViewProps) {
       {isCompleted && (
         <>
           <Separator />
+
+          {/* US-38: Reseñas */}
+          <ReviewSectionConductor reservation={reservation} />
+
           {hasAnyTicket && (
             <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
           )}
@@ -292,6 +298,100 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         type="vehicle_issue"
         open={reportarOpen}
         onOpenChange={setReportarOpen}
+      />
+    </div>
+  )
+}
+
+/**
+ * US-38: Sección de reseñas para la vista del conductor en reservas completadas.
+ *
+ * Muestra todas las reseñas existentes y un botón para crear las que falten.
+ * El conductor puede reseñar: vehículo y rentador.
+ * La contraparte (rentador) puede reseñar al conductor.
+ */
+function ReviewSectionConductor({ reservation }: { reservation: GetReservationResponse }) {
+  const reviews = reservation.reviews ?? []
+  const [resenaOpen, setResenaOpen] = useState(false)
+
+  const ownTargets = reviews
+    .filter((r) => r.targetType !== 'conductor')
+    .map((r) => r.targetType) as ('vehicle' | 'rentador')[]
+  const availableTargets = (['vehicle', 'rentador'] as const).filter(
+    (t) => !ownTargets.includes(t),
+  )
+
+  const TARGET_LABEL: Record<string, string> = {
+    vehicle: t('resenas.create.targetType.vehicle'),
+    rentador: t('resenas.create.targetType.rentador'),
+    conductor: t('resenas.create.targetType.conductor'),
+  }
+
+  function ReviewCard({ review }: { review: ReviewItem }) {
+    const isCounterparty = review.targetType === 'conductor'
+    return (
+      <div className="rounded-xl bg-surface-1 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-text-primary">
+              {isCounterparty
+                ? t('reservas.detail.review.counterparty').replace('{name}', review.reviewerName)
+                : t('reservas.detail.review.own')}
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              {TARGET_LABEL[review.targetType]}
+            </p>
+          </div>
+          <span className="text-xs text-text-muted">
+            {fmt.dateShort(review.createdAt)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-0.5">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Star
+              key={i}
+              size={14}
+              weight={i < review.rating ? 'fill' : 'regular'}
+              className={i < review.rating ? 'text-amber-400' : 'text-white/20'}
+            />
+          ))}
+          <span className="ml-1.5 text-xs text-text-muted">
+            {fmt.rating(review.rating)}
+          </span>
+        </div>
+
+        {review.comment && (
+          <p className="text-sm text-text-secondary leading-relaxed">
+            {review.comment}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {reviews.map((review) => (
+        <ReviewCard key={review.id} review={review} />
+      ))}
+
+      {availableTargets.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setResenaOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-surface-2 px-4 py-3 text-sm font-medium text-text-secondary hover:bg-surface-3 active:scale-[0.99] transition-colors"
+        >
+          <Star className="h-4 w-4" weight="regular" />
+          {t('reservas.detail.review.cta')}
+        </button>
+      )}
+
+      <CrearResenaSheet
+        reservationId={reservation.id}
+        availableTargets={availableTargets}
+        open={resenaOpen}
+        onOpenChange={setResenaOpen}
       />
     </div>
   )

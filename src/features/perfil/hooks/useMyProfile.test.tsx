@@ -43,7 +43,6 @@ const MOCK_PROFILE: GetMyProfileResponse = {
     verifiedAt: null,
   },
   level: 'bronze',
-  reputationScore: 0,
   balanceInCents: 0,
   preferences: { transmission: null, accessibility: [], maxPriceDaily: null },
   autoAccept: false,
