@@ -11,6 +11,13 @@ vi.mock('@vis.gl/react-google-maps', () => ({
   useMap: () => null,
 }))
 
+// El render del mapa depende de la API key (env). En CI no está, así que la
+// forzamos acá para testear el componente, no la presencia de la key.
+vi.mock('@/lib/maps', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/maps')>()),
+  GOOGLE_MAPS_API_KEY: 'test-key',
+}))
+
 describe('PricingHexMap', () => {
   it('renderea sin crashear con la lista de zonas vacía', () => {
     const { getByTestId } = render(
