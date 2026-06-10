@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const applySession = (nextSession: Session | null) => {
       const nextUserId = nextSession?.user?.id ?? null
-      if (prevUserIdRef.current !== nextUserId) {
+      if (prevUserIdRef.current !== null && prevUserIdRef.current !== nextUserId) {
         queryClient.clear()
       }
       prevUserIdRef.current = nextUserId

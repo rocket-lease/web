@@ -14,6 +14,7 @@ import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RecuperarRouteImport } from './routes/recuperar'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSoporteRouteImport } from './routes/_app/soporte'
 import { Route as AppSaldoRouteImport } from './routes/_app/saldo'
@@ -29,6 +30,7 @@ import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/_app/configuracion'
 import { Route as AppBuscarRouteImport } from './routes/_app/buscar'
+import { Route as AdminTicketsRouteImport } from './routes/_admin/tickets'
 import { Route as VoucherVerifyTokenRouteImport } from './routes/voucher.verify.$token'
 import { Route as VoucherReturnTokenRouteImport } from './routes/voucher.return.$token'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
@@ -46,10 +48,14 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppHistorialResenasRouteImport } from './routes/_app/historial_.resenas'
+import { Route as AppAdminPricingRouteImport } from './routes/_app/admin.pricing'
+import { Route as AdminTicketsIdRouteImport } from './routes/_admin/tickets_.$id'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
+import { Route as AppSoporteTicketsIdRouteImport } from './routes/_app/soporte_.tickets.$id'
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas_.$id_.pago'
 import { Route as AppReservasIdChatRouteImport } from './routes/_app/reservas_.$id_.chat'
 import { Route as AppMisVehiculosIdDocumentosRouteImport } from './routes/_app/mis-vehiculos.$id_.documentos'
+import { Route as AppDashboardVehiculoIdRouteImport } from './routes/_app/dashboard_.vehiculo.$id'
 
 const VerificarRoute = VerificarRouteImport.update({
   id: '/verificar',
@@ -73,6 +79,10 @@ const LoginRoute = LoginRouteImport.update({
 } as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -149,6 +159,11 @@ const AppBuscarRoute = AppBuscarRouteImport.update({
   id: '/buscar',
   path: '/buscar',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminTicketsRoute = AdminTicketsRouteImport.update({
+  id: '/tickets',
+  path: '/tickets',
+  getParentRoute: () => AdminRoute,
 } as any)
 const VoucherVerifyTokenRoute = VoucherVerifyTokenRouteImport.update({
   id: '/voucher/verify/$token',
@@ -236,9 +251,24 @@ const AppHistorialResenasRoute = AppHistorialResenasRouteImport.update({
   path: '/historial/resenas',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminPricingRoute = AppAdminPricingRouteImport.update({
+  id: '/admin/pricing',
+  path: '/admin/pricing',
+  getParentRoute: () => AppRoute,
+} as any)
+const AdminTicketsIdRoute = AdminTicketsIdRouteImport.update({
+  id: '/tickets_/$id',
+  path: '/tickets/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppVehiculosIdReservarRoute = AppVehiculosIdReservarRouteImport.update({
   id: '/vehiculos/$id_/reservar',
   path: '/vehiculos/$id/reservar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSoporteTicketsIdRoute = AppSoporteTicketsIdRouteImport.update({
+  id: '/soporte_/tickets/$id',
+  path: '/soporte/tickets/$id',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReservasIdPagoRoute = AppReservasIdPagoRouteImport.update({
@@ -257,6 +287,11 @@ const AppMisVehiculosIdDocumentosRoute =
     path: '/$id/documentos',
     getParentRoute: () => AppMisVehiculosRoute,
   } as any)
+const AppDashboardVehiculoIdRoute = AppDashboardVehiculoIdRouteImport.update({
+  id: '/dashboard_/vehiculo/$id',
+  path: '/dashboard/vehiculo/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -264,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
+  '/tickets': typeof AdminTicketsRoute
   '/buscar': typeof AppBuscarRoute
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
@@ -278,6 +314,8 @@ export interface FileRoutesByFullPath {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/tickets/$id': typeof AdminTicketsIdRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -295,9 +333,11 @@ export interface FileRoutesByFullPath {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/dashboard/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
+  '/soporte/tickets/$id': typeof AppSoporteTicketsIdRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesByTo {
@@ -306,6 +346,7 @@ export interface FileRoutesByTo {
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
+  '/tickets': typeof AdminTicketsRoute
   '/buscar': typeof AppBuscarRoute
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
@@ -320,6 +361,8 @@ export interface FileRoutesByTo {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/tickets/$id': typeof AdminTicketsIdRoute
+  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -337,19 +380,23 @@ export interface FileRoutesByTo {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/dashboard/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
+  '/soporte/tickets/$id': typeof AppSoporteTicketsIdRoute
   '/vehiculos/$id/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_admin': typeof AdminRouteWithChildren
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/recuperar': typeof RecuperarRoute
   '/registro': typeof RegistroRoute
   '/verificar': typeof VerificarRoute
+  '/_admin/tickets': typeof AdminTicketsRoute
   '/_app/buscar': typeof AppBuscarRoute
   '/_app/configuracion': typeof AppConfiguracionRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -364,6 +411,8 @@ export interface FileRoutesById {
   '/_app/reservas': typeof AppReservasRoute
   '/_app/saldo': typeof AppSaldoRoute
   '/_app/soporte': typeof AppSoporteRoute
+  '/_admin/tickets_/$id': typeof AdminTicketsIdRoute
+  '/_app/admin/pricing': typeof AppAdminPricingRoute
   '/_app/historial_/resenas': typeof AppHistorialResenasRoute
   '/_app/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/_app/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -381,9 +430,11 @@ export interface FileRoutesById {
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/_app/dashboard_/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/_app/mis-vehiculos/$id_/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/_app/reservas_/$id_/chat': typeof AppReservasIdChatRoute
   '/_app/reservas_/$id_/pago': typeof AppReservasIdPagoRoute
+  '/_app/soporte_/tickets/$id': typeof AppSoporteTicketsIdRoute
   '/_app/vehiculos/$id_/reservar': typeof AppVehiculosIdReservarRoute
 }
 export interface FileRouteTypes {
@@ -394,6 +445,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registro'
     | '/verificar'
+    | '/tickets'
     | '/buscar'
     | '/configuracion'
     | '/dashboard'
@@ -408,6 +460,8 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
+    | '/tickets/$id'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -425,9 +479,11 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/dashboard/vehiculo/$id'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/chat'
     | '/reservas/$id/pago'
+    | '/soporte/tickets/$id'
     | '/vehiculos/$id/reservar'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -436,6 +492,7 @@ export interface FileRouteTypes {
     | '/recuperar'
     | '/registro'
     | '/verificar'
+    | '/tickets'
     | '/buscar'
     | '/configuracion'
     | '/dashboard'
@@ -450,6 +507,8 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
+    | '/tickets/$id'
+    | '/admin/pricing'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -467,18 +526,22 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/dashboard/vehiculo/$id'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/chat'
     | '/reservas/$id/pago'
+    | '/soporte/tickets/$id'
     | '/vehiculos/$id/reservar'
   id:
     | '__root__'
     | '/'
+    | '/_admin'
     | '/_app'
     | '/login'
     | '/recuperar'
     | '/registro'
     | '/verificar'
+    | '/_admin/tickets'
     | '/_app/buscar'
     | '/_app/configuracion'
     | '/_app/dashboard'
@@ -493,6 +556,8 @@ export interface FileRouteTypes {
     | '/_app/reservas'
     | '/_app/saldo'
     | '/_app/soporte'
+    | '/_admin/tickets_/$id'
+    | '/_app/admin/pricing'
     | '/_app/historial_/resenas'
     | '/_app/mis-vehiculos/$id'
     | '/_app/mis-vehiculos/nuevo'
@@ -510,14 +575,17 @@ export interface FileRouteTypes {
     | '/_app/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/_app/dashboard_/vehiculo/$id'
     | '/_app/mis-vehiculos/$id_/documentos'
     | '/_app/reservas_/$id_/chat'
     | '/_app/reservas_/$id_/pago'
+    | '/_app/soporte_/tickets/$id'
     | '/_app/vehiculos/$id_/reservar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   RecuperarRoute: typeof RecuperarRoute
@@ -562,6 +630,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -668,6 +743,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/buscar'
       preLoaderRoute: typeof AppBuscarRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_admin/tickets': {
+      id: '/_admin/tickets'
+      path: '/tickets'
+      fullPath: '/tickets'
+      preLoaderRoute: typeof AdminTicketsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/voucher/verify/$token': {
       id: '/voucher/verify/$token'
@@ -788,11 +870,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHistorialResenasRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/pricing': {
+      id: '/_app/admin/pricing'
+      path: '/admin/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AppAdminPricingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_admin/tickets_/$id': {
+      id: '/_admin/tickets_/$id'
+      path: '/tickets/$id'
+      fullPath: '/tickets/$id'
+      preLoaderRoute: typeof AdminTicketsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_app/vehiculos/$id_/reservar': {
       id: '/_app/vehiculos/$id_/reservar'
       path: '/vehiculos/$id/reservar'
       fullPath: '/vehiculos/$id/reservar'
       preLoaderRoute: typeof AppVehiculosIdReservarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/soporte_/tickets/$id': {
+      id: '/_app/soporte_/tickets/$id'
+      path: '/soporte/tickets/$id'
+      fullPath: '/soporte/tickets/$id'
+      preLoaderRoute: typeof AppSoporteTicketsIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reservas_/$id_/pago': {
@@ -816,8 +919,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMisVehiculosIdDocumentosRouteImport
       parentRoute: typeof AppMisVehiculosRoute
     }
+    '/_app/dashboard_/vehiculo/$id': {
+      id: '/_app/dashboard_/vehiculo/$id'
+      path: '/dashboard/vehiculo/$id'
+      fullPath: '/dashboard/vehiculo/$id'
+      preLoaderRoute: typeof AppDashboardVehiculoIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminTicketsRoute: typeof AdminTicketsRoute
+  AdminTicketsIdRoute: typeof AdminTicketsIdRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminTicketsRoute: AdminTicketsRoute,
+  AdminTicketsIdRoute: AdminTicketsIdRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppMisVehiculosRouteChildren {
   AppMisVehiculosIdRoute: typeof AppMisVehiculosIdRoute
@@ -850,6 +972,7 @@ interface AppRouteChildren {
   AppReservasRoute: typeof AppReservasRoute
   AppSaldoRoute: typeof AppSaldoRoute
   AppSoporteRoute: typeof AppSoporteRoute
+  AppAdminPricingRoute: typeof AppAdminPricingRoute
   AppHistorialResenasRoute: typeof AppHistorialResenasRoute
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCreditosRoute: typeof AppPerfilCreditosRoute
@@ -863,8 +986,10 @@ interface AppRouteChildren {
   AppReservasTransferenciaIdRoute: typeof AppReservasTransferenciaIdRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
+  AppDashboardVehiculoIdRoute: typeof AppDashboardVehiculoIdRoute
   AppReservasIdChatRoute: typeof AppReservasIdChatRoute
   AppReservasIdPagoRoute: typeof AppReservasIdPagoRoute
+  AppSoporteTicketsIdRoute: typeof AppSoporteTicketsIdRoute
   AppVehiculosIdReservarRoute: typeof AppVehiculosIdReservarRoute
 }
 
@@ -883,6 +1008,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasRoute: AppReservasRoute,
   AppSaldoRoute: AppSaldoRoute,
   AppSoporteRoute: AppSoporteRoute,
+  AppAdminPricingRoute: AppAdminPricingRoute,
   AppHistorialResenasRoute: AppHistorialResenasRoute,
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCreditosRoute: AppPerfilCreditosRoute,
@@ -896,8 +1022,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasTransferenciaIdRoute: AppReservasTransferenciaIdRoute,
   AppReservasIdRoute: AppReservasIdRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
+  AppDashboardVehiculoIdRoute: AppDashboardVehiculoIdRoute,
   AppReservasIdChatRoute: AppReservasIdChatRoute,
   AppReservasIdPagoRoute: AppReservasIdPagoRoute,
+  AppSoporteTicketsIdRoute: AppSoporteTicketsIdRoute,
   AppVehiculosIdReservarRoute: AppVehiculosIdReservarRoute,
 }
 
@@ -905,6 +1033,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   RecuperarRoute: RecuperarRoute,

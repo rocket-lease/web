@@ -39,6 +39,7 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
       <Link
         to="/vehiculos/$id"
         params={{ id: vehiculo.id }}
+        search={{ from, to }}
         className="block active:scale-[0.98] transition-transform duration-150"
       >
         {/* Foto */}
@@ -95,12 +96,12 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
             <div className="shrink-0 text-right">
               {days > 0 ? (
                 <span className="text-sm font-semibold text-text-primary">
-                  {fmt.currency(vehiculo.basePriceCents * days)}
+                  {fmt.currency(Math.round(vehiculo.basePriceCents * (vehiculo.demandMultiplier ?? 1)) * days)}
                   <span className="text-xs font-normal text-text-muted"> / {days === 1 ? '1 día' : `${days} días`}</span>
                 </span>
               ) : (
                 <span className="text-sm font-semibold text-text-primary">
-                  {fmt.currency(vehiculo.basePriceCents)}
+                  {fmt.currency(Math.round(vehiculo.basePriceCents * (vehiculo.demandMultiplier ?? 1)))}
                   <span className="text-xs font-normal text-text-muted"> / día</span>
                 </span>
               )}

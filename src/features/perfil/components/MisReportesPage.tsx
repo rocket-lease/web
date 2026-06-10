@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
-import { WarningCircle } from '@phosphor-icons/react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { ArrowRight, CalendarBlank, ChatCircleDots, Headset, WarningCircle } from '@phosphor-icons/react'
 import { Badge } from '@/ui/badge'
+import { Button } from '@/ui/button'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
 import { useMyTickets } from '@/features/soporte/hooks/useMyTickets'
 import { useTicketsAgainstMe } from '@/features/soporte/hooks/useTicketsAgainstMe'
+import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarProblemaSheet'
 import type { TicketResponse, TicketStatus } from '@rocket-lease/contracts'
 
 type Tab = 'mios' | 'contra'
@@ -27,29 +29,48 @@ const statusLabels: Record<TicketStatus, Parameters<typeof t>[0]> = {
 
 function TicketRow({ ticket }: { ticket: TicketResponse }) {
   return (
-    <Link
-      to="/reservas/$id"
-      params={{ id: ticket.reservationId }}
-      className="flex items-center justify-between rounded-xl bg-surface-2 px-4 py-3 gap-3"
-    >
-      <div className="flex items-center gap-3 min-w-0">
+    <div className="rounded-xl bg-surface-2 overflow-hidden">
+      {/* Primary: chat del ticket */}
+      <Link
+        to="/soporte/tickets/$id"
+        params={{ id: ticket.id }}
+        className="flex items-center gap-3 px-4 py-3 hover:bg-surface-1 transition-colors active:scale-[0.99]"
+      >
         <WarningCircle className="h-5 w-5 text-warning shrink-0" weight="duotone" />
-        <div className="min-w-0">
-          <p className="text-xs text-text-muted truncate">
-            {t('tickets.misTickets.reservaPrefix')}{ticket.reservationId.slice(0, 8)}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-text-primary truncate">
+            {ticket.subject || t('tickets.misTickets.soporte')}
           </p>
           <p className="text-xs text-text-muted">{fmt.dateShort(ticket.createdAt)}</p>
         </div>
-      </div>
-      <Badge className={statusStyles[ticket.status]}>
-        {t(statusLabels[ticket.status])}
-      </Badge>
-    </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge className={statusStyles[ticket.status]}>
+            {t(statusLabels[ticket.status])}
+          </Badge>
+          <ChatCircleDots size={16} className="text-brand-400" weight="duotone" />
+        </div>
+      </Link>
+
+      {/* Secondary: link a la reserva asociada (solo si existe) */}
+      {ticket.reservationId && (
+        <Link
+          to="/reservas/$id"
+          params={{ id: ticket.reservationId }}
+          className="flex items-center gap-2 border-t border-white/6 px-4 py-2 text-xs text-text-muted hover:text-text-primary hover:bg-surface-1 transition-colors"
+        >
+          <CalendarBlank size={13} weight="duotone" className="text-brand-400 shrink-0" />
+          <span className="flex-1">{t('tickets.misTickets.reservaPrefix')}{ticket.reservationId.slice(0, 8)}</span>
+          <ArrowRight size={12} />
+        </Link>
+      )}
+    </div>
   )
 }
 
 export function MisReportesPage() {
   const [tab, setTab] = useState<Tab>('mios')
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const navigate = useNavigate()
   const { data: mios, isLoading: loadingMios } = useMyTickets()
   const { data: contra, isLoading: loadingContra } = useTicketsAgainstMe()
 
@@ -87,7 +108,27 @@ export function MisReportesPage() {
         ) : (
           items.map((ticket) => <TicketRow key={ticket.id} ticket={ticket} />)
         )}
+
+        {tab === 'mios' && (
+          <div className="pt-4">
+            <Button
+              variant="secondary"
+              className="w-full gap-2"
+              onClick={() => setSheetOpen(true)}
+            >
+              <Headset size={16} weight="duotone" />
+              {t('soporte.contactar.cta')}
+            </Button>
+          </div>
+        )}
       </div>
+
+      <ReportarProblemaSheet
+        type="support_request"
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onSuccess={(ticket) => void navigate({ to: '/soporte/tickets/$id', params: { id: ticket.id } })}
+      />
     </div>
   )
 }

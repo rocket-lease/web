@@ -5,6 +5,8 @@ import { t } from '@/i18n/es'
 import { FaqSearch } from './FaqSearch'
 import { FaqCategoryTabs } from './FaqCategoryTabs'
 import { FaqAccordion } from './FaqAccordion'
+import { MisTicketsSection } from './MisTicketsSection'
+import { SoporteContactCard } from './SoporteContactCard'
 import { useFaq } from '../hooks/useFaq'
 
 export function SoportePage() {
@@ -65,6 +67,9 @@ export function SoportePage() {
           }}
         />
 
+        <MisTicketsSection />
+
+        <SoporteContactCard />
       </div>
     </div>
   )

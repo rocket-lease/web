@@ -1,20 +1,22 @@
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Image, X } from '@phosphor-icons/react'
+import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Textarea } from '@/ui/textarea'
 import { Button } from '@/ui/button'
 import { Drawer, DrawerContent } from '@/ui/drawer'
 import { t } from '@/i18n/es'
-import type { TicketType } from '@rocket-lease/contracts'
+import type { TicketResponse, TicketType } from '@rocket-lease/contracts'
 import { ticketsApi } from '../api/tickets.api'
 import { useCreateTicket } from '../hooks/useCreateTicket'
 
 interface ReportarProblemaSheetProps {
-  reservationId: string
+  reservationId?: string
   type: TicketType
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: (ticket: TicketResponse) => void
 }
 
 const MAX_PHOTOS = 5
@@ -24,7 +26,9 @@ export function ReportarProblemaSheet({
   type,
   open,
   onOpenChange,
+  onSuccess,
 }: ReportarProblemaSheetProps) {
+  const [subject, setSubject] = useState('')
   const [description, setDescription] = useState('')
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
@@ -37,6 +41,7 @@ export function ReportarProblemaSheet({
   function handleClose() {
     if (isBusy) return
     photoPreviews.forEach((url) => URL.revokeObjectURL(url))
+    setSubject('')
     setDescription('')
     setPhotoFiles([])
     setPhotoPreviews([])
@@ -62,7 +67,7 @@ export function ReportarProblemaSheet({
   }
 
   async function handleSubmit() {
-    if (!description.trim() || isBusy) return
+    if (!subject.trim() || !description.trim() || isBusy) return
     setUploading(true)
     let photoUrls: string[]
     try {
@@ -74,11 +79,12 @@ export function ReportarProblemaSheet({
     }
     setUploading(false)
     mutation.mutate(
-      { reservationId, type, description: description.trim(), photoUrls },
+      { reservationId, type, subject: subject.trim(), description: description.trim(), photoUrls },
       {
-        onSuccess: () => {
+        onSuccess: (ticket) => {
           toast.success(t('tickets.reportar.success'))
           handleClose()
+          onSuccess?.(ticket)
         },
         onError: (err: unknown) => {
           const code = (err as { code?: string })?.code
@@ -92,7 +98,7 @@ export function ReportarProblemaSheet({
     )
   }
 
-  const canSubmit = description.trim().length > 0 && !isBusy
+  const canSubmit = subject.trim().length > 0 && description.trim().length > 0 && !isBusy
 
   return (
     <Drawer open={open} onOpenChange={(next) => { if (!isBusy) onOpenChange(next) }}>
@@ -110,6 +116,17 @@ export function ReportarProblemaSheet({
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-2 pb-4 space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="ticket-subject">{t('tickets.reportar.subjectLabel')}</Label>
+            <Input
+              id="ticket-subject"
+              placeholder={t('tickets.reportar.subjectPlaceholder')}
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              maxLength={120}
+              disabled={isBusy}
+            />
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="ticket-description">{t('tickets.reportar.descriptionLabel')}</Label>
             <Textarea

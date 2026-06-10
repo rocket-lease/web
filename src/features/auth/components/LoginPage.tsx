@@ -1,16 +1,17 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { Envelope, Lock, CaretLeft } from '@phosphor-icons/react'
+import { Envelope, Lock, CaretLeft, ShieldCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
+import { profileApi } from '@/features/perfil/api/profile.api'
 import { t } from '@/i18n/es'
 import type { ProblemDetails } from '@rocket-lease/contracts'
 
-// Mirrors LoginUserRequestSchema from @rocket-lease/contracts
 const schema = z.object({
   email: z.string().email('Ingresá un correo válido'),
   password: z
@@ -21,10 +22,12 @@ const schema = z.object({
 })
 
 type FormData = z.infer<typeof schema>
+type Tab = 'usuario' | 'admin'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { hint, returnTo } = useSearch({ from: '/login' })
+  const [tab, setTab] = useState<Tab>('usuario')
   const {
     register,
     handleSubmit,
@@ -33,14 +36,23 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await authApi.signIn(data)
-      // Hard reload — un soft navigate dejaba a AuthGate viendo state pre-login
-      // hasta que el listener de Supabase corriera, lo que en la PWA podía
-      // tardar un ciclo entero. Remontar la app entera con la sesión ya
-      // guardada en localStorage es el camino seguro.
-      const target = returnTo && typeof returnTo === 'string' && returnTo.startsWith('/')
-        ? returnTo
-        : '/buscar'
+      const res = await authApi.signIn(data)
+
+      if (tab === 'admin') {
+        const token = res.access_token
+        const profile = await profileApi.getMyProfile(token)
+        if (!profile.isAdmin) {
+          await authApi.signOut()
+          toast.error(t('admin.login.notAdmin'))
+          return
+        }
+        window.location.href = '/tickets'
+        return
+      }
+
+      // Hard reload — soft navigate dejaba AuthGate viendo state pre-login
+      const target =
+        returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') ? returnTo : '/buscar'
       window.location.href = target
     } catch (err) {
       const problem = err as ProblemDetails & { statusCode?: number; message?: string }
@@ -49,13 +61,15 @@ export function LoginPage() {
         navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
         return
       }
-      // US-02 AC2/AC3: mensaje genérico — no revelar si el email existe ni si la contraseña es incorrecta.
       toast.error(t('auth.login.error'))
     }
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+    <div
+      className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12"
+      style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
+    >
       <button
         onClick={() => window.history.back()}
         aria-label="Volver"
@@ -63,92 +77,131 @@ export function LoginPage() {
       >
         <CaretLeft size={20} />
       </button>
+
       <div className="flex flex-1 flex-col items-center justify-center">
-      <div className="w-full max-w-sm">
-        {/* Brand mark */}
-        <div className="mb-10 flex flex-col items-center gap-4">
-          <img
-            src="/logo-symbol.png"
-            alt="Rocket Lease"
-            className="h-20 w-auto"
-          />
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
-              Rocket Lease
-            </h1>
-            <p className="mt-1 text-sm text-text-muted">{t('app.tagline')}</p>
-          </div>
-        </div>
-
-        {/* Contextual hint (e.g. redirected from favorites) */}
-        {hint === 'favoritos' && (
-          <div className="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/10 px-4 py-3">
-            <p className="text-center text-sm text-brand-300">{t('favoritos.loginHint')}</p>
-          </div>
-        )}
-
-        {/* Form */}
-        <div className="rounded-xl bg-surface-1 border border-white/6 p-6 shadow-elevated">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold text-text-primary">{t('auth.login.title')}</h2>
-            <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
-                {t('auth.login.email')}
-              </label>
-              <Input
-                type="email"
-                autoComplete="email"
-                autoFocus
-                enterKeyHint="next"
-                leftIcon={<Envelope size={16} />}
-                placeholder="tu@correo.com"
-                error={errors.email?.message}
-                {...register('email')}
-              />
+        <div className="w-full max-w-sm">
+          {/* Brand mark */}
+          <div className="mb-8 flex flex-col items-center gap-4">
+            <img src="/logo-symbol.png" alt="Rocket Lease" className="h-20 w-auto" />
+            <div className="text-center">
+              <h1 className="text-2xl font-bold tracking-tight text-text-primary">Rocket Lease</h1>
+              <p className="mt-1 text-sm text-text-muted">{t('app.tagline')}</p>
             </div>
+          </div>
 
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-text-secondary uppercase tracking-wider">
-                {t('auth.login.password')}
-              </label>
-              <Input
-                type="password"
-                autoComplete="current-password"
-                enterKeyHint="done"
-                leftIcon={<Lock size={16} />}
-                placeholder="••••••••"
-                error={errors.password?.message}
-                {...register('password')}
-              />
-            </div>
-
-            <Link
-              to="/recuperar"
-              className="self-end text-xs text-brand-400 hover:text-brand-300 transition-colors"
+          {/* Tab switcher */}
+          <div className="mb-5 flex rounded-xl bg-surface-2 p-1">
+            <button
+              type="button"
+              onClick={() => setTab('usuario')}
+              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+                tab === 'usuario'
+                  ? 'bg-surface-0 text-text-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-secondary'
+              }`}
             >
-              {t('auth.login.forgot')}
-            </Link>
+              {t('auth.login.title')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('admin')}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition-colors ${
+                tab === 'admin'
+                  ? 'bg-amber-500/15 text-amber-400 shadow-sm'
+                  : 'text-text-muted hover:text-text-secondary'
+              }`}
+            >
+              <ShieldCheck size={15} weight={tab === 'admin' ? 'duotone' : 'regular'} />
+              {t('admin.login.tab')}
+            </button>
+          </div>
 
-            <Button type="submit" disabled={isSubmitting} className="mt-2 w-full" size="lg">
-              {isSubmitting ? 'Ingresando...' : t('auth.login.submit')}
-            </Button>
-          </form>
-        </div>
+          {/* Hint */}
+          {hint === 'favoritos' && tab === 'usuario' && (
+            <div className="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/10 px-4 py-3">
+              <p className="text-center text-sm text-brand-300">{t('favoritos.loginHint')}</p>
+            </div>
+          )}
 
-        <p className="mt-6 text-center text-sm text-text-muted">
-          {t('auth.login.noAccount')}{' '}
-          <button
-            onClick={() => navigate({ to: '/registro', replace: true })}
-            className="text-brand-400 font-semibold hover:text-brand-300 transition-colors"
+          {/* Form */}
+          <div
+            className={`rounded-xl border p-6 shadow-elevated ${
+              tab === 'admin'
+                ? 'border-amber-500/20 bg-amber-500/5'
+                : 'border-white/6 bg-surface-1'
+            }`}
           >
-            {t('auth.login.register')}
-          </button>
-        </p>
-      </div>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-text-primary">
+                {tab === 'admin' ? t('admin.login.tab') : t('auth.login.title')}
+              </h2>
+              <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary">
+                  {t('auth.login.email')}
+                </label>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  autoFocus
+                  enterKeyHint="next"
+                  leftIcon={<Envelope size={16} />}
+                  placeholder="tu@correo.com"
+                  error={errors.email?.message}
+                  {...register('email')}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-text-secondary">
+                  {t('auth.login.password')}
+                </label>
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  enterKeyHint="done"
+                  leftIcon={<Lock size={16} />}
+                  placeholder="••••••••"
+                  error={errors.password?.message}
+                  {...register('password')}
+                />
+              </div>
+
+              {tab === 'usuario' && (
+                <Link
+                  to="/recuperar"
+                  className="self-end text-xs text-brand-400 transition-colors hover:text-brand-300"
+                >
+                  {t('auth.login.forgot')}
+                </Link>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={`mt-2 w-full ${tab === 'admin' ? 'bg-amber-500 text-black hover:bg-amber-400' : ''}`}
+                size="lg"
+              >
+                {isSubmitting ? 'Ingresando...' : t('auth.login.submit')}
+              </Button>
+            </form>
+          </div>
+
+          {tab === 'usuario' && (
+            <p className="mt-6 text-center text-sm text-text-muted">
+              {t('auth.login.noAccount')}{' '}
+              <button
+                onClick={() => navigate({ to: '/registro', replace: true })}
+                className="font-semibold text-brand-400 transition-colors hover:text-brand-300"
+              >
+                {t('auth.login.register')}
+              </button>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   )

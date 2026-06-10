@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api-client'
 import {
   PricingQuoteRequestSchema,
   PricingQuoteResponseSchema,
+  apiEndpoints,
   type PricingQuoteRequest,
   type PricingQuoteResponse,
 } from '@rocket-lease/contracts'
@@ -9,7 +10,7 @@ import {
 export const pricingApi = {
   async quote(data: PricingQuoteRequest): Promise<PricingQuoteResponse> {
     const parsed = PricingQuoteRequestSchema.parse(data)
-    const raw = await apiClient.post<unknown>('/pricing/quote', parsed)
+    const raw = await apiClient.post<unknown>(apiEndpoints.pricing.quote, parsed)
     return PricingQuoteResponseSchema.parse(raw)
   },
 }
