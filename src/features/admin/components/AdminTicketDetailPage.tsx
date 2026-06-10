@@ -68,7 +68,7 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
 
   function handleStatusClick(status: TicketStatus) {
     if (COMPENSATION_STATUSES.has(status)) {
-      setPendingStatus(status)
+      setPendingStatus(status as AdminStatus)
     } else {
       void confirmStatusChange(status as AdminStatus)
     }

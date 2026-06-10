@@ -311,7 +311,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
  * La contraparte (rentador) puede reseñar al conductor.
  */
 function ReviewSectionConductor({ reservation }: { reservation: GetReservationResponse }) {
-  const reviews = reservation.review ? [reservation.review] : []
+  const reviews = reservation.reviews ?? []
   const [resenaOpen, setResenaOpen] = useState(false)
 
   const ownTargets = reviews
