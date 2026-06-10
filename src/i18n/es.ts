@@ -40,6 +40,8 @@ export const es = {  // --- App ---
   'wallet.transactions.empty': 'Todavía no tenés movimientos.',
   'wallet.transactions.credit': 'Acreditación por reserva',
   'wallet.transactions.debit': 'Retiro de saldo',
+  'wallet.transactions.dispute_penalty_debit': 'Penalización por disputa',
+  'wallet.transactions.dispute_penalty_credit': 'Compensación por disputa',
   'wallet.transactions.balanceAfter': 'Saldo luego del movimiento',
 
   // --- Mapa de rentadoras ---
@@ -1403,6 +1405,94 @@ export const es = {  // --- App ---
   'admin.pricing.legend.elevated': 'Demanda elevada (≥1.15×)',
   'admin.pricing.legend.normal': 'Tarifa base',
 
+  // --- Tickets US-59: subject + soporte general ---
+  'tickets.reportar.subjectLabel': 'Asunto',
+  'tickets.reportar.subjectPlaceholder': 'Resumí el problema en una línea',
+  'tickets.tipo.vehicle_issue': 'Problema con vehículo',
+  'tickets.tipo.counterpart_report': 'Reporte de contraparte',
+  'tickets.tipo.support_request': 'Consulta a soporte',
+  'tickets.detail.title': 'Detalle del ticket',
+  'tickets.detail.infoSection': 'Información',
+  'tickets.detail.subject': 'Asunto',
+  'tickets.detail.description': 'Descripción',
+  'tickets.detail.reserva': 'Reserva',
+  'tickets.detail.noReserva': 'Sin reserva asociada',
+  'tickets.detail.rating.title': 'Calificá la atención',
+  'tickets.detail.rating.sent': 'Gracias por tu calificación',
+  'tickets.detail.rating.cta': 'Enviar calificación',
+  'tickets.detail.rating.sending': 'Enviando...',
+  'tickets.detail.rating.error': 'No se pudo enviar la calificación.',
+  'tickets.detail.rating.notAllowed': 'Solo podés calificar tickets resueltos o rechazados.',
+  'tickets.detail.rating.alreadyRated': 'Ya calificaste este ticket.',
+  'tickets.misTickets.soporte': 'Consulta general',
+
+  // --- Ticket messages (US-60) ---
+  'ticketMessages.title': 'Chat con soporte',
+  'ticketMessages.empty': 'Todavía no hay mensajes.',
+  'ticketMessages.infoRequest': 'Solicitud de información del moderador',
+  'admin.chat.canalConductor': 'Canal conductor',
+  'admin.chat.canalRentador': 'Canal rentador',
+  'ticketMessages.error.load': 'No se pudieron cargar los mensajes.',
+  'ticketMessages.error.send': 'No se pudo enviar el mensaje.',
+  'ticketMessages.error.notAllowed': 'El ticket está cerrado.',
+
+  // --- Disputas (US-64) ---
+  'dispute.status.escalated': 'Escalada',
+  'dispute.status.awaiting_info': 'Esperando información',
+  'dispute.status.ruled': 'Resuelta',
+  'dispute.status.appealed': 'Apelada',
+  'dispute.status.closed': 'Cerrada',
+  'dispute.section.title': 'Disputa',
+  'dispute.section.noDispute': 'No hay disputa activa.',
+  'dispute.appeal.cta': 'Apelar resolución',
+  'dispute.appeal.sending': 'Apelando...',
+  'dispute.appeal.success': 'Apelación enviada.',
+  'dispute.appeal.error': 'No se pudo apelar.',
+  'dispute.appeal.limitReached': 'Ya agotaste el límite de apelaciones.',
+  'dispute.appeal.reasonLabel': 'Motivo de la apelación',
+  'dispute.appeal.reasonPlaceholder': 'Explicá por qué no estás de acuerdo con la resolución.',
+  'dispute.verdict.responsible': 'Responsable',
+  'dispute.verdict.penalty': 'Penalidad',
+
+  // --- Soporte contact card (reemplazando strings hardcodeados) ---
+  'soporte.contact.chatValue': 'Respuesta inmediata',
+  'soporte.contact.emailValue': 'hola@rocketlease.com',
+  'soporte.contact.hoursLabel': 'Horario de atención',
+
+  // --- Chat de tickets ---
+  'ticketMessages.inputPlaceholder': 'Escribí un mensaje...',
+  'ticketMessages.sendAriaLabel': 'Enviar',
+
+  // --- Soporte contactar ---
+  'soporte.contactar.cta': 'Reportar un problema',
+  'soporte.contactar.asuntoDefault': 'Consulta general',
+
+  // --- Ticket detail extras ---
+  'tickets.detail.tiempoEstimado': 'Tiempo estimado de respuesta: menos de 2 horas',
+
+  // --- Admin ---
+  'admin.login.tab': 'Admin',
+  'admin.login.notAdmin': 'Esta cuenta no tiene permisos de administrador.',
+  'admin.tickets.title': 'Cola de tickets',
+  'admin.tickets.empty': 'No hay tickets pendientes.',
+  'admin.tickets.error': 'No se pudieron cargar los tickets.',
+  'admin.tickets.statusFilter.all': 'Todos',
+  'admin.tickets.col.asunto': 'Asunto',
+  'admin.tickets.col.tipo': 'Tipo',
+  'admin.tickets.col.estado': 'Estado',
+  'admin.tickets.col.fecha': 'Fecha',
+  'admin.tickets.badge.open': 'Abierto',
+  'admin.tickets.badge.under_review': 'En revisión',
+  'admin.tickets.badge.resolved': 'Resuelto',
+  'admin.tickets.badge.rejected': 'Rechazado',
+  'admin.tickets.marcarDisputa': 'Marcar como disputa',
+  'admin.disputa.pedirInfo': 'Solicitar información adicional',
+  'admin.disputa.plazo': 'Plazo: 48 horas',
+  'admin.disputa.emitirFallo': 'Emitir fallo',
+  'admin.disputa.responsable': 'Parte responsable',
+  'admin.disputa.penalizacion.tipo': 'Tipo de penalización',
+  'admin.disputa.penalizacion.fija': 'Monto fijo',
+  'admin.disputa.penalizacion.porcentaje': 'Porcentaje de la reserva',
   // --- Crear reseña (US-38) ---
   'resenas.create.title': 'Dejar reseña',
   'resenas.create.targetType.label': '¿Sobre qué querés opinar?',

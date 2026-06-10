@@ -1,4 +1,5 @@
-import { WarningCircle } from '@phosphor-icons/react'
+import { ArrowRight, WarningCircle } from '@phosphor-icons/react'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@/ui/badge'
 import { t } from '@/i18n/es'
 import { fmt } from '@/lib/formatters'
@@ -35,7 +36,11 @@ export function ReservaTicketInfo({ reservationId, myRole }: ReservaTicketInfoPr
   return (
     <div className="space-y-3">
       {myTicket && (
-        <div className="rounded-xl bg-surface-2 px-4 py-3 space-y-1.5">
+        <Link
+          to="/soporte/tickets/$id"
+          params={{ id: myTicket.id }}
+          className="block rounded-xl bg-surface-2 px-4 py-3 space-y-1.5 hover:bg-surface-1 transition-colors active:scale-[0.99]"
+        >
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <WarningCircle className="h-4 w-4 text-warning shrink-0" weight="duotone" />
@@ -43,17 +48,24 @@ export function ReservaTicketInfo({ reservationId, myRole }: ReservaTicketInfoPr
                 {t('tickets.reserva.tuReporte')}
               </span>
             </div>
-            <Badge className={statusStyles[myTicket.status]}>
-              {t(statusLabels[myTicket.status])}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={statusStyles[myTicket.status]}>
+                {t(statusLabels[myTicket.status])}
+              </Badge>
+              <ArrowRight size={14} className="text-text-muted shrink-0" />
+            </div>
           </div>
           <p className="text-xs text-text-muted line-clamp-2">{myTicket.description}</p>
           <p className="text-xs text-text-muted">{fmt.dateShort(myTicket.createdAt)}</p>
-        </div>
+        </Link>
       )}
 
       {counterpartTicket && (
-        <div className="rounded-xl bg-surface-2/60 border border-white/6 px-4 py-3 space-y-1.5">
+        <Link
+          to="/soporte/tickets/$id"
+          params={{ id: counterpartTicket.id }}
+          className="block rounded-xl bg-surface-2/60 border border-white/6 px-4 py-3 space-y-1.5 hover:bg-surface-1 transition-colors active:scale-[0.99]"
+        >
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <WarningCircle className="h-4 w-4 text-text-muted shrink-0" weight="regular" />
@@ -61,13 +73,16 @@ export function ReservaTicketInfo({ reservationId, myRole }: ReservaTicketInfoPr
                 {t('tickets.reserva.reporteContraparte')}
               </span>
             </div>
-            <Badge className={statusStyles[counterpartTicket.status]}>
-              {t(statusLabels[counterpartTicket.status])}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className={statusStyles[counterpartTicket.status]}>
+                {t(statusLabels[counterpartTicket.status])}
+              </Badge>
+              <ArrowRight size={14} className="text-text-muted shrink-0" />
+            </div>
           </div>
           <p className="text-xs text-text-muted line-clamp-2">{counterpartTicket.description}</p>
           <p className="text-xs text-text-muted">{fmt.dateShort(counterpartTicket.createdAt)}</p>
-        </div>
+        </Link>
       )}
     </div>
   )
