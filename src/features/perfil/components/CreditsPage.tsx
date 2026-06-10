@@ -48,7 +48,13 @@ export function CreditsPage() {
             ) : (
               <div className="mt-3 divide-y divide-white/6">
                 {transactions!.items.map(transaction => {
-                  const isCredit = transaction.type === 'reservation_credit'
+                  const isCredit = transaction.type === 'reservation_credit' || transaction.type === 'dispute_penalty_credit'
+                  const LABELS: Record<typeof transaction.type, Parameters<typeof t>[0]> = {
+                    reservation_credit: 'wallet.transactions.credit',
+                    withdrawal_debit: 'wallet.transactions.debit',
+                    dispute_penalty_debit: 'wallet.transactions.dispute_penalty_debit',
+                    dispute_penalty_credit: 'wallet.transactions.dispute_penalty_credit',
+                  }
                   return (
                     <div key={transaction.id} className="flex items-center gap-3 py-3.5">
                       <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isCredit ? 'bg-success/15' : 'bg-danger/15'}`}>
@@ -58,7 +64,7 @@ export function CreditsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-text-primary">
-                          {isCredit ? t('wallet.transactions.credit') : t('wallet.transactions.debit')}
+                          {t(LABELS[transaction.type])}
                         </p>
                         <p className="text-xs text-text-muted mt-0.5">{fmt.dateTime(transaction.createdAt)}</p>
                         <p className="text-xs text-text-muted/60 mt-0.5 truncate">
