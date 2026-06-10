@@ -1361,6 +1361,12 @@ export const es = {  // --- App ---
   'reservas.detail.review.counterparty': 'Reseña de {name}',
   'reservas.detail.review.cta': 'Dejar reseña',
   'reservas.detail.review.alreadyReviewed': 'Ya reseñaste',
+
+  // --- Reputación ---
+  'reputation.badge.conductor_destacado': 'Conductor Destacado',
+  'reputation.banner.suspended': 'Tu cuenta ha sido suspendida por múltiples reportes. Contactá a soporte.',
+  'reputation.banner.warning': 'Tu cuenta tiene reportes recientes. Evitá nuevas penalizaciones para no ser suspendido.',
+  'reputation.banner.lowScore': 'Tu reputación está baja. Tus vehículos tienen menor visibilidad en las búsquedas.',
 } as const
 
 export type I18nKey = keyof typeof es
