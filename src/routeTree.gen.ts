@@ -51,6 +51,7 @@ import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehicu
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas_.$id_.pago'
 import { Route as AppReservasIdChatRouteImport } from './routes/_app/reservas_.$id_.chat'
 import { Route as AppMisVehiculosIdDocumentosRouteImport } from './routes/_app/mis-vehiculos.$id_.documentos'
+import { Route as AppDashboardVehiculoIdRouteImport } from './routes/_app/dashboard_.vehiculo.$id'
 
 const VerificarRoute = VerificarRouteImport.update({
   id: '/verificar',
@@ -263,6 +264,11 @@ const AppMisVehiculosIdDocumentosRoute =
     path: '/$id/documentos',
     getParentRoute: () => AppMisVehiculosRoute,
   } as any)
+const AppDashboardVehiculoIdRoute = AppDashboardVehiculoIdRouteImport.update({
+  id: '/dashboard_/vehiculo/$id',
+  path: '/dashboard/vehiculo/$id',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/dashboard/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/dashboard/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/mis-vehiculos/$id/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/reservas/$id/chat': typeof AppReservasIdChatRoute
   '/reservas/$id/pago': typeof AppReservasIdPagoRoute
@@ -390,6 +398,7 @@ export interface FileRoutesById {
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
+  '/_app/dashboard_/vehiculo/$id': typeof AppDashboardVehiculoIdRoute
   '/_app/mis-vehiculos/$id_/documentos': typeof AppMisVehiculosIdDocumentosRoute
   '/_app/reservas_/$id_/chat': typeof AppReservasIdChatRoute
   '/_app/reservas_/$id_/pago': typeof AppReservasIdPagoRoute
@@ -435,6 +444,7 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/dashboard/vehiculo/$id'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/chat'
     | '/reservas/$id/pago'
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/dashboard/vehiculo/$id'
     | '/mis-vehiculos/$id/documentos'
     | '/reservas/$id/chat'
     | '/reservas/$id/pago'
@@ -522,6 +533,7 @@ export interface FileRouteTypes {
     | '/_app/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
+    | '/_app/dashboard_/vehiculo/$id'
     | '/_app/mis-vehiculos/$id_/documentos'
     | '/_app/reservas_/$id_/chat'
     | '/_app/reservas_/$id_/pago'
@@ -835,6 +847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMisVehiculosIdDocumentosRouteImport
       parentRoute: typeof AppMisVehiculosRoute
     }
+    '/_app/dashboard_/vehiculo/$id': {
+      id: '/_app/dashboard_/vehiculo/$id'
+      path: '/dashboard/vehiculo/$id'
+      fullPath: '/dashboard/vehiculo/$id'
+      preLoaderRoute: typeof AppDashboardVehiculoIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -883,6 +902,7 @@ interface AppRouteChildren {
   AppReservasTransferenciaIdRoute: typeof AppReservasTransferenciaIdRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
+  AppDashboardVehiculoIdRoute: typeof AppDashboardVehiculoIdRoute
   AppReservasIdChatRoute: typeof AppReservasIdChatRoute
   AppReservasIdPagoRoute: typeof AppReservasIdPagoRoute
   AppVehiculosIdReservarRoute: typeof AppVehiculosIdReservarRoute
@@ -917,6 +937,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasTransferenciaIdRoute: AppReservasTransferenciaIdRoute,
   AppReservasIdRoute: AppReservasIdRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
+  AppDashboardVehiculoIdRoute: AppDashboardVehiculoIdRoute,
   AppReservasIdChatRoute: AppReservasIdChatRoute,
   AppReservasIdPagoRoute: AppReservasIdPagoRoute,
   AppVehiculosIdReservarRoute: AppVehiculosIdReservarRoute,

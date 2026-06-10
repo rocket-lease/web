@@ -10,11 +10,14 @@ interface ReviewCardProps {
   review: ReviewItem
 }
 
+const TARGET_LABELS: Record<string, string> = {
+  vehicle: t('historial.resenas.targetType.vehicle'),
+  rentador: t('historial.resenas.targetType.rentador'),
+  conductor: t('historial.resenas.targetType.conductor'),
+}
+
 export function ReviewCard({ review }: ReviewCardProps) {
-  const targetLabel =
-    review.targetType === 'vehicle'
-      ? t('historial.resenas.targetType.vehicle')
-      : t('historial.resenas.targetType.rentador')
+  const targetLabel = TARGET_LABELS[review.targetType] ?? ''
 
   return (
     <div className="bg-surface-1 rounded-xl p-4 space-y-3">
