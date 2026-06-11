@@ -1194,6 +1194,8 @@ export const es = {  // --- App ---
   'reservar.overlapsBusy': 'El rango seleccionado se superpone con una reserva existente.',
   'reservar.holdExpiresIn': 'Tiempo restante:',
   'reservar.success': 'Reserva confirmada',
+  'reservar.reReservar.boton': 'Re-reservar',
+  'reservar.reReservar.noDisponible': 'Este vehículo ya no está disponible. Te mostramos opciones similares.',
   'reservar.errors.RESERVATION_VEHICLE_NOT_AVAILABLE': 'Este vehiculo ya no esta disponible en esas fechas.',
   'reservar.errors.RESERVATION_HOLD_EXPIRED': 'Se vencio el tiempo para pagar. Tu reserva fue cancelada.',
   'reservar.errors.RESERVATION_CONTRACT_NOT_ACCEPTED': 'Tenes que aceptar el contrato para continuar.',
