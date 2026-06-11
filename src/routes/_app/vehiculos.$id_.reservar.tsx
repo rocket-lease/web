@@ -6,12 +6,14 @@ import { VerificationGate } from '@/features/verification/components/Verificatio
 interface ReservarSearch {
   start?: string
   end?: string
+  reuse?: string
 }
 
 export const Route = createFileRoute('/_app/vehiculos/$id_/reservar')({
   validateSearch: (search: Record<string, unknown>): ReservarSearch => ({
     start: typeof search.start === 'string' ? search.start : undefined,
     end: typeof search.end === 'string' ? search.end : undefined,
+    reuse: typeof search.reuse === 'string' ? search.reuse : undefined,
   }),
   component: () => (
     <AuthGate>

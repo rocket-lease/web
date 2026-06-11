@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import type { ReservationListItem } from '@rocket-lease/contracts'
 import { ReservasPage } from './ReservasPage'
 import { fetchReservations } from '../api/reservations.api'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
@@ -38,7 +39,12 @@ vi.mock('../api/reservations.api', () => ({
 vi.mock('@/features/vehiculos/api/vehiculos.api', () => ({
   vehiclesApi: {
     getMyVehicles: vi.fn(),
+    getById: vi.fn(),
   },
+}))
+
+vi.mock('@/features/chat/hooks/useUnreadCount', () => ({
+  useUnreadCount: () => ({ data: 0 }),
 }))
 
 const fetchMock = vi.mocked(fetchReservations)
@@ -97,5 +103,54 @@ describe('ReservasPage — empty state', () => {
     expect(
       await screen.findByText(/Publicá un vehículo/i),
     ).toBeInTheDocument()
+  })
+})
+
+function listItem(overrides: Record<string, unknown>): ReservationListItem {
+  return {
+    id: 'res-1',
+    vehicleId: 'veh-1',
+    conductorId: 'c-1',
+    rentadorId: 'r-1',
+    status: 'completed',
+    startAt: '2026-01-01T10:00:00.000Z',
+    endAt: '2026-01-03T10:00:00.000Z',
+    holdExpiresAt: null,
+    totalCents: 100000,
+    currency: 'ARS',
+    paymentMethod: 'card',
+    paidAt: '2026-01-01T10:00:00.000Z',
+    rejectionReason: null,
+    createdAt: '2026-01-01T10:00:00.000Z',
+    updatedAt: '2026-01-01T10:00:00.000Z',
+    vehicle: { id: 'veh-1', plate: 'AA123BB', brand: 'Toyota', model: 'Corolla', year: 2022, photo: null },
+    conductor: { id: 'c-1', name: 'Ada' },
+    rentador: { id: 'r-1', name: 'Beto' },
+    ...overrides,
+  } as unknown as ReservationListItem
+}
+
+function listResponse(items: ReservationListItem[]) {
+  return { items, page: 1, pageSize: 20, total: items.length }
+}
+
+describe('ReservasPage — botón Re-reservar (US-31)', () => {
+  it('muestra el botón Re-reservar en una reserva completada del conductor', async () => {
+    fetchMock.mockResolvedValue(listResponse([listItem({ status: 'completed' })]))
+
+    render(<ReservasPage />, { wrapper: createWrapper() })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Completadas' }))
+
+    expect(await screen.findByRole('button', { name: 'Re-reservar' })).toBeInTheDocument()
+  })
+
+  it('no muestra el botón Re-reservar en una reserva confirmada', async () => {
+    fetchMock.mockResolvedValue(listResponse([listItem({ status: 'confirmed' })]))
+
+    render(<ReservasPage />, { wrapper: createWrapper() })
+
+    await waitFor(() => expect(screen.getByText('Toyota Corolla')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Re-reservar' })).not.toBeInTheDocument()
   })
 })

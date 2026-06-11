@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { CheckCircle2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import type {
@@ -407,7 +407,7 @@ function errorMessageFor(err: unknown): string {
 
 export function ReservarVehiculoPage() {
   const { id: vehicleId } = useParams({ from: '/_app/vehiculos/$id_/reservar' })
-  const { start: startParam, end: endParam } = useSearch({
+  const { start: startParam, end: endParam, reuse } = useSearch({
     from: '/_app/vehiculos/$id_/reservar',
   })
   const navigate = useNavigate()
@@ -423,6 +423,11 @@ export function ReservarVehiculoPage() {
   })
   const busyRanges = useMemo(() => busyData?.items ?? [], [busyData])
 
+  const { data: prevReservation } = useQuery({
+    queryKey: ['reservation', reuse],
+    queryFn: reuse ? () => reservarApi.getById(reuse) : skipToken,
+  })
+
   const [step, setStep] = useState<Step>('fechas')
   const [startAtLocal, setStartAtLocal] = useState(() => searchParamToLocal(startParam))
   const [endAtLocal, setEndAtLocal] = useState(() => searchParamToLocal(endParam))
@@ -437,6 +442,26 @@ export function ReservarVehiculoPage() {
   const [deliveryCustomAddress, setDeliveryCustomAddress] = useState<ReservationAddress | null>(null)
   const [returnUseCustom, setReturnUseCustom] = useState(false)
   const [returnCustomAddress, setReturnCustomAddress] = useState<ReservationAddress | null>(null)
+
+  /**
+   * Re-reserva (US-31): precarga únicamente las preferencias de entrega y
+   * devolución a domicilio de la reserva anterior. Las fechas quedan en
+   * blanco para que el conductor elija un rango nuevo. El gateo por
+   * `homeDeliveryEnabled`/`homeReturnEnabled` del vehículo sigue vigente, así
+   * que si el rentador desactivó la opción desde entonces, la preferencia
+   * precargada se ignora sola.
+   */
+  useEffect(() => {
+    if (!prevReservation) return
+    if (prevReservation.withHomeDelivery && prevReservation.deliveryAddress) {
+      setDeliveryUseCustom(true)
+      setDeliveryCustomAddress(prevReservation.deliveryAddress)
+    }
+    if (prevReservation.withHomeReturn && prevReservation.returnAddress) {
+      setReturnUseCustom(true)
+      setReturnCustomAddress(prevReservation.returnAddress)
+    }
+  }, [prevReservation])
 
   const createReservation = useCreateReservation()
   const reservationId = createReservation.data?.id ?? null

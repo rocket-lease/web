@@ -32,6 +32,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { getErrorMessage } from '@/lib/error-mapper'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
+import { useReReservar } from '@/features/reservar/hooks/useReReservar'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
@@ -274,6 +275,11 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         <>
           <Separator />
 
+          <ReReservarAction
+            reservationId={reservation.id}
+            vehicleId={vehicle.id}
+          />
+
           {/* US-38: Reseñas */}
           <ReviewSectionConductor reservation={reservation} />
 
@@ -300,6 +306,29 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         onOpenChange={setReportarOpen}
       />
     </div>
+  )
+}
+
+interface ReReservarActionProps {
+  reservationId: string
+  vehicleId: string
+}
+
+/**
+ * US-31: acción "Re-reservar" visible en el detalle de una reserva completada.
+ * Inicia el flujo de re-reserva del mismo vehículo: si sigue disponible abre
+ * el formulario precargado, si no redirige al buscador de similares.
+ */
+function ReReservarAction({ reservationId, vehicleId }: ReReservarActionProps) {
+  const reReservar = useReReservar()
+  return (
+    <Button
+      className="w-full"
+      onClick={() => void reReservar({ reservationId, vehicleId })}
+    >
+      <CalendarPlus className="h-4 w-4" />
+      {t('reservar.reReservar.boton')}
+    </Button>
   )
 }
 
