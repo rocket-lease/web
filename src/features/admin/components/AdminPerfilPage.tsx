@@ -1,15 +1,11 @@
-import { useNavigate } from '@tanstack/react-router'
 import { Star, SignOut, UserCircle } from '@phosphor-icons/react'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { authApi } from '@/features/auth/api/auth.api'
 import { t } from '@/i18n/es'
-import { fmt } from '@/lib/formatters'
-
 export function AdminPerfilPage() {
   const { data: profile, isLoading } = useMyProfile()
-  const navigate = useNavigate()
 
   async function handleLogout() {
     await authApi.signOut()

@@ -48,12 +48,10 @@ export function CreditsPage() {
             ) : (
               <div className="mt-3 divide-y divide-white/6">
                 {transactions!.items.map(transaction => {
-                  const isCredit = transaction.type === 'reservation_credit' || transaction.type === 'dispute_penalty_credit' || transaction.type === 'ticket_resolution_credit'
+                  const isCredit = transaction.type === 'reservation_credit' || transaction.type === 'ticket_resolution_credit'
                   const LABELS: Record<typeof transaction.type, Parameters<typeof t>[0]> = {
                     reservation_credit: 'wallet.transactions.credit',
                     withdrawal_debit: 'wallet.transactions.debit',
-                    dispute_penalty_debit: 'wallet.transactions.dispute_penalty_debit',
-                    dispute_penalty_credit: 'wallet.transactions.dispute_penalty_credit',
                     ticket_resolution_credit: 'wallet.transactions.ticket_resolution_credit',
                     ticket_resolution_debit: 'wallet.transactions.ticket_resolution_debit',
                   }
