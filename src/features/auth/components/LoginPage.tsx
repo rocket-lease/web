@@ -1,12 +1,14 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { Envelope, Lock, CaretLeft } from '@phosphor-icons/react'
+import { Envelope, Lock, CaretLeft, ShieldCheck } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
+import { profileApi } from '@/features/perfil/api/profile.api'
 import { t } from '@/i18n/es'
 import type { ProblemDetails } from '@rocket-lease/contracts'
 
@@ -24,6 +26,7 @@ type FormData = z.infer<typeof schema>
 export function LoginPage() {
   const navigate = useNavigate()
   const { hint, returnTo } = useSearch({ from: '/login' })
+  const [isAdminMode, setIsAdminMode] = useState(false)
   const {
     register,
     handleSubmit,
@@ -32,7 +35,19 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await authApi.signIn(data)
+      const res = await authApi.signIn(data)
+
+      if (isAdminMode) {
+        const token = res.access_token
+        const profile = await profileApi.getMyProfile(token)
+        if (!profile.isAdmin) {
+          await authApi.signOut()
+          toast.error(t('admin.login.notAdmin'))
+          return
+        }
+        window.location.href = '/tickets'
+        return
+      }
 
       // Hard reload — soft navigate dejaba AuthGate viendo state pre-login
       const target =
@@ -54,6 +69,19 @@ export function LoginPage() {
       className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
     >
+      {/* Admin mode FAB */}
+      <button
+        type="button"
+        onClick={() => setIsAdminMode((v) => !v)}
+        aria-label="Modo admin"
+        className={`fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-colors ${
+          isAdminMode
+            ? 'bg-amber-500 text-black'
+            : 'bg-surface-2 text-text-muted hover:text-amber-400'
+        }`}
+      >
+        <ShieldCheck size={18} weight={isAdminMode ? 'duotone' : 'regular'} />
+      </button>
       <button
         onClick={() => window.history.back()}
         aria-label="Volver"
@@ -81,9 +109,11 @@ export function LoginPage() {
           )}
 
           {/* Form */}
-          <div className="rounded-xl border border-white/6 bg-surface-1 p-6 shadow-elevated">
+          <div className={`rounded-xl border p-6 shadow-elevated ${isAdminMode ? 'border-amber-500/20 bg-amber-500/5' : 'border-white/6 bg-surface-1'}`}>
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-text-primary">{t('auth.login.title')}</h2>
+              <h2 className="text-xl font-bold text-text-primary">
+                {isAdminMode ? t('admin.login.tab') : t('auth.login.title')}
+              </h2>
               <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
             </div>
 
@@ -126,7 +156,12 @@ export function LoginPage() {
                 {t('auth.login.forgot')}
               </Link>
 
-              <Button type="submit" disabled={isSubmitting} className="mt-2 w-full" size="lg">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={`mt-2 w-full ${isAdminMode ? 'bg-amber-500 text-black hover:bg-amber-400' : ''}`}
+                size="lg"
+              >
                 {isSubmitting ? 'Ingresando...' : t('auth.login.submit')}
               </Button>
             </form>
