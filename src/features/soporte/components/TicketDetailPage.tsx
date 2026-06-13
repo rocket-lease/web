@@ -11,7 +11,6 @@ import { fmt } from '@/lib/formatters'
 import type { TicketStatus, TicketType } from '@rocket-lease/contracts'
 import { useTicket } from '../hooks/useTicket'
 import { useRateTicket } from '../hooks/useRateTicket'
-import { useAppealDispute } from '../hooks/useAppealDispute'
 import { RatingStars } from './RatingStars'
 import { TicketChatSection } from './TicketChatSection'
 
@@ -19,14 +18,14 @@ const statusStyles: Record<TicketStatus, string> = {
   open: 'bg-info text-white border-info',
   under_review: 'bg-warning text-black border-warning',
   resolved: 'bg-success text-white border-success',
-  rejected: 'bg-danger text-white border-danger',
+  closed: 'bg-surface-3 text-text-muted border-white/10',
 }
 
 const statusLabels: Record<TicketStatus, string> = {
   open: 'tickets.status.open',
   under_review: 'tickets.status.under_review',
   resolved: 'tickets.status.resolved',
-  rejected: 'tickets.status.rejected',
+  closed: 'tickets.status.closed',
 }
 
 const typeLabels: Record<TicketType, string> = {
@@ -35,7 +34,7 @@ const typeLabels: Record<TicketType, string> = {
   support_request: 'tickets.tipo.support_request',
 }
 
-const RATEABLE_STATUSES = new Set<TicketStatus>(['resolved', 'rejected'])
+const RATEABLE_STATUSES = new Set<TicketStatus>(['resolved', 'closed'])
 
 interface TicketDetailPageProps {
   ticketId: string
@@ -48,10 +47,6 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
   const navigate = useNavigate()
   const rateTicket = useRateTicket(ticketId)
   const [pendingRating, setPendingRating] = useState<number | null>(null)
-
-  const appealDispute = useAppealDispute(ticketId)
-  const [appealReason, setAppealReason] = useState('')
-  const [showAppealForm, setShowAppealForm] = useState(false)
 
   async function handleRate() {
     if (pendingRating === null) return
@@ -66,20 +61,6 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
     }
   }
 
-  async function handleAppeal() {
-    if (!appealReason.trim() || appealDispute.isPending) return
-    try {
-      await appealDispute.mutateAsync(appealReason.trim())
-      toast.success(t('dispute.appeal.success'))
-      setShowAppealForm(false)
-      setAppealReason('')
-    } catch (err: unknown) {
-      const code = (err as { code?: string })?.code
-      if (code === 'DISPUTE_APPEAL_LIMIT_REACHED') toast.error(t('dispute.appeal.limitReached'))
-      else toast.error(t('dispute.appeal.error'))
-    }
-  }
-
   function handleBack() {
     void navigate({ to: '/soporte' })
   }
@@ -91,8 +72,7 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
     ticket.rating === null &&
     ticket.reporterId === user?.id
 
-  const hasDispute = ticket?.status === 'under_review'
-  const canAppeal = hasDispute && ticket?.reporterId === user?.id
+  const isClosed = ticket?.status === 'resolved' || ticket?.status === 'closed'
 
   return (
     <div className="flex flex-col min-h-full">
@@ -199,59 +179,12 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
               </div>
             )}
 
-            {/* Appeal section — shown when ticket is under_review (dispute active) */}
-            {canAppeal && (
-              <div className="rounded-2xl bg-surface-1 border border-white/6 p-4 space-y-3">
-                <p className="font-semibold text-text-primary text-sm">
-                  {t('dispute.section.title')}
-                </p>
-                {!showAppealForm ? (
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => setShowAppealForm(true)}
-                  >
-                    {t('dispute.appeal.cta')}
-                  </Button>
-                ) : (
-                  <>
-                    <textarea
-                      value={appealReason}
-                      onChange={(e) => setAppealReason(e.target.value)}
-                      placeholder={t('dispute.appeal.reasonPlaceholder')}
-                      rows={3}
-                      maxLength={1000}
-                      className="w-full resize-none rounded-xl bg-surface-2 px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-500"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        className="flex-1"
-                        onClick={() => { setShowAppealForm(false); setAppealReason('') }}
-                      >
-                        {t('general.cancel')}
-                      </Button>
-                      <Button
-                        className="flex-1"
-                        disabled={!appealReason.trim() || appealDispute.isPending}
-                        onClick={handleAppeal}
-                      >
-                        {appealDispute.isPending
-                          ? t('dispute.appeal.sending')
-                          : t('dispute.appeal.cta')}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
             {user && (
               <TicketChatSection
                 ticketId={ticketId}
                 currentUserId={user.id}
                 channelParticipantId={user.id}
-                isClosed={ticket.status === 'resolved' || ticket.status === 'rejected'}
+                isClosed={isClosed}
               />
             )}
           </>
