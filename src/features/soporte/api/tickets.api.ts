@@ -12,7 +12,6 @@ import {
   type GetTicketsAgainstMeResponse,
   type RateTicketRequest,
   type TicketResponse,
-  type UpdateTicketStatusRequest,
 } from '@rocket-lease/contracts'
 import { apiClient } from '@/lib/api-client'
 
@@ -45,10 +44,6 @@ export const ticketsApi = {
 
   async adminGetQueue(): Promise<GetAdminTicketsResponse> {
     return GetAdminTicketsResponseSchema.parse(await apiClient.get('/admin/tickets'))
-  },
-
-  async adminUpdateStatus(ticketId: string, data: UpdateTicketStatusRequest): Promise<TicketResponse> {
-    return TicketResponseSchema.parse(await apiClient.patch(`/admin/tickets/${ticketId}/status`, data))
   },
 
   async uploadPhoto(file: File): Promise<string> {

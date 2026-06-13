@@ -11,14 +11,14 @@ const STATUS_STYLES: Record<TicketStatus, string> = {
   open: 'bg-info text-white border-info',
   under_review: 'bg-warning text-black border-warning',
   resolved: 'bg-success text-white border-success',
-  rejected: 'bg-danger text-white border-danger',
+  closed: 'bg-surface-3 text-text-muted border-white/10',
 }
 
-const STATUS_LABEL_KEYS: Record<TicketStatus, 'admin.tickets.badge.open' | 'admin.tickets.badge.under_review' | 'admin.tickets.badge.resolved' | 'admin.tickets.badge.rejected'> = {
+const STATUS_LABEL_KEYS: Record<TicketStatus, 'admin.tickets.badge.open' | 'admin.tickets.badge.under_review' | 'admin.tickets.badge.resolved' | 'admin.tickets.badge.closed'> = {
   open: 'admin.tickets.badge.open',
   under_review: 'admin.tickets.badge.under_review',
   resolved: 'admin.tickets.badge.resolved',
-  rejected: 'admin.tickets.badge.rejected',
+  closed: 'admin.tickets.badge.closed',
 }
 
 const TYPE_LABELS: Record<string, 'tickets.tipo.vehicle_issue' | 'tickets.tipo.counterpart_report' | 'tickets.tipo.support_request'> = {
@@ -34,7 +34,7 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'open', label: t('admin.tickets.badge.open') },
   { value: 'under_review', label: t('admin.tickets.badge.under_review') },
   { value: 'resolved', label: t('admin.tickets.badge.resolved') },
-  { value: 'rejected', label: t('admin.tickets.badge.rejected') },
+  { value: 'closed', label: t('admin.tickets.badge.closed') },
 ]
 
 export function AdminTicketsPage() {
