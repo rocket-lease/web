@@ -1392,6 +1392,18 @@ export const es = {  // --- App ---
   'admin.tickets.reservaAsociada': 'Reserva asociada',
   'admin.tickets.acciones': 'Acciones de admin',
 
+  // --- Admin: timeline de reserva ---
+  'admin.reserva.timeline.title': 'Historial de la reserva',
+  'admin.reserva.timeline.created': 'Reserva creada',
+  'admin.reserva.timeline.contractAccepted': 'Contrato aceptado',
+  'admin.reserva.timeline.depositPaid': 'Seña pagada',
+  'admin.reserva.timeline.paid': 'Pago confirmado — reserva activa',
+  'admin.reserva.timeline.balancePaid': 'Saldo pagado — reserva activa',
+  'admin.reserva.timeline.started': 'Retiro confirmado — alquiler en curso',
+  'admin.reserva.timeline.completed': 'Devolución confirmada',
+  'admin.reserva.timeline.cancelled': 'Reserva cancelada',
+  'admin.reserva.timeline.expired': 'Hold de pago vencido',
+
   // --- Admin: acceso restringido ---
   'admin.gate.deniedTitle': 'Acceso restringido',
   'admin.gate.deniedMessage': 'Esta sección es solo para administradores de la plataforma.',
