@@ -1,8 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Car, ArrowRight } from '@phosphor-icons/react'
-import { reservarApi } from '@/features/reservar/api/reservar.api'
-import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 
 interface AdminReservationCardProps {
@@ -10,19 +7,6 @@ interface AdminReservationCardProps {
 }
 
 export function AdminReservationCard({ reservationId }: AdminReservationCardProps) {
-  const { data: reservation, isLoading } = useQuery({
-    queryKey: ['reservation', reservationId],
-    queryFn: () => reservarApi.getById(reservationId),
-  })
-
-  if (isLoading) {
-    return (
-      <div className="h-16 animate-pulse rounded-xl bg-surface-2" />
-    )
-  }
-
-  if (!reservation) return null
-
   return (
     <Link
       to="/reservas/$id"
@@ -33,12 +17,10 @@ export function AdminReservationCard({ reservationId }: AdminReservationCardProp
         <Car size={18} weight="duotone" className="text-brand-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-text-primary truncate">
-          {reservation.vehicle.brand} {reservation.vehicle.model}
+        <p className="text-sm font-medium text-text-primary">
+          {t('admin.tickets.reservaAsociada')}
         </p>
-        <p className="text-xs text-text-muted mt-0.5">
-          {fmt.dateShort(reservation.startAt)} → {fmt.dateShort(reservation.endAt)}
-        </p>
+        <p className="text-xs text-text-muted font-mono mt-0.5">#{reservationId.slice(0, 8)}</p>
       </div>
       <ArrowRight size={14} className="shrink-0 text-text-muted" />
     </Link>
