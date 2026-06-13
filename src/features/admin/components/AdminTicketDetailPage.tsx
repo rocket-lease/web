@@ -11,6 +11,8 @@ import { fmt } from '@/lib/formatters'
 import type { TicketStatus, TicketType } from '@rocket-lease/contracts'
 import { useAdminUpdateStatus } from '../hooks/useAdminUpdateStatus'
 import { ResolveIncidentModal } from './ResolveIncidentModal'
+import { AdminUserChip } from './AdminUserChip'
+import { AdminReservationCard } from './AdminReservationCard'
 import { TicketChatSection } from '@/features/soporte/components/TicketChatSection'
 
 const STATUS_STYLES: Record<TicketStatus, string> = {
@@ -54,10 +56,9 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
   }
 
   return (
-    <div className="flex flex-col min-h-dvh bg-surface-0">
+    <div className="flex flex-col h-full bg-surface-0">
       <header
-        className="flex items-center gap-3 px-4 py-4 border-b border-white/6 bg-surface-0 sticky top-0 z-10"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
+        className="flex items-center gap-3 px-4 py-4 border-b border-white/6 bg-surface-0 sticky top-0 z-10 shrink-0"
       >
         <button
           onClick={() => void navigate({ to: '/tickets' })}
@@ -77,7 +78,7 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
         </div>
       </header>
 
-      <div className="flex-1 px-4 py-4 space-y-5 pb-10">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-10">
         {isLoading && (
           <p className="text-center text-sm text-text-muted py-12">{t('general.loading')}</p>
         )}
@@ -102,12 +103,6 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
 
               <p className="text-sm text-text-secondary">{ticket.description}</p>
 
-              {ticket.reservationId && (
-                <p className="text-xs text-text-muted font-mono">
-                  Reserva: #{ticket.reservationId.slice(0, 8)}
-                </p>
-              )}
-
               {ticket.photoUrls.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1">
                   {ticket.photoUrls.map((url) => (
@@ -119,10 +114,18 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
               <p className="text-xs text-text-muted">{fmt.dateShort(ticket.createdAt)}</p>
             </div>
 
+            {/* Reservation card */}
+            {ticket.reservationId && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-text-muted px-1">{t('admin.tickets.reservaAsociada')}</p>
+                <AdminReservationCard reservationId={ticket.reservationId} />
+              </div>
+            )}
+
             {/* Admin action buttons */}
             {(canMarkUnderReview || canResolve) && (
               <div className="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-4 space-y-3">
-                <p className="text-sm font-semibold text-amber-400">Acciones de admin</p>
+                <p className="text-sm font-semibold text-amber-400">{t('admin.tickets.acciones')}</p>
                 <div className="flex flex-wrap gap-2">
                   {canMarkUnderReview && (
                     <Button
@@ -154,31 +157,45 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
             {/* Chats */}
             {user && ticket.conductorId && ticket.rentadorId ? (
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <AdminUserChip userId={ticket.conductorId} role="conductor" />
+                  <TicketChatSection
+                    ticketId={ticketId}
+                    currentUserId={user.id}
+                    channelParticipantId={ticket.conductorId}
+                    isClosed={isClosed}
+                    label={t('admin.chat.canalConductor')}
+                    accentClass="rounded-br-sm bg-amber-500 text-black"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <AdminUserChip userId={ticket.rentadorId} role="rentador" />
+                  <TicketChatSection
+                    ticketId={ticketId}
+                    currentUserId={user.id}
+                    channelParticipantId={ticket.rentadorId}
+                    isClosed={isClosed}
+                    label={t('admin.chat.canalRentador')}
+                    accentClass="rounded-br-sm bg-amber-500 text-black"
+                  />
+                </div>
+              </div>
+            ) : user ? (
+              <div className="space-y-2">
+                {ticket.reportedBy && (
+                  <AdminUserChip
+                    userId={ticket.reporterId}
+                    role={ticket.reportedBy}
+                  />
+                )}
                 <TicketChatSection
                   ticketId={ticketId}
                   currentUserId={user.id}
-                  channelParticipantId={ticket.conductorId}
+                  channelParticipantId={ticket.reporterId}
                   isClosed={isClosed}
-                  label={t('admin.chat.canalConductor')}
-                  accentClass="rounded-br-sm bg-amber-500 text-black"
-                />
-                <TicketChatSection
-                  ticketId={ticketId}
-                  currentUserId={user.id}
-                  channelParticipantId={ticket.rentadorId}
-                  isClosed={isClosed}
-                  label={t('admin.chat.canalRentador')}
                   accentClass="rounded-br-sm bg-amber-500 text-black"
                 />
               </div>
-            ) : user ? (
-              <TicketChatSection
-                ticketId={ticketId}
-                currentUserId={user.id}
-                channelParticipantId={ticket.reporterId}
-                isClosed={isClosed}
-                accentClass="rounded-br-sm bg-amber-500 text-black"
-              />
             ) : null}
           </>
         )}

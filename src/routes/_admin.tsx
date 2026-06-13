@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState } from '@tanstack/react-router'
-import { ShieldCheck, Ticket, MapTrifold, ArrowLeft } from '@phosphor-icons/react'
+import { ShieldCheck, Ticket, MapTrifold, UserCircle } from '@phosphor-icons/react'
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { t } from '@/i18n/es'
 
@@ -18,6 +18,7 @@ function AdminLayout() {
 
   const isTickets = pathname === '/tickets' || pathname.startsWith('/tickets/')
   const isPricing = pathname.startsWith('/admin/pricing')
+  const isPerfil = pathname === '/admin/perfil'
 
   return (
     <div className="flex h-dvh flex-col bg-surface-0">
@@ -27,20 +28,11 @@ function AdminLayout() {
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         {/* Brand row */}
-        <div className="flex items-center justify-between px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={18} weight="duotone" className="text-amber-400" />
-            <span className="text-sm font-semibold text-amber-400">
-              {t('admin.portal.title')}
-            </span>
-          </div>
-          <Link
-            to="/buscar"
-            className="flex items-center gap-1 text-xs text-text-muted transition-colors hover:text-text-secondary"
-          >
-            <ArrowLeft size={14} />
-            {t('admin.portal.back')}
-          </Link>
+        <div className="flex items-center px-4 py-2.5 gap-2">
+          <ShieldCheck size={18} weight="duotone" className="text-amber-400" />
+          <span className="text-sm font-semibold text-amber-400">
+            {t('admin.portal.title')}
+          </span>
         </div>
 
         {/* Tab bar */}
@@ -66,6 +58,17 @@ function AdminLayout() {
           >
             <MapTrifold size={15} />
             {t('admin.nav.pricing')}
+          </Link>
+          <Link
+            to="/admin/perfil"
+            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+              isPerfil
+                ? 'border-amber-400 text-amber-400'
+                : 'border-transparent text-text-muted hover:text-text-secondary'
+            }`}
+          >
+            <UserCircle size={15} />
+            {t('admin.nav.perfil')}
           </Link>
         </div>
       </div>

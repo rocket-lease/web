@@ -1380,8 +1380,17 @@ export const es = {  // --- App ---
   'admin.portal.title': 'Panel de administrador',
   'admin.portal.back': 'Salir',
   'admin.nav.tickets': 'Tickets',
-  'admin.nav.pricing': 'Mapa de precios',
+  'admin.nav.pricing': 'Precios',
+  'admin.nav.perfil': 'Perfil',
   'admin.floatingBtn.label': 'Panel de administrador',
+  'admin.perfil.role': 'Administrador',
+  'admin.perfil.reputation.title': 'Reputación del servicio',
+  'admin.perfil.reputation.subtitle': 'Promedio de calificaciones de usuarios en tickets resueltos.',
+  'admin.perfil.reputation.outOf': '/ 5',
+  'admin.perfil.session.title': 'Sesión activa',
+  'admin.perfil.session.logout': 'Cerrar sesión',
+  'admin.tickets.reservaAsociada': 'Reserva asociada',
+  'admin.tickets.acciones': 'Acciones de admin',
 
   // --- Admin: acceso restringido ---
   'admin.gate.deniedTitle': 'Acceso restringido',
