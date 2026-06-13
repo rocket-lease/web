@@ -51,7 +51,7 @@ export function AdminTicketsPage() {
   const visible = filter === 'all' ? tickets : tickets?.filter((tk) => tk.status === filter)
 
   return (
-    <div className="min-h-dvh bg-surface-0 px-4 pb-10" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1.25rem)' }}>
+    <div className="flex-1 overflow-y-auto px-4 pb-10 pt-5">
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">

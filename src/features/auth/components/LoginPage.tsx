@@ -1,14 +1,12 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { Envelope, Lock, CaretLeft, ShieldCheck } from '@phosphor-icons/react'
+import { Envelope, Lock, CaretLeft } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
-import { profileApi } from '@/features/perfil/api/profile.api'
 import { t } from '@/i18n/es'
 import type { ProblemDetails } from '@rocket-lease/contracts'
 
@@ -22,12 +20,10 @@ const schema = z.object({
 })
 
 type FormData = z.infer<typeof schema>
-type Tab = 'usuario' | 'admin'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { hint, returnTo } = useSearch({ from: '/login' })
-  const [tab, setTab] = useState<Tab>('usuario')
   const {
     register,
     handleSubmit,
@@ -36,19 +32,7 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await authApi.signIn(data)
-
-      if (tab === 'admin') {
-        const token = res.access_token
-        const profile = await profileApi.getMyProfile(token)
-        if (!profile.isAdmin) {
-          await authApi.signOut()
-          toast.error(t('admin.login.notAdmin'))
-          return
-        }
-        window.location.href = '/tickets'
-        return
-      }
+      await authApi.signIn(data)
 
       // Hard reload — soft navigate dejaba AuthGate viendo state pre-login
       const target =
@@ -89,52 +73,17 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Tab switcher */}
-          <div className="mb-5 flex rounded-xl bg-surface-2 p-1">
-            <button
-              type="button"
-              onClick={() => setTab('usuario')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
-                tab === 'usuario'
-                  ? 'bg-surface-0 text-text-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary'
-              }`}
-            >
-              {t('auth.login.title')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('admin')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition-colors ${
-                tab === 'admin'
-                  ? 'bg-amber-500/15 text-amber-400 shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary'
-              }`}
-            >
-              <ShieldCheck size={15} weight={tab === 'admin' ? 'duotone' : 'regular'} />
-              {t('admin.login.tab')}
-            </button>
-          </div>
-
           {/* Hint */}
-          {hint === 'favoritos' && tab === 'usuario' && (
+          {hint === 'favoritos' && (
             <div className="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/10 px-4 py-3">
               <p className="text-center text-sm text-brand-300">{t('favoritos.loginHint')}</p>
             </div>
           )}
 
           {/* Form */}
-          <div
-            className={`rounded-xl border p-6 shadow-elevated ${
-              tab === 'admin'
-                ? 'border-amber-500/20 bg-amber-500/5'
-                : 'border-white/6 bg-surface-1'
-            }`}
-          >
+          <div className="rounded-xl border border-white/6 bg-surface-1 p-6 shadow-elevated">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-text-primary">
-                {tab === 'admin' ? t('admin.login.tab') : t('auth.login.title')}
-              </h2>
+              <h2 className="text-xl font-bold text-text-primary">{t('auth.login.title')}</h2>
               <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
             </div>
 
@@ -170,37 +119,28 @@ export function LoginPage() {
                 />
               </div>
 
-              {tab === 'usuario' && (
-                <Link
-                  to="/recuperar"
-                  className="self-end text-xs text-brand-400 transition-colors hover:text-brand-300"
-                >
-                  {t('auth.login.forgot')}
-                </Link>
-              )}
-
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className={`mt-2 w-full ${tab === 'admin' ? 'bg-amber-500 text-black hover:bg-amber-400' : ''}`}
-                size="lg"
+              <Link
+                to="/recuperar"
+                className="self-end text-xs text-brand-400 transition-colors hover:text-brand-300"
               >
+                {t('auth.login.forgot')}
+              </Link>
+
+              <Button type="submit" disabled={isSubmitting} className="mt-2 w-full" size="lg">
                 {isSubmitting ? 'Ingresando...' : t('auth.login.submit')}
               </Button>
             </form>
           </div>
 
-          {tab === 'usuario' && (
-            <p className="mt-6 text-center text-sm text-text-muted">
-              {t('auth.login.noAccount')}{' '}
-              <button
-                onClick={() => navigate({ to: '/registro', replace: true })}
-                className="font-semibold text-brand-400 transition-colors hover:text-brand-300"
-              >
-                {t('auth.login.register')}
-              </button>
-            </p>
-          )}
+          <p className="mt-6 text-center text-sm text-text-muted">
+            {t('auth.login.noAccount')}{' '}
+            <button
+              onClick={() => navigate({ to: '/registro', replace: true })}
+              className="font-semibold text-brand-400 transition-colors hover:text-brand-300"
+            >
+              {t('auth.login.register')}
+            </button>
+          </p>
         </div>
       </div>
     </div>

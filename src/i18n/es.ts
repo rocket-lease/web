@@ -1374,6 +1374,13 @@ export const es = {  // --- App ---
   'rentador.vehiculo.dynamicPricing.inactivoHint':
     'Se cobra siempre el precio base sin importar la demanda de la zona.',
 
+  // --- Admin: portal centralizado ---
+  'admin.portal.title': 'Panel de administrador',
+  'admin.portal.back': 'Salir',
+  'admin.nav.tickets': 'Tickets',
+  'admin.nav.pricing': 'Mapa de precios',
+  'admin.floatingBtn.label': 'Panel de administrador',
+
   // --- Admin: acceso restringido ---
   'admin.gate.deniedTitle': 'Acceso restringido',
   'admin.gate.deniedMessage': 'Esta sección es solo para administradores de la plataforma.',

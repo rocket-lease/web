@@ -8,13 +8,11 @@ import {
   CreditCard,
   ArrowLeftRight,
   ShieldCheck,
-  Gauge,
 } from 'lucide-react'
 import { Avatar } from '@/ui/avatar'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
@@ -46,7 +44,6 @@ interface PerfilPageProps {
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
-  const { isAdmin } = useIsAdmin()
   const { user, activeRole, setActiveRole } = useAuth()
   const {
     data: profile,
@@ -262,17 +259,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
 
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/admin/pricing' })}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
-            >
-              <Gauge className="h-5 w-5 shrink-0 text-text-secondary" />
-              <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.adminPanel')}</span>
-              <ChevronRight className="h-4 w-4 text-text-muted" />
-            </button>
-          )}
+
         </div>
       )}
 

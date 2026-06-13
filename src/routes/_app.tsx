@@ -9,11 +9,13 @@ import {
   ClipboardText,
   MapTrifold,
   ClockClockwise,
+  ShieldCheck,
 } from '@phosphor-icons/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { BottomNav } from '@/features/layout/components/BottomNav'
 import { NavVisibilityProvider, useNavVisibility } from '@/features/layout/NavVisibility'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { VerificationBanner } from '@/features/auth/components/VerificationBanner'
 import { PullToRefresh } from '@/features/pwa/components/PullToRefresh'
 import { t } from '@/i18n/es'
@@ -38,13 +40,13 @@ function isImmersiveRoute(pathname: string): boolean {
     pathname.startsWith('/vehiculos/') ||
     pathname.startsWith('/reservas/') ||
     pathname.startsWith('/reservas-transferencia/') ||
-    pathname.startsWith('/perfil/') ||
-    pathname.startsWith('/admin/')
+    pathname.startsWith('/perfil/')
   )
 }
 
 function AppLayout() {
   const { activeRole } = useAuth()
+  const { isAdmin } = useIsAdmin()
   const queryClient = useQueryClient()
   const { visible: navVisible } = useNavVisibility()
   const immersive = useRouterState({
@@ -91,6 +93,16 @@ function AppLayout() {
           <Outlet />
         </main>
         {!immersive && navVisible && <BottomNav tabs={tabs} activeRole={role} />}
+
+        {isAdmin && (
+          <a
+            href="/tickets"
+            aria-label={t('admin.floatingBtn.label')}
+            className="fixed bottom-[5.5rem] right-4 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-amber-500 shadow-elevated transition-transform active:scale-90"
+          >
+            <ShieldCheck size={22} weight="duotone" className="text-black" />
+          </a>
+        )}
       </div>
     </PullToRefresh>
   )
