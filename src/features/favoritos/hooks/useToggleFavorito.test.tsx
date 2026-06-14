@@ -1,16 +1,20 @@
 import React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useToggleFavorito } from './useToggleFavorito'
 import { favoritosApi } from '../api/favoritos.api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 vi.mock('../api/favoritos.api')
+vi.mock('sonner')
 
 const mockApi = vi.mocked(favoritosApi)
+const mockToast = vi.mocked(toast) as ReturnType<typeof vi.fn> & typeof toast
 
 const VEHICLE_ID = '11111111-1111-1111-1111-111111111111'
 const now = new Date().toISOString()
+const UNDO_DELAY_MS = 3500
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -82,21 +86,10 @@ describe('useToggleFavorito', () => {
   })
 
   describe('toggle — eliminar favorito', () => {
-    it('llama a favoritosApi.remove cuando isFavorito es true', async () => {
-      mockApi.remove.mockResolvedValue(undefined)
+    beforeEach(() => { vi.useFakeTimers() })
+    afterEach(() => { vi.useRealTimers() })
 
-      const { wrapper } = createWrapperWithClient()
-      const { result } = renderHook(() => useToggleFavorito(), { wrapper })
-
-      act(() => result.current.toggle(VEHICLE_ID, true))
-
-      await waitFor(() => expect(mockApi.remove).toHaveBeenCalledWith(VEHICLE_ID))
-    })
-
-    it('actualización optimista elimina el item antes de la respuesta del servidor', async () => {
-      let resolveRemove!: () => void
-      mockApi.remove.mockReturnValue(new Promise<void>((r) => { resolveRemove = r }))
-
+    it('actualización optimista elimina el item inmediatamente del cache', () => {
       const initialList = [{ id: 'fav-1', vehicleId: VEHICLE_ID, createdAt: now }]
       const { queryClient, wrapper } = createWrapperWithClient()
       queryClient.setQueryData(['favoritos', 'list'], initialList)
@@ -105,15 +98,52 @@ describe('useToggleFavorito', () => {
 
       act(() => result.current.toggle(VEHICLE_ID, true))
 
-      await waitFor(() => {
-        const cache = queryClient.getQueryData<any[]>(['favoritos', 'list']) ?? []
-        return !cache.some((f) => f.vehicleId === VEHICLE_ID)
-      })
-
-      resolveRemove()
+      const cache = queryClient.getQueryData<any[]>(['favoritos', 'list']) ?? []
+      expect(cache.some((f) => f.vehicleId === VEHICLE_ID)).toBe(false)
     })
 
-    it('revierte si el servidor falla al eliminar', async () => {
+    it('llama a favoritosApi.remove después del tiempo de espera', async () => {
+      mockApi.remove.mockResolvedValue(undefined)
+
+      const { wrapper } = createWrapperWithClient()
+      const { result } = renderHook(() => useToggleFavorito(), { wrapper })
+
+      act(() => result.current.toggle(VEHICLE_ID, true))
+
+      expect(mockApi.remove).not.toHaveBeenCalled()
+
+      await act(async () => {
+        vi.advanceTimersByTime(UNDO_DELAY_MS)
+        await Promise.resolve()
+      })
+
+      expect(mockApi.remove).toHaveBeenCalledWith(VEHICLE_ID)
+    })
+
+    it('no llama a favoritosApi.remove si el usuario deshace la acción', async () => {
+      const initialList = [{ id: 'fav-1', vehicleId: VEHICLE_ID, createdAt: now }]
+      const { queryClient, wrapper } = createWrapperWithClient()
+      queryClient.setQueryData(['favoritos', 'list'], initialList)
+
+      const { result } = renderHook(() => useToggleFavorito(), { wrapper })
+
+      act(() => result.current.toggle(VEHICLE_ID, true))
+
+      // Simular click en "Deshacer"
+      const toastOptions = (mockToast as any).mock.calls[0][1]
+      act(() => toastOptions.action.onClick())
+
+      await act(async () => {
+        vi.advanceTimersByTime(UNDO_DELAY_MS)
+        await Promise.resolve()
+      })
+
+      expect(mockApi.remove).not.toHaveBeenCalled()
+      const cache = queryClient.getQueryData<any[]>(['favoritos', 'list']) ?? []
+      expect(cache).toEqual(initialList)
+    })
+
+    it('revierte la lista si el servidor falla al eliminar', async () => {
       mockApi.remove.mockRejectedValue(new Error('server error'))
 
       const initialList = [{ id: 'fav-1', vehicleId: VEHICLE_ID, createdAt: now }]
@@ -124,7 +154,11 @@ describe('useToggleFavorito', () => {
 
       act(() => result.current.toggle(VEHICLE_ID, true))
 
-      await waitFor(() => !result.current.isLoading)
+      await act(async () => {
+        vi.advanceTimersByTime(UNDO_DELAY_MS)
+        await Promise.resolve()
+        await Promise.resolve()
+      })
 
       const cache = queryClient.getQueryData<any[]>(['favoritos', 'list']) ?? []
       expect(cache).toEqual(initialList)
