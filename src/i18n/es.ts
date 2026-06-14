@@ -138,6 +138,11 @@ export const es = {  // --- App ---
   'auth.verify.banner': 'Tu cuenta no esta verificada',
   'auth.verify.banner.cta': 'Verificar',
 
+  // --- Recomendaciones ---
+  'recomendaciones.title': 'Sugerido para vos',
+  'recomendaciones.empty': 'Sin sugerencias por ahora',
+  'recomendaciones.emptyHint': 'Completá una reserva para recibir recomendaciones',
+
   // --- Buscar ---
   'buscar.title': 'Buscar vehiculos',
   'buscar.placeholder': 'Marca o modelo...',

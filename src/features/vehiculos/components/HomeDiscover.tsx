@@ -3,6 +3,7 @@ import { CaretRight, MapPin, NavigationArrow, Sparkle, Clock, Car } from '@phosp
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { useNearMe } from '@/features/mapa/hooks/useNearMe'
+import { SugeridoParaVos } from '@/features/recomendaciones/components/SugeridoParaVos'
 
 interface HomeDiscoverProps {
   vehicles:    GetVehicleResponse[]
@@ -85,6 +86,8 @@ export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercen
   return (
     <div className="flex flex-col gap-8 pt-5 pb-8">
       <DestinationsRow onPickCity={onPickCity} />
+
+      <SugeridoParaVos levelDiscountPercentage={levelDiscountPercentage} />
 
       {(promoted.length > 0 || isLoading) && (
         <Carousel
