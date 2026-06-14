@@ -47,7 +47,7 @@ export function LevelUpCelebrationModal({ open, onClose, newLevel, benefits }: L
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto transition-opacity duration-300 ${
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >

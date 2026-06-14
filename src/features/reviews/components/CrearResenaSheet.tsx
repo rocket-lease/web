@@ -89,6 +89,10 @@ export function CrearResenaSheet({
     onOpenChange(false)
   }
 
+  function handleLevelUpClose() {
+    setLevelUpData(null)
+  }
+
   function handleSubmit() {
     if (!targetType || rating === 0 || isBusy) return
     mutation.mutate(
@@ -97,6 +101,7 @@ export function CrearResenaSheet({
         onSuccess: (result) => {
           if (result.levelUp) {
             setLevelUpData(result.levelUp)
+            onOpenChange(false)
           } else {
             handleClose()
           }
@@ -188,7 +193,7 @@ export function CrearResenaSheet({
 
       <LevelUpCelebrationModal
         open={levelUpData !== null}
-        onClose={handleClose}
+        onClose={handleLevelUpClose}
         oldLevel={levelUpData?.oldLevel ?? 'bronze'}
         newLevel={levelUpData?.newLevel ?? 'bronze'}
         benefits={levelUpData?.benefits ?? []}
