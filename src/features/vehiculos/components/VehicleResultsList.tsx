@@ -22,6 +22,7 @@ interface VehicleResultsListProps {
   /** Oculta el header "N resultados" — útil cuando el contenedor (drawer)
    *  ya muestra el count por su cuenta. */
   hideCountHeader?: boolean
+  levelDiscountPercentage?: number
   className?:      string
 }
 
@@ -33,7 +34,7 @@ interface VehicleResultsListProps {
 export function VehicleResultsList({
   vehicles, isLoading, isError, from, to, hasDateFilter, hasActiveFilter,
   onClearFilters, selectedId, onHoverVehicle, onClickVehicle,
-  columns = 'auto', hideCountHeader, className,
+  columns = 'auto', hideCountHeader, levelDiscountPercentage, className,
 }: VehicleResultsListProps) {
   if (isError) {
     return (
@@ -108,7 +109,7 @@ export function VehicleResultsList({
                 selectedId === v.id && 'ring-2 ring-brand-500/60 ring-offset-2 ring-offset-surface-0',
               )}
             >
-              <VehiculoCard vehiculo={v} from={from} to={to} />
+              <VehiculoCard vehiculo={v} from={from} to={to} levelDiscountPercentage={levelDiscountPercentage} />
             </div>
           ))}
         </div>

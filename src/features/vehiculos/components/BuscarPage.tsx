@@ -14,6 +14,7 @@ import { t } from '@/i18n/es'
 import type { SortCriteria, VehiculoFilters } from '../types'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { LEVEL_DISCOUNT_PCT } from '@/features/lealtad/utils/constants'
 import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import { Route, type BuscarSearch } from '@/routes/_app/buscar'
 
@@ -77,6 +78,9 @@ export function BuscarPage() {
   const [snap, setSnap] = useState<number | string | null>(0.6)
 
   const { data: profile } = useMyProfile()
+  const levelDiscountPercentage = profile?.level
+    ? LEVEL_DISCOUNT_PCT[profile.level]
+    : undefined
   const hasAppliedPreferences = useRef(false)
 
   /**
@@ -319,6 +323,7 @@ export function BuscarPage() {
                     onClickVehicle={setSelectedVehicleId}
                     columns="single"
                     hideCountHeader
+                    levelDiscountPercentage={levelDiscountPercentage}
                   />
                 </div>
               </VaulDrawer.Content>
@@ -341,6 +346,7 @@ export function BuscarPage() {
           vehicles={sorted}
           isLoading={isLoading}
           isError={isError}
+          levelDiscountPercentage={levelDiscountPercentage}
           onPickCity={(city) => updateSearch({
             city,
             locationCode: LOCATION_BY_CITY[city]?.locationCode,

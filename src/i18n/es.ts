@@ -1179,6 +1179,7 @@ export const es = {  // --- App ---
   'reservar.breakdown.discount': 'Descuento',
   'reservar.breakdown.savings': 'Ahorro',
   'reservar.breakdown.appliedTier': 'Aplica desde {days} días (-{percentage}%)',
+  'reservar.breakdown.levelDiscount': 'Desc. por nivel ({pct}%)',
   'reservar.contract.title': 'Contrato digital',
   'reservar.contract.body':
     'Al continuar declaras que leiste y aceptas las condiciones del alquiler (estado del vehiculo, deposito, devolucion en tiempo y forma, etc.).',
@@ -1554,6 +1555,26 @@ export const es = {  // --- App ---
   'reservas.detail.review.counterparty': 'Reseña de {name}',
   'reservas.detail.review.cta': 'Dejar reseña',
   'reservas.detail.review.alreadyReviewed': 'Ya reseñaste',
+
+  // --- Lealtad (US-63) ---
+  'lealtad.title': 'Mi Lealtad',
+  'lealtad.currentLevel': 'Nivel actual',
+  'lealtad.pendingXp': 'Tenés {xp} XP sin acreditar de {count} reservas. Dejá tus reseñas para acreditarlos.',
+  'lealtad.xpProgress': '{current} / {next} XP',
+  'lealtad.noNextLevel': 'Nivel máximo alcanzado',
+  'lealtad.levelUp.title': '¡Felicitaciones!',
+  'lealtad.levelUp.subtitle': 'Alcanzaste el nivel {level}',
+  'lealtad.levelUp.benefits': 'Beneficios desbloqueados',
+  'lealtad.levelUp.cta': 'Ver beneficios',
+  'lealtad.levelUp.close': 'Cerrar',
+  'lealtad.benefits.title': 'Beneficios de {level}',
+  'lealtad.transactions': 'Historial de experiencia',
+  'lealtad.transaction.pending': 'Pendiente de acreditación',
+  'lealtad.transaction.claimed': 'Acreditada',
+  'lealtad.pendingCount': '{count} reservas pendientes de reseña',
+  'lealtad.leaveReview': 'Dejar reseña',
+  'vehiculos.levelDiscount': '{pct}% OFF por nivel',
+  'vehiculos.levelDiscountTooltip': 'Descuento exclusivo por tu nivel {level}',
 
   // --- Reputación ---
   'reputation.badge.conductor_destacado': 'Conductor Destacado',

@@ -59,6 +59,7 @@ export function ReservaPricingBreakdown({
           subtotalCents={pricingSnapshot.subtotalCents}
           discountCents={pricingSnapshot.discountCents}
           appliedDiscountTier={pricingSnapshot.appliedDiscountTier}
+          levelDiscountPercentage={pricingSnapshot.levelDiscountPercentage}
           totalCents={originalTotal}
         />
       )}
@@ -72,6 +73,7 @@ export function ReservaPricingBreakdown({
             subtotalCents={ext.pricingSnapshot.subtotalCents}
             discountCents={ext.pricingSnapshot.discountCents}
             appliedDiscountTier={ext.pricingSnapshot.appliedDiscountTier}
+            levelDiscountPercentage={ext.pricingSnapshot.levelDiscountPercentage}
             totalCents={ext.totalCents}
           />
         )
@@ -96,6 +98,7 @@ interface PricingSectionProps {
   subtotalCents: number
   discountCents: number
   appliedDiscountTier: { minimumDays: number; discountPercentage: number } | null
+  levelDiscountPercentage?: number
   totalCents: number
 }
 
@@ -104,8 +107,12 @@ function PricingSection({
   subtotalCents,
   discountCents,
   appliedDiscountTier,
+  levelDiscountPercentage,
   totalCents,
 }: PricingSectionProps) {
+  const levelDiscountCents = levelDiscountPercentage
+    ? Math.floor(((subtotalCents - discountCents) * levelDiscountPercentage) / 100)
+    : 0
   return (
     <>
       <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider pt-1">
@@ -124,6 +131,15 @@ function PricingSection({
               .replace('{percentage}', String(appliedDiscountTier.discountPercentage))}
           </span>
           <span>-{fmt.currency(discountCents)}</span>
+        </div>
+      )}
+      {levelDiscountCents > 0 && (
+        <div className="flex items-center justify-between text-sm text-brand-400">
+          <span>
+            {t('reservar.breakdown.levelDiscount')
+              .replace('{pct}', String(levelDiscountPercentage))}
+          </span>
+          <span>-{fmt.currency(levelDiscountCents)}</span>
         </div>
       )}
       <div className="flex items-center justify-between text-sm">

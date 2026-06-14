@@ -527,6 +527,12 @@ export function ReservarVehiculoPage() {
   const recalculatingStartedAtRef = useRef(0)
   const [isRecalculating, setIsRecalculating] = useState(false)
 
+  const levelDiscountCents = useMemo(() => {
+    if (!pricingQuote?.levelDiscountPercentage) return 0
+    const afterDurationDiscount = pricingQuote.subtotalCents - pricingQuote.discountCents
+    return Math.floor((afterDurationDiscount * pricingQuote.levelDiscountPercentage) / 100)
+  }, [pricingQuote?.subtotalCents, pricingQuote?.discountCents, pricingQuote?.levelDiscountPercentage])
+
   useEffect(() => {
     if (isRecalculating) return
     if (!pricingQuote?.expiresAt) return
@@ -989,6 +995,15 @@ export function ReservarVehiculoPage() {
                         .replace('{percentage}', String(pricingQuote.appliedDiscountTier.discountPercentage))}
                     </span>
                     <span className="text-xs">-{fmt.currency(pricingQuote.discountCents)}</span>
+                  </div>
+                )}
+                {pricingQuote.levelDiscountPercentage && pricingQuote.levelDiscountPercentage > 0 && (
+                  <div className="flex items-center justify-between text-brand-400">
+                    <span className="text-xs">
+                      {t('reservar.breakdown.levelDiscount')
+                        .replace('{pct}', String(pricingQuote.levelDiscountPercentage))}
+                    </span>
+                    <span className="text-xs">-{fmt.currency(levelDiscountCents)}</span>
                   </div>
                 )}
                 {withHomeDelivery && (vehicle?.homeDeliveryFeeCents ?? 0) > 0 && (
