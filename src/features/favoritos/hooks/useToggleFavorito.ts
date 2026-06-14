@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
@@ -12,6 +13,15 @@ export function useToggleFavorito() {
   const queryClient = useQueryClient()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
+  const pendingTimerRef = useRef<ReturnType<typeof window.setTimeout> | undefined>(undefined)
+
+  useEffect(() => {
+    return () => {
+      if (pendingTimerRef.current !== undefined) {
+        window.clearTimeout(pendingTimerRef.current)
+      }
+    }
+  }, [])
 
   const addMutation = useMutation({
     mutationFn: (vehicleId: string) => favoritosApi.add(vehicleId),
@@ -57,6 +67,7 @@ export function useToggleFavorito() {
       // Delay the actual DELETE so the user can undo within the toast window
       let undone = false
       const timer = window.setTimeout(async () => {
+        pendingTimerRef.current = undefined
         if (undone) return
         try {
           await favoritosApi.remove(vehicleId)
@@ -70,6 +81,7 @@ export function useToggleFavorito() {
           if (!undone) queryClient.invalidateQueries({ queryKey: ['favoritos', 'list'] })
         }
       }, UNDO_DELAY_MS)
+      pendingTimerRef.current = timer
 
       toast(t('favoritos.toast.removed'), {
         duration: UNDO_DELAY_MS,
@@ -78,7 +90,9 @@ export function useToggleFavorito() {
           onClick: () => {
             undone = true
             window.clearTimeout(timer)
+            pendingTimerRef.current = undefined
             if (snapshot !== undefined) queryClient.setQueryData(['favoritos', 'list'], snapshot)
+            queryClient.invalidateQueries({ queryKey: ['favoritos', 'list'] })
           },
         },
       })

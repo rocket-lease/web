@@ -120,7 +120,7 @@ describe('useToggleFavorito', () => {
       expect(mockApi.remove).toHaveBeenCalledWith(VEHICLE_ID)
     })
 
-    it('no llama a favoritosApi.remove si el usuario deshace la acción', async () => {
+    it('no llama a favoritosApi.remove si el usuario deshace la acción, y restaura el cache', async () => {
       const initialList = [{ id: 'fav-1', vehicleId: VEHICLE_ID, createdAt: now }]
       const { queryClient, wrapper } = createWrapperWithClient()
       queryClient.setQueryData(['favoritos', 'list'], initialList)
@@ -130,8 +130,11 @@ describe('useToggleFavorito', () => {
       act(() => result.current.toggle(VEHICLE_ID, true))
 
       // Simular click en "Deshacer"
-      const toastOptions = (mockToast as any).mock.calls[0][1]
-      act(() => toastOptions.action.onClick())
+      const toastCall = (mockToast as any).mock.calls.find(
+        (call: any[]) => call[1]?.action?.label !== undefined,
+      )
+      expect(toastCall).toBeDefined()
+      act(() => toastCall[1].action.onClick())
 
       await act(async () => {
         vi.advanceTimersByTime(UNDO_DELAY_MS)
@@ -141,6 +144,9 @@ describe('useToggleFavorito', () => {
       expect(mockApi.remove).not.toHaveBeenCalled()
       const cache = queryClient.getQueryData<any[]>(['favoritos', 'list']) ?? []
       expect(cache).toEqual(initialList)
+      // La query debe quedar invalidada para revalidar contra el servidor
+      const queryState = queryClient.getQueryState(['favoritos', 'list'])
+      expect(queryState?.isInvalidated).toBe(true)
     })
 
     it('revierte la lista si el servidor falla al eliminar', async () => {
