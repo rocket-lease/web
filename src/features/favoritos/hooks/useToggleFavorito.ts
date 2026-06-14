@@ -13,7 +13,7 @@ export function useToggleFavorito() {
   const queryClient = useQueryClient()
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
-  const pendingTimerRef = useRef<ReturnType<typeof window.setTimeout> | undefined>(undefined)
+  const pendingTimerRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
     return () => {
