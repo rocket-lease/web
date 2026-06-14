@@ -15,7 +15,7 @@ beforeEach(() => {
 
 describe('useMessages', () => {
   it('retorna lista vacía cuando no hay mensajes', async () => {
-    mockApi.listMessages.mockResolvedValue({ items: [] })
+    mockApi.listMessages.mockResolvedValue({ items: [], lastSeenAt: null })
     const { result } = renderHook(() => useMessages(RESERVATION_ID), {
       wrapper: createWrapper(),
     })
@@ -33,7 +33,7 @@ describe('useMessages', () => {
         sentAt: '2026-06-01T10:00:00.000Z',
       },
     ]
-    mockApi.listMessages.mockResolvedValue({ items: messages })
+    mockApi.listMessages.mockResolvedValue({ items: messages, lastSeenAt: null })
     const { result } = renderHook(() => useMessages(RESERVATION_ID), {
       wrapper: createWrapper(),
     })
@@ -42,7 +42,7 @@ describe('useMessages', () => {
   })
 
   it('llama a listMessages con el reservationId correcto', async () => {
-    mockApi.listMessages.mockResolvedValue({ items: [] })
+    mockApi.listMessages.mockResolvedValue({ items: [], lastSeenAt: null })
     renderHook(() => useMessages(RESERVATION_ID), {
       wrapper: createWrapper(),
     })
