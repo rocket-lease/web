@@ -12,13 +12,9 @@ export const messagingApi = {
   ): Promise<SendMessageResponse> =>
     httpClient.post(`/reservations/${reservationId}/messages`, body),
 
-  listMessages: (
-    reservationId: string,
-    after?: string,
-  ): Promise<ListMessagesResponse> => {
-    const url = after
-      ? `/reservations/${reservationId}/messages?after=${encodeURIComponent(after)}`
-      : `/reservations/${reservationId}/messages`
-    return httpClient.get(url)
-  },
+  listMessages: (reservationId: string): Promise<ListMessagesResponse> =>
+    httpClient.get(`/reservations/${reservationId}/messages`),
+
+  markRead: (reservationId: string, lastReadAt: string): Promise<void> =>
+    httpClient.post(`/reservations/${reservationId}/messages/read`, { lastReadAt }),
 }

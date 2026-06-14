@@ -1,112 +1,85 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { useAuth } from '@/features/auth/hooks/useAuth'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
 import { messagingApi } from '../api/messaging.api'
 import { createWrapper } from '@/test/query-wrapper'
-import { useUnreadCount, getLastSeen, markAsRead } from './useUnreadCount'
+import { useUnreadCount } from './useUnreadCount'
 
-vi.mock('@/features/auth/hooks/useAuth')
 vi.mock('../api/messaging.api')
-
-const mockUseAuth = vi.mocked(useAuth)
 const mockApi = vi.mocked(messagingApi)
 
 const RID = '11111111-1111-1111-1111-111111111111'
-const STORED_TS = '2026-06-10T10:00:00.000Z'
-const LSKEY = 'rl:chat:lastSeen:' + RID
 
-function authAs(isAuthenticated: boolean) {
-  mockUseAuth.mockReturnValue({
-    isAuthenticated,
-    user: null,
-    session: null,
-    activeRole: 'conductor',
-    setActiveRole: () => {},
-    isLoading: false,
-    signOut: async () => {},
-  })
-}
-
-beforeEach(() => {
-  localStorage.clear()
-  vi.clearAllMocks()
-  authAs(true)
-  mockApi.listMessages.mockResolvedValue({ items: [] })
+const makeResponse = (
+  items: { sentAt: string }[],
+  lastSeenAt: string | null,
+) => ({
+  items: items.map((m, i) => ({
+    id: `msg-${i}`,
+    reservationId: RID,
+    senderId: 'other',
+    body: 'hola',
+    ...m,
+  })),
+  lastSeenAt,
 })
 
-afterEach(() => {
-  localStorage.clear()
+beforeEach(() => {
+  vi.clearAllMocks()
 })
 
 describe('useUnreadCount', () => {
-  it('usa el lastSeen guardado en localStorage para filtrar mensajes', async () => {
-    localStorage.setItem(LSKEY, STORED_TS)
-    const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(mockApi.listMessages).toHaveBeenCalledWith(RID, STORED_TS)
-  })
-
-  it('cuenta correctamente los mensajes retornados como no leídos', async () => {
-    localStorage.setItem(LSKEY, STORED_TS)
-    mockApi.listMessages.mockResolvedValue({
-      items: [
-        { id: 'm1', reservationId: RID, senderId: 'other', body: 'hola', sentAt: '2026-06-11T00:00:00.000Z' },
-        { id: 'm2', reservationId: RID, senderId: 'other', body: 'che', sentAt: '2026-06-12T00:00:00.000Z' },
-      ],
-    })
-    const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
-    await waitFor(() => expect(result.current.isLoading).toBe(false))
-    expect(result.current.data).toBe(2)
-  })
-
-  it('devuelve 0 cuando el API no retorna mensajes nuevos', async () => {
-    localStorage.setItem(LSKEY, STORED_TS)
+  it('devuelve 0 cuando lastSeenAt es null (sin baseline del servidor)', async () => {
+    mockApi.listMessages.mockResolvedValue(makeResponse(
+      [{ sentAt: '2026-06-10T10:00:00.000Z' }],
+      null,
+    ))
     const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.data).toBe(0)
   })
 
-  it('inicializa baseline en "ahora" cuando no hay lastSeen y el usuario está autenticado', async () => {
-    const before = new Date().toISOString()
+  it('cuenta mensajes con sentAt posterior a lastSeenAt', async () => {
+    mockApi.listMessages.mockResolvedValue(makeResponse(
+      [
+        { sentAt: '2026-06-09T10:00:00.000Z' },
+        { sentAt: '2026-06-11T10:00:00.000Z' },
+        { sentAt: '2026-06-12T10:00:00.000Z' },
+      ],
+      '2026-06-10T10:00:00.000Z',
+    ))
     const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
-
-    const [, since] = mockApi.listMessages.mock.calls[0]
-    expect(since).toBeDefined()
-    // el baseline no puede ser anterior al momento de inicialización
-    expect(since! >= before).toBe(true)
-    // se persiste en localStorage para la próxima carga
-    expect(getLastSeen(RID)).toBeDefined()
+    expect(result.current.data).toBe(2)
   })
 
-  it('con baseline inicializado, el API recibe lastSeen en lugar de undefined', async () => {
+  it('devuelve 0 cuando todos los mensajes son anteriores a lastSeenAt', async () => {
+    mockApi.listMessages.mockResolvedValue(makeResponse(
+      [{ sentAt: '2026-06-01T10:00:00.000Z' }],
+      '2026-06-14T10:00:00.000Z',
+    ))
     const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
-    const [, since] = mockApi.listMessages.mock.calls[0]
-    // nunca debe llamarse sin lastSeen cuando el usuario está autenticado
-    expect(since).not.toBeUndefined()
+    expect(result.current.data).toBe(0)
   })
 
-  it('no inicializa baseline cuando el usuario NO está autenticado', async () => {
-    authAs(false)
-    renderHook(() => useUnreadCount(RID, false), { wrapper: createWrapper() })
-    await act(async () => {})
-    expect(getLastSeen(RID)).toBeUndefined()
-    expect(mockApi.listMessages).not.toHaveBeenCalled()
+  it('devuelve 0 cuando no hay mensajes', async () => {
+    mockApi.listMessages.mockResolvedValue(makeResponse([], '2026-06-10T10:00:00.000Z'))
+    const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.data).toBe(0)
   })
 
   it('no ejecuta la query cuando enabled=false', async () => {
-    localStorage.setItem(LSKEY, STORED_TS)
+    mockApi.listMessages.mockResolvedValue(makeResponse([], null))
     renderHook(() => useUnreadCount(RID, false), { wrapper: createWrapper() })
-    await act(async () => {})
+    await new Promise((r) => setTimeout(r, 50))
     expect(mockApi.listMessages).not.toHaveBeenCalled()
   })
 
-  it('markAsRead actualiza el lastSeen en localStorage', () => {
-    const before = new Date().toISOString()
-    markAsRead(RID)
-    const stored = getLastSeen(RID)
-    expect(stored).toBeDefined()
-    expect(stored! >= before).toBe(true)
+  it('llama a listMessages sin parámetro after (el servidor aplica lastSeenAt)', async () => {
+    mockApi.listMessages.mockResolvedValue(makeResponse([], '2026-06-14T10:00:00.000Z'))
+    const { result } = renderHook(() => useUnreadCount(RID), { wrapper: createWrapper() })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(mockApi.listMessages).toHaveBeenCalledWith(RID)
   })
 })
