@@ -9,7 +9,7 @@ import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
 import { getErrorMessage } from '@/lib/error-mapper'
-import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
+import { ErrorCodes, RegisterUserRequestSchema, type ProblemDetails } from '@rocket-lease/contracts'
 
 function formatDni(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 8)
@@ -18,27 +18,24 @@ function formatDni(value: string): string {
   return `${digits.slice(0, digits.length - 6)}.${digits.slice(-6, -3)}.${digits.slice(-3)}`
 }
 
-// Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
-const schema = z
-  .object({
-    name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
-    email: z.string().email('Ingresá un correo válido'),
-    dni: z
-      .string()
-      .transform(v => v.replace(/\./g, ''))
-      .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
-    phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
-    password: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .refine(v => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
-      .refine(v => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
-    confirmPassword: z.string(),
-  })
-  .refine(d => d.password === d.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
-    path: ['confirmPassword'],
-  })
+const schema = RegisterUserRequestSchema.extend({
+  name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
+  email: z.string().email('Ingresá un correo válido'),
+  dni: z
+    .string()
+    .transform(v => v.replace(/\./g, ''))
+    .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
+  phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .refine(v => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
+    .refine(v => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
+  confirmPassword: z.string(),
+}).refine(d => d.password === d.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+})
 
 type FormData = z.infer<typeof schema>
 
@@ -175,6 +172,9 @@ export function RegisterPage() {
                 error={errors.password?.message}
                 {...register('password')}
               />
+              {!errors.password && (
+                <p className="mt-1.5 text-xs text-text-muted">{t('auth.register.passwordHint')}</p>
+              )}
             </div>
 
             <div>
