@@ -102,6 +102,7 @@ export const es = {  // --- App ---
   'auth.register.submit': 'Crear cuenta',
   'auth.register.hasAccount': 'Ya tenes cuenta?',
   'auth.register.login': 'Ingresa',
+  'auth.register.passwordHint': 'Mínimo 8 caracteres, al menos una letra y un número.',
   'auth.register.pendingVerification': 'Ya existe una cuenta con este correo pendiente de verificación.',
   'auth.register.emailTaken': 'Ya existe una cuenta registrada con este correo.',
   'auth.recover.title': 'Recuperar contraseña',
