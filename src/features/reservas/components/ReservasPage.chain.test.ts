@@ -109,7 +109,7 @@ describe('collapseChain', () => {
     expect(result[0].rangeEndAt).toBe('2026-06-05T10:00:00.000Z')
   })
 
-  it('excluye extensiones pendientes del rango/total y marca hasPendingExtension', () => {
+  it('incluye fecha fin de extensión pendiente en rango pero no en total, y marca hasPendingExtension', () => {
     const parent = makeItem({
       id: 'parent',
       status: 'in_progress',
@@ -126,7 +126,9 @@ describe('collapseChain', () => {
       parentReservationId: 'parent',
     })
     const result = collapseChain([parent, pendingExt])
-    expect(result[0].rangeEndAt).toBe('2026-06-05T10:00:00.000Z')
+    // rangeEndAt refleja la fecha más tardía de todos los eslabones activos (incluyendo pending)
+    expect(result[0].rangeEndAt).toBe('2026-06-08T10:00:00.000Z')
+    // rangeTotalCents solo suma eslabones committed (pending_approval excluido)
     expect(result[0].rangeTotalCents).toBe(100000)
     expect(result[0].hasPendingExtension).toBe(true)
   })

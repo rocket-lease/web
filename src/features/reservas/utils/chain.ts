@@ -194,21 +194,26 @@ export function collapseChain(items: ReservationListItem[]): CollapsedEntry[] {
     const committedMembers = members.filter((m) =>
       COMMITTED_STATUSES.includes(m.status),
     )
-    const rangeSource =
+    // Fechas: incluir extensiones pendientes para que la tarjeta muestre el
+    // período completo solicitado, aunque todavía no esté confirmado.
+    const dateSource = activeMembers.length > 0 ? activeMembers : members
+    // Total: solo contar los eslabones firmes; las extensiones pendientes aún
+    // no tienen precio confirmado ni pagado.
+    const totalSource =
       committedMembers.length > 0
         ? committedMembers
         : activeMembers.length > 0
           ? activeMembers
           : members
-    const rangeStartAt = rangeSource.reduce(
+    const rangeStartAt = dateSource.reduce(
       (min, m) => (m.startAt < min ? m.startAt : min),
-      rangeSource[0].startAt,
+      dateSource[0].startAt,
     )
-    const rangeEndAt = rangeSource.reduce(
+    const rangeEndAt = dateSource.reduce(
       (max, m) => (m.endAt > max ? m.endAt : max),
-      rangeSource[0].endAt,
+      dateSource[0].endAt,
     )
-    const rangeTotalCents = rangeSource.reduce((sum, m) => sum + m.totalCents, 0)
+    const rangeTotalCents = totalSource.reduce((sum, m) => sum + m.totalCents, 0)
     const hasPendingExtension = members.some(
       (m) =>
         m.parentReservationId !== null && PENDING_STATUSES.includes(m.status),
