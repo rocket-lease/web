@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from '@tanstack/react-router'
-import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft } from '@phosphor-icons/react'
+import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft, WarningCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -44,6 +45,8 @@ type FormData = z.infer<typeof schema>
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [resending, setResending] = useState(false)
   const {
     register,
     handleSubmit,
@@ -51,6 +54,7 @@ export function RegisterPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
+    setPendingEmail(null)
     try {
       await authApi.signUp({
         name: data.name,
@@ -64,13 +68,25 @@ export function RegisterPage() {
     } catch (err) {
       const problem = err as ProblemDetails
       if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
-        toast.info(t('auth.register.pendingVerification'))
-        navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+        setPendingEmail(data.email)
       } else if (problem?.code === ErrorCodes.ENTITY_ALREADY_EXISTS) {
         toast.error(t('auth.register.emailTaken'))
       } else {
         toast.error(getErrorMessage(err))
       }
+    }
+  }
+
+  const handleResend = async () => {
+    if (!pendingEmail || resending) return
+    setResending(true)
+    try {
+      await authApi.resendEmailOtp(pendingEmail)
+      navigate({ to: '/verificar', search: { channel: 'email', email: pendingEmail } })
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setResending(false)
     }
   }
 
@@ -121,6 +137,26 @@ export function RegisterPage() {
                 error={errors.email?.message}
                 {...register('email')}
               />
+              {pendingEmail && (
+                <div className="mt-2 flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <WarningCircle size={16} weight="duotone" className="mt-0.5 shrink-0 text-amber-400" />
+                    <p className="text-xs text-text-secondary">{t('auth.register.pendingVerification')}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={resending}
+                    onClick={handleResend}
+                    className="w-full border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+                  >
+                    {resending
+                      ? t('auth.register.pendingVerificationSending')
+                      : t('auth.register.pendingVerificationCta')}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div>
