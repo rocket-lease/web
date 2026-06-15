@@ -5,20 +5,15 @@ import { type UpdateMyProfileRequest } from '@rocket-lease/contracts';
 
 const myProfileQueryKey = ['profile', 'me'] as const;
 
-export function useMyProfile(profileId?: string) {
+export function useMyProfile() {
   const queryClient = useQueryClient();
   const { session } = useAuth();
   const accessToken = session?.access_token ?? localStorage.getItem('rocket_lease:access_token');
-  const isOwnProfile = !profileId;
-  const profileQueryKey = profileId ? (['profile', profileId] as const) : myProfileQueryKey;
 
   const profileQuery = useQuery({
-    queryKey: profileQueryKey,
-    enabled: isOwnProfile ? Boolean(accessToken) : Boolean(profileId),
+    queryKey: myProfileQueryKey,
+    enabled: Boolean(accessToken),
     queryFn: async () => {
-      if (profileId) {
-        return profileApi.getProfileById(profileId);
-      }
       if (!accessToken) throw new Error('Missing session token');
       return profileApi.getMyProfile(accessToken);
     },
@@ -52,7 +47,6 @@ export function useMyProfile(profileId?: string) {
 
   return {
     ...profileQuery,
-    isOwnProfile,
     updateProfile: updateProfileMutation.mutateAsync,
     isUpdating: updateProfileMutation.isPending,
     uploadAvatar: uploadAvatarMutation.mutateAsync,

@@ -14,6 +14,7 @@ import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { useUserProfile } from '@/features/perfil/hooks/useUserProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection, OwnReviewsSection } from './OwnerReviewsSection'
@@ -45,11 +46,11 @@ interface PerfilPageProps {
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
   const { user, activeRole, setActiveRole } = useAuth()
-  const {
-    data: profile,
-    isLoading,
-    isOwnProfile,
-  } = useMyProfile(profileId)
+  const isOwnProfile = !profileId
+  const { data: ownProfile, isLoading: ownLoading } = useMyProfile()
+  const { data: publicProfile, isLoading: publicLoading } = useUserProfile(profileId ?? '')
+  const profile = isOwnProfile ? ownProfile : publicProfile
+  const isLoading = isOwnProfile ? ownLoading : publicLoading
   const { status: verificationStatus } = useVerificationStatus()
   const identityVerification = profile?.identityVerification
   const driverLicenseVerification = profile?.driverLicenseVerification
