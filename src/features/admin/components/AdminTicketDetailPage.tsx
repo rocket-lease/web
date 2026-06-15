@@ -182,12 +182,10 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
               </div>
             ) : user ? (
               <div className="space-y-2">
-                {ticket.reportedBy && (
-                  <AdminUserChip
-                    userId={ticket.reporterId}
-                    role={ticket.reportedBy}
-                  />
-                )}
+                <AdminUserChip
+                  userId={ticket.reporterId}
+                  role={ticket.reportedBy ?? 'conductor'}
+                />
                 <TicketChatSection
                   ticketId={ticketId}
                   currentUserId={user.id}

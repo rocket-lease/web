@@ -125,9 +125,9 @@ export function ResolveIncidentModal({ open, onClose, ticket }: Props) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center pb-16 sm:items-center sm:pb-0">
       <div className="absolute inset-0 bg-black/60" onClick={handleClose} />
-      <div className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-surface-1 border border-white/8 p-5 max-h-[90dvh] overflow-y-auto space-y-4">
+      <div className="relative z-10 w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-surface-1 border border-white/8 p-5 max-h-[80dvh] sm:max-h-[90dvh] overflow-y-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-text-primary">{t('admin.resolve.title')}</h2>
