@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import {
   ChevronRight,
   Award,
@@ -20,11 +20,12 @@ import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection, OwnReviewsSection } from './OwnerReviewsSection'
 import { t, type I18nKey } from '@/i18n/es'
-import { Bell, Bank, Coins, Tag, Trophy, Headset, WarningCircle } from '@phosphor-icons/react'
+import { Bank, Coins, Tag, Trophy, Headset, WarningCircle } from '@phosphor-icons/react'
 import { useVerificationStatus } from '@/features/auth/hooks/useVerificationStatus'
 import { ReputationSummary } from '@/features/reputation/components/ReputationSummary'
 import { ReputationWarningBanner } from '@/features/reputation/components/ReputationWarningBanner'
 import { useReputation } from '@/features/reputation/hooks/useReputation'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 
 const levelColors: Record<string, string> = {
   bronze: 'text-amber-600',
@@ -98,15 +99,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
         title={canEdit ? t('perfil.title') : profile.name}
         showBack={!canEdit}
         actions={
-          canEdit ? (
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={22} />
-            </Link>
-          ) : undefined
+          canEdit ? <NotificationBell /> : undefined
         }
       />
 
