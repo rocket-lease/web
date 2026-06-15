@@ -139,8 +139,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             </div>
           )}
 
-          {canEdit && (
-            <p className="text-sm text-text-muted truncate mt-0.5">{profile.email}</p>
+          {canEdit && ownProfile && (
+            <p className="text-sm text-text-muted truncate mt-0.5">{ownProfile.email}</p>
           )}
           <div className="flex items-center gap-3 mt-2">
             <ReputationSummary score={reputationScore} reviewCount={reviewCount} badges={currentReputation?.badges ?? []} />
@@ -276,7 +276,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           >
             <Coins size={20} className="shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.beneficios.creditos' as I18nKey)}</span>
-            <span className="text-sm font-semibold text-info tabular-nums">{fmt.currency(profile.balanceInCents)}</span>
+            <span className="text-sm font-semibold text-info tabular-nums">{fmt.currency(ownProfile?.balanceInCents ?? 0)}</span>
             <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
           </button>
 
