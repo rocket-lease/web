@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router'
 import {
   ChevronRight,
   LogOut,
-  Map as MapIcon,
   Trash2,
   Zap,
 } from 'lucide-react'
@@ -12,7 +11,6 @@ import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDia
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { useToggleAutoAccept } from '@/features/configuracion/hooks/useToggleAutoAccept'
-import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { t } from '@/i18n/es'
 
 /**
@@ -30,7 +28,6 @@ export function ConfiguracionPage() {
   const { signOut } = useAuth()
   const { data: profile, isLoading } = useMyProfile()
   const { toggle: toggleAutoAccept } = useToggleAutoAccept()
-  const { isAdmin } = useIsAdmin()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   if (isLoading || !profile) {
@@ -58,17 +55,6 @@ export function ConfiguracionPage() {
           }
         />
       </Section>
-
-      {isAdmin && (
-        <Section title={t('configuracion.section.admin')}>
-          <SettingsRow
-            leading={<MapIcon className="h-5 w-5" />}
-            label={t('configuracion.admin.pricingZones')}
-            asLink="/admin/pricing"
-            showChevron
-          />
-        </Section>
-      )}
 
       <Section title={t('configuracion.section.cuenta')}>
         <SettingsRow

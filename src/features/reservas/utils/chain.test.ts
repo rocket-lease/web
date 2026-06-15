@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest'
 import type {
   GetReservationResponse,
   ReservationChainItem,
+  ReservationListItem,
   ReservationStatus,
 } from '@rocket-lease/contracts'
 import {
+  collapseChain,
   getChainEndAt,
   getChainStartAt,
   getChainTotalCents,
@@ -146,5 +148,82 @@ describe('chain comprometido vs pendiente', () => {
     expect(getPendingExtension(r)).toBeNull()
     expect(getCommittedChainEndAt(r)).toBe('2026-06-03T10:00:00.000Z')
     expect(getCommittedChainTotalCents(r)).toBe(100000)
+  })
+})
+
+describe('collapseChain', () => {
+  const uuid = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`
+
+  function makeListItem(overrides: Partial<ReservationListItem>): ReservationListItem {
+    return {
+      id: uuid(1),
+      vehicleId: uuid(10),
+      conductorId: uuid(20),
+      rentadorId: uuid(30),
+      status: 'confirmed',
+      startAt: '2026-06-01T10:00:00.000Z',
+      endAt: '2026-06-03T10:00:00.000Z',
+      holdExpiresAt: null,
+      totalCents: 100000,
+      currency: 'ARS',
+      paymentMethod: 'credit_card',
+      paidAt: '2026-06-01T10:00:00.000Z',
+      voucherToken: null,
+      rejectionReason: null,
+      parentReservationId: null,
+      createdAt: '2026-06-01T09:00:00.000Z',
+      updatedAt: '2026-06-01T09:00:00.000Z',
+      vehicle: { id: uuid(10), make: 'Toyota', model: 'Corolla', year: 2022, photoUrl: null },
+      conductor: { id: uuid(20), name: 'Ana', avatarUrl: null },
+      rentador: { id: uuid(30), name: 'Carlos', avatarUrl: null },
+      ...overrides,
+    } as ReservationListItem
+  }
+
+  it('reserva sin cadena: rangeEndAt = endAt propio', () => {
+    const items = [makeListItem({ id: uuid(1), endAt: '2026-06-03T10:00:00.000Z' })]
+    const [entry] = collapseChain(items)
+    expect(entry.rangeEndAt).toBe('2026-06-03T10:00:00.000Z')
+  })
+
+  it('extensión committed: rangeEndAt refleja el endAt de la extensión', () => {
+    const items = [
+      makeListItem({ id: uuid(1), endAt: '2026-06-03T10:00:00.000Z', totalCents: 100000, parentReservationId: null }),
+      makeListItem({ id: uuid(2), status: 'confirmed', startAt: '2026-06-03T10:00:00.000Z', endAt: '2026-06-05T10:00:00.000Z', totalCents: 80000, parentReservationId: uuid(1) }),
+    ]
+    const [entry] = collapseChain(items)
+    expect(entry.rangeEndAt).toBe('2026-06-05T10:00:00.000Z')
+    expect(entry.rangeTotalCents).toBe(180000)
+  })
+
+  it('extensión pending_approval: rangeEndAt la incluye pero rangeTotalCents no', () => {
+    const items = [
+      makeListItem({ id: uuid(1), status: 'confirmed', endAt: '2026-06-03T10:00:00.000Z', totalCents: 100000, parentReservationId: null }),
+      makeListItem({ id: uuid(2), status: 'pending_approval', startAt: '2026-06-03T10:00:00.000Z', endAt: '2026-06-06T10:00:00.000Z', totalCents: 90000, parentReservationId: uuid(1) }),
+    ]
+    const [entry] = collapseChain(items)
+    expect(entry.rangeEndAt).toBe('2026-06-06T10:00:00.000Z')
+    expect(entry.rangeTotalCents).toBe(100000)
+    expect(entry.hasPendingExtension).toBe(true)
+  })
+
+  it('extensión pending_payment: rangeEndAt la incluye pero rangeTotalCents no', () => {
+    const items = [
+      makeListItem({ id: uuid(1), status: 'in_progress', endAt: '2026-06-03T10:00:00.000Z', totalCents: 100000, parentReservationId: null }),
+      makeListItem({ id: uuid(2), status: 'pending_payment', startAt: '2026-06-03T10:00:00.000Z', endAt: '2026-06-07T10:00:00.000Z', totalCents: 120000, parentReservationId: uuid(1) }),
+    ]
+    const [entry] = collapseChain(items)
+    expect(entry.rangeEndAt).toBe('2026-06-07T10:00:00.000Z')
+    expect(entry.rangeTotalCents).toBe(100000)
+  })
+
+  it('extensión cancelada: no afecta ni rangeEndAt ni rangeTotalCents', () => {
+    const items = [
+      makeListItem({ id: uuid(1), status: 'confirmed', endAt: '2026-06-03T10:00:00.000Z', totalCents: 100000, parentReservationId: null }),
+      makeListItem({ id: uuid(2), status: 'cancelled', startAt: '2026-06-03T10:00:00.000Z', endAt: '2026-06-10T10:00:00.000Z', totalCents: 200000, parentReservationId: uuid(1) }),
+    ]
+    const [entry] = collapseChain(items)
+    expect(entry.rangeEndAt).toBe('2026-06-03T10:00:00.000Z')
+    expect(entry.rangeTotalCents).toBe(100000)
   })
 })

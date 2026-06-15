@@ -15,14 +15,14 @@ const statusStyles: Record<TicketStatus, string> = {
   open: 'bg-info text-white border-info',
   under_review: 'bg-warning text-black border-warning',
   resolved: 'bg-success text-white border-success',
-  rejected: 'bg-danger text-white border-danger',
+  closed: 'bg-surface-3 text-text-muted border-white/10',
 }
 
 const statusLabels: Record<TicketStatus, Parameters<typeof t>[0]> = {
   open: 'tickets.status.open',
   under_review: 'tickets.status.under_review',
   resolved: 'tickets.status.resolved',
-  rejected: 'tickets.status.rejected',
+  closed: 'tickets.status.closed',
 }
 
 export function ReservaTicketInfo({ reservationId, myRole }: ReservaTicketInfoProps) {

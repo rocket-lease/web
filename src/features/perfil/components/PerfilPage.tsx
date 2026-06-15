@@ -8,14 +8,13 @@ import {
   CreditCard,
   ArrowLeftRight,
   ShieldCheck,
-  Gauge,
 } from 'lucide-react'
 import { Avatar } from '@/ui/avatar'
 import { Separator } from '@/ui/separator'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { useUserProfile } from '@/features/perfil/hooks/useUserProfile'
 import { fmt } from '@/lib/formatters'
 import { OwnerVehiclesSection } from './OwnerVehiclesSection'
 import { OwnerReviewsSection, OwnReviewsSection } from './OwnerReviewsSection'
@@ -47,13 +46,12 @@ interface PerfilPageProps {
 
 export function PerfilPage({ profileId }: PerfilPageProps) {
   const navigate = useNavigate()
-  const { isAdmin } = useIsAdmin()
   const { user, activeRole, setActiveRole } = useAuth()
-  const {
-    data: profile,
-    isLoading,
-    isOwnProfile,
-  } = useMyProfile(profileId)
+  const isOwnProfile = !profileId
+  const { data: ownProfile, isLoading: ownLoading } = useMyProfile()
+  const { data: publicProfile, isLoading: publicLoading } = useUserProfile(profileId ?? '')
+  const profile = isOwnProfile ? ownProfile : publicProfile
+  const isLoading = isOwnProfile ? ownLoading : publicLoading
   const { status: verificationStatus } = useVerificationStatus()
   const identityVerification = profile?.identityVerification
   const driverLicenseVerification = profile?.driverLicenseVerification
@@ -134,8 +132,8 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             </div>
           )}
 
-          {canEdit && (
-            <p className="text-sm text-text-muted truncate mt-0.5">{profile.email}</p>
+          {canEdit && ownProfile && (
+            <p className="text-sm text-text-muted truncate mt-0.5">{ownProfile.email}</p>
           )}
           <div className="flex items-center gap-3 mt-2">
             <ReputationSummary score={reputationScore} reviewCount={reviewCount} badges={currentReputation?.badges ?? []} />
@@ -255,17 +253,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
             <ChevronRight className="h-4 w-4 text-text-muted" />
           </button>
 
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => navigate({ to: '/admin/pricing' })}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3.5 hover:bg-surface-2 transition-colors"
-            >
-              <Gauge className="h-5 w-5 shrink-0 text-text-secondary" />
-              <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.adminPanel')}</span>
-              <ChevronRight className="h-4 w-4 text-text-muted" />
-            </button>
-          )}
+
         </div>
       )}
 
@@ -281,7 +269,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
           >
             <Coins size={20} className="shrink-0 text-text-secondary" />
             <span className="flex-1 text-left text-sm font-medium text-text-primary">{t('perfil.beneficios.creditos' as I18nKey)}</span>
-            <span className="text-sm font-semibold text-info tabular-nums">{fmt.currency(profile.balanceInCents)}</span>
+            <span className="text-sm font-semibold text-info tabular-nums">{fmt.currency(ownProfile?.balanceInCents ?? 0)}</span>
             <ChevronRight className="h-4 w-4 text-text-muted ml-1" />
           </button>
 

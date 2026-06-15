@@ -22,12 +22,11 @@ const schema = z.object({
 })
 
 type FormData = z.infer<typeof schema>
-type Tab = 'usuario' | 'admin'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { hint, returnTo } = useSearch({ from: '/login' })
-  const [tab, setTab] = useState<Tab>('usuario')
+  const [isAdminMode, setIsAdminMode] = useState(false)
   const {
     register,
     handleSubmit,
@@ -38,7 +37,7 @@ export function LoginPage() {
     try {
       const res = await authApi.signIn(data)
 
-      if (tab === 'admin') {
+      if (isAdminMode) {
         const token = res.access_token
         const profile = await profileApi.getMyProfile(token)
         if (!profile.isAdmin) {
@@ -70,6 +69,19 @@ export function LoginPage() {
       className="flex min-h-svh flex-col bg-surface-0 px-5 pb-12"
       style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}
     >
+      {/* Admin mode FAB */}
+      <button
+        type="button"
+        onClick={() => setIsAdminMode((v) => !v)}
+        aria-label="Modo admin"
+        className={`fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-colors ${
+          isAdminMode
+            ? 'bg-amber-500 text-black'
+            : 'bg-surface-2 text-text-muted hover:text-amber-400'
+        }`}
+      >
+        <ShieldCheck size={18} weight={isAdminMode ? 'duotone' : 'regular'} />
+      </button>
       <button
         onClick={() => window.history.back()}
         aria-label="Volver"
@@ -89,51 +101,18 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Tab switcher */}
-          <div className="mb-5 flex rounded-xl bg-surface-2 p-1">
-            <button
-              type="button"
-              onClick={() => setTab('usuario')}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
-                tab === 'usuario'
-                  ? 'bg-surface-0 text-text-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary'
-              }`}
-            >
-              {t('auth.login.title')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('admin')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-semibold transition-colors ${
-                tab === 'admin'
-                  ? 'bg-amber-500/15 text-amber-400 shadow-sm'
-                  : 'text-text-muted hover:text-text-secondary'
-              }`}
-            >
-              <ShieldCheck size={15} weight={tab === 'admin' ? 'duotone' : 'regular'} />
-              {t('admin.login.tab')}
-            </button>
-          </div>
-
           {/* Hint */}
-          {hint === 'favoritos' && tab === 'usuario' && (
+          {hint === 'favoritos' && (
             <div className="mb-4 rounded-xl border border-brand-500/20 bg-brand-500/10 px-4 py-3">
               <p className="text-center text-sm text-brand-300">{t('favoritos.loginHint')}</p>
             </div>
           )}
 
           {/* Form */}
-          <div
-            className={`rounded-xl border p-6 shadow-elevated ${
-              tab === 'admin'
-                ? 'border-amber-500/20 bg-amber-500/5'
-                : 'border-white/6 bg-surface-1'
-            }`}
-          >
+          <div className={`rounded-xl border p-6 shadow-elevated ${isAdminMode ? 'border-amber-500/20 bg-amber-500/5' : 'border-white/6 bg-surface-1'}`}>
             <div className="mb-6">
               <h2 className="text-xl font-bold text-text-primary">
-                {tab === 'admin' ? t('admin.login.tab') : t('auth.login.title')}
+                {isAdminMode ? t('admin.login.tab') : t('auth.login.title')}
               </h2>
               <p className="mt-1 text-sm text-text-secondary">{t('auth.login.subtitle')}</p>
             </div>
@@ -170,19 +149,17 @@ export function LoginPage() {
                 />
               </div>
 
-              {tab === 'usuario' && (
-                <Link
-                  to="/recuperar"
-                  className="self-end text-xs text-brand-400 transition-colors hover:text-brand-300"
-                >
-                  {t('auth.login.forgot')}
-                </Link>
-              )}
+              <Link
+                to="/recuperar"
+                className="self-end text-xs text-brand-400 transition-colors hover:text-brand-300"
+              >
+                {t('auth.login.forgot')}
+              </Link>
 
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className={`mt-2 w-full ${tab === 'admin' ? 'bg-amber-500 text-black hover:bg-amber-400' : ''}`}
+                className={`mt-2 w-full ${isAdminMode ? 'bg-amber-500 text-black hover:bg-amber-400' : ''}`}
                 size="lg"
               >
                 {isSubmitting ? 'Ingresando...' : t('auth.login.submit')}
@@ -190,17 +167,15 @@ export function LoginPage() {
             </form>
           </div>
 
-          {tab === 'usuario' && (
-            <p className="mt-6 text-center text-sm text-text-muted">
-              {t('auth.login.noAccount')}{' '}
-              <button
-                onClick={() => navigate({ to: '/registro', replace: true })}
-                className="font-semibold text-brand-400 transition-colors hover:text-brand-300"
-              >
-                {t('auth.login.register')}
-              </button>
-            </p>
-          )}
+          <p className="mt-6 text-center text-sm text-text-muted">
+            {t('auth.login.noAccount')}{' '}
+            <button
+              onClick={() => navigate({ to: '/registro', replace: true })}
+              className="font-semibold text-brand-400 transition-colors hover:text-brand-300"
+            >
+              {t('auth.login.register')}
+            </button>
+          </p>
         </div>
       </div>
     </div>

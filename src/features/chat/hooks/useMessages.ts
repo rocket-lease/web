@@ -16,5 +16,6 @@ export function useMessages(reservationId: string) {
     refetchInterval: 5_000,
     refetchIntervalInBackground: false,
     staleTime: 0,
+    retry: false,
   })
 }

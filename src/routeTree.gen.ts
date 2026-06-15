@@ -48,8 +48,9 @@ import { Route as AppPerfilIdRouteImport } from './routes/_app/perfil_.$id'
 import { Route as AppMisVehiculosNuevoRouteImport } from './routes/_app/mis-vehiculos.nuevo'
 import { Route as AppMisVehiculosIdRouteImport } from './routes/_app/mis-vehiculos.$id'
 import { Route as AppHistorialResenasRouteImport } from './routes/_app/historial_.resenas'
-import { Route as AppAdminPricingRouteImport } from './routes/_app/admin.pricing'
 import { Route as AdminTicketsIdRouteImport } from './routes/_admin/tickets_.$id'
+import { Route as AdminAdminPricingRouteImport } from './routes/_admin/admin.pricing'
+import { Route as AdminAdminPerfilRouteImport } from './routes/_admin/admin.perfil'
 import { Route as AppVehiculosIdReservarRouteImport } from './routes/_app/vehiculos.$id_.reservar'
 import { Route as AppSoporteTicketsIdRouteImport } from './routes/_app/soporte_.tickets.$id'
 import { Route as AppReservasIdPagoRouteImport } from './routes/_app/reservas_.$id_.pago'
@@ -251,14 +252,19 @@ const AppHistorialResenasRoute = AppHistorialResenasRouteImport.update({
   path: '/historial/resenas',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAdminPricingRoute = AppAdminPricingRouteImport.update({
-  id: '/admin/pricing',
-  path: '/admin/pricing',
-  getParentRoute: () => AppRoute,
-} as any)
 const AdminTicketsIdRoute = AdminTicketsIdRouteImport.update({
   id: '/tickets_/$id',
   path: '/tickets/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminPricingRoute = AdminAdminPricingRouteImport.update({
+  id: '/admin/pricing',
+  path: '/admin/pricing',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminPerfilRoute = AdminAdminPerfilRouteImport.update({
+  id: '/admin/perfil',
+  path: '/admin/perfil',
   getParentRoute: () => AdminRoute,
 } as any)
 const AppVehiculosIdReservarRoute = AppVehiculosIdReservarRouteImport.update({
@@ -314,8 +320,9 @@ export interface FileRoutesByFullPath {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/admin/perfil': typeof AdminAdminPerfilRoute
+  '/admin/pricing': typeof AdminAdminPricingRoute
   '/tickets/$id': typeof AdminTicketsIdRoute
-  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -361,8 +368,9 @@ export interface FileRoutesByTo {
   '/reservas': typeof AppReservasRoute
   '/saldo': typeof AppSaldoRoute
   '/soporte': typeof AppSoporteRoute
+  '/admin/perfil': typeof AdminAdminPerfilRoute
+  '/admin/pricing': typeof AdminAdminPricingRoute
   '/tickets/$id': typeof AdminTicketsIdRoute
-  '/admin/pricing': typeof AppAdminPricingRoute
   '/historial/resenas': typeof AppHistorialResenasRoute
   '/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -411,8 +419,9 @@ export interface FileRoutesById {
   '/_app/reservas': typeof AppReservasRoute
   '/_app/saldo': typeof AppSaldoRoute
   '/_app/soporte': typeof AppSoporteRoute
+  '/_admin/admin/perfil': typeof AdminAdminPerfilRoute
+  '/_admin/admin/pricing': typeof AdminAdminPricingRoute
   '/_admin/tickets_/$id': typeof AdminTicketsIdRoute
-  '/_app/admin/pricing': typeof AppAdminPricingRoute
   '/_app/historial_/resenas': typeof AppHistorialResenasRoute
   '/_app/mis-vehiculos/$id': typeof AppMisVehiculosIdRoute
   '/_app/mis-vehiculos/nuevo': typeof AppMisVehiculosNuevoRoute
@@ -460,8 +469,9 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
-    | '/tickets/$id'
+    | '/admin/perfil'
     | '/admin/pricing'
+    | '/tickets/$id'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -507,8 +517,9 @@ export interface FileRouteTypes {
     | '/reservas'
     | '/saldo'
     | '/soporte'
-    | '/tickets/$id'
+    | '/admin/perfil'
     | '/admin/pricing'
+    | '/tickets/$id'
     | '/historial/resenas'
     | '/mis-vehiculos/$id'
     | '/mis-vehiculos/nuevo'
@@ -556,8 +567,9 @@ export interface FileRouteTypes {
     | '/_app/reservas'
     | '/_app/saldo'
     | '/_app/soporte'
+    | '/_admin/admin/perfil'
+    | '/_admin/admin/pricing'
     | '/_admin/tickets_/$id'
-    | '/_app/admin/pricing'
     | '/_app/historial_/resenas'
     | '/_app/mis-vehiculos/$id'
     | '/_app/mis-vehiculos/nuevo'
@@ -870,18 +882,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHistorialResenasRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/admin/pricing': {
-      id: '/_app/admin/pricing'
-      path: '/admin/pricing'
-      fullPath: '/admin/pricing'
-      preLoaderRoute: typeof AppAdminPricingRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_admin/tickets_/$id': {
       id: '/_admin/tickets_/$id'
       path: '/tickets/$id'
       fullPath: '/tickets/$id'
       preLoaderRoute: typeof AdminTicketsIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/pricing': {
+      id: '/_admin/admin/pricing'
+      path: '/admin/pricing'
+      fullPath: '/admin/pricing'
+      preLoaderRoute: typeof AdminAdminPricingRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_admin/admin/perfil': {
+      id: '/_admin/admin/perfil'
+      path: '/admin/perfil'
+      fullPath: '/admin/perfil'
+      preLoaderRoute: typeof AdminAdminPerfilRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_app/vehiculos/$id_/reservar': {
@@ -931,11 +950,15 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminTicketsRoute: typeof AdminTicketsRoute
+  AdminAdminPerfilRoute: typeof AdminAdminPerfilRoute
+  AdminAdminPricingRoute: typeof AdminAdminPricingRoute
   AdminTicketsIdRoute: typeof AdminTicketsIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminTicketsRoute: AdminTicketsRoute,
+  AdminAdminPerfilRoute: AdminAdminPerfilRoute,
+  AdminAdminPricingRoute: AdminAdminPricingRoute,
   AdminTicketsIdRoute: AdminTicketsIdRoute,
 }
 
@@ -972,7 +995,6 @@ interface AppRouteChildren {
   AppReservasRoute: typeof AppReservasRoute
   AppSaldoRoute: typeof AppSaldoRoute
   AppSoporteRoute: typeof AppSoporteRoute
-  AppAdminPricingRoute: typeof AppAdminPricingRoute
   AppHistorialResenasRoute: typeof AppHistorialResenasRoute
   AppPerfilIdRoute: typeof AppPerfilIdRoute
   AppPerfilCreditosRoute: typeof AppPerfilCreditosRoute
@@ -1008,7 +1030,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppReservasRoute: AppReservasRoute,
   AppSaldoRoute: AppSaldoRoute,
   AppSoporteRoute: AppSoporteRoute,
-  AppAdminPricingRoute: AppAdminPricingRoute,
   AppHistorialResenasRoute: AppHistorialResenasRoute,
   AppPerfilIdRoute: AppPerfilIdRoute,
   AppPerfilCreditosRoute: AppPerfilCreditosRoute,

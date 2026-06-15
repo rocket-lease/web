@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { X as PhosphorX, Star, WarningCircle } from '@phosphor-icons/react'
 import { AlertOctagon, CalendarDays, Check, ChevronRight, Clock, MessageSquare, User, X, MoreVertical } from 'lucide-react'
-import { RESERVATION_STATUS, type GetReservationResponse, type ReviewItem } from '@rocket-lease/contracts'
+import { RESERVATION_STATUS, type GetReservationResponse, type ReviewItem, type UserLevel } from '@rocket-lease/contracts'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
@@ -180,9 +180,14 @@ export function RentadorView({ reservation }: RentadorViewProps) {
             <p className="text-xs text-text-muted">
               {t('rentador.reservas.detalle.conductor')}
             </p>
-            <p className="font-semibold text-text-primary truncate mb-1">
-              {conductor.name}
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-semibold text-text-primary truncate">
+                {conductor.name}
+              </p>
+              {conductor.level && (
+                <LevelBadge level={conductor.level} />
+              )}
+            </div>
             {conductorReputation && (
               <ReputationSummary
                 score={conductorReputation.asDriver.score}
@@ -630,6 +635,21 @@ function ScannerModal({ title, submitting, onScan, onClose }: ScannerModalProps)
         )}
       </div>
     </>
+  )
+}
+
+function LevelBadge({ level }: { level: UserLevel }) {
+  const cfg: Record<UserLevel, { label: string; className: string }> = {
+    bronze: { label: t('perfil.level.bronze'), className: 'text-amber-600 bg-amber-600/10' },
+    silver: { label: t('perfil.level.silver'), className: 'text-slate-300 bg-slate-300/10' },
+    gold: { label: t('perfil.level.gold'), className: 'text-yellow-400 bg-yellow-400/10' },
+    platinum: { label: t('perfil.level.platinum'), className: 'text-cyan-300 bg-cyan-300/10' },
+  }
+  const c = cfg[level]
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold leading-tight ${c.className}`}>
+      {c.label}
+    </span>
   )
 }
 
