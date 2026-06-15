@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowRight, CalendarDays, Check, ClipboardList, Clock, Inbox, Loader2, User, X } from 'lucide-react'
-import { Bell } from '@phosphor-icons/react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -25,6 +24,7 @@ import { useApproveReservation } from '../hooks/useApproveReservation'
 import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { ConfirmationModal } from './modals/ConfirmationModal'
 import { RejectReasonModal } from './modals/RejectReasonModal'
@@ -231,13 +231,7 @@ export function ReservasPage() {
                 <span>{badgeLabel} ({solicitudesCount})</span>
               </button>
             )}
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={22} />
-            </Link>
+            <NotificationBell />
           </div>
         }
       />

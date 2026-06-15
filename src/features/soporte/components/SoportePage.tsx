@@ -1,7 +1,5 @@
-import { Bell } from '@phosphor-icons/react'
-import { Link } from '@tanstack/react-router'
 import { PageHeader } from '@/features/layout/components/PageHeader'
-import { t } from '@/i18n/es'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { FaqSearch } from './FaqSearch'
 import { FaqCategoryTabs } from './FaqCategoryTabs'
 import { FaqAccordion } from './FaqAccordion'
@@ -24,15 +22,7 @@ export function SoportePage() {
     <div className="flex flex-col min-h-full">
       <PageHeader
         title="Soporte"
-        actions={
-          <Link
-            to="/notificaciones"
-            aria-label={t('nav.notificaciones')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-          >
-            <Bell size={22} />
-          </Link>
-        }
+        actions={<NotificationBell />}
       />
 
       {/* Sticky search + category tabs (se fija bajo la muesca al scrollear) */}
