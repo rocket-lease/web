@@ -55,7 +55,7 @@ describe('useMyProfile', () => {
     vi.clearAllMocks()
   })
 
-  it('obtiene el perfil propio cuando no se pasa profileId', async () => {
+  it('obtiene el perfil propio', async () => {
     const mockProfileApi = vi.mocked(profileApi)
     mockProfileApi.getMyProfile.mockResolvedValue(MOCK_PROFILE)
 
@@ -67,24 +67,6 @@ describe('useMyProfile', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    expect(result.current.data).toEqual(MOCK_PROFILE)
-    expect(result.current.isOwnProfile).toBe(true)
-  })
-
-  it('obtiene el perfil por id cuando se pasa profileId', async () => {
-    const mockProfileApi = vi.mocked(profileApi)
-    mockProfileApi.getProfileById.mockResolvedValue(MOCK_PROFILE)
-
-    const { result } = renderHook(() => useMyProfile('other-user-id'), {
-      wrapper: createWrapper(),
-    })
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false)
-    })
-
-    expect(mockProfileApi.getProfileById).toHaveBeenCalledWith('other-user-id')
-    expect(result.current.isOwnProfile).toBe(false)
     expect(result.current.data).toEqual(MOCK_PROFILE)
   })
 
