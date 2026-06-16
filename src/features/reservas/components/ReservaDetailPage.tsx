@@ -3,6 +3,7 @@ import { useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { Skeleton } from '@/ui/skeleton'
 import { t } from '@/i18n/es'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
@@ -25,6 +26,7 @@ export function ReservaDetailPage() {
   const { id = '' } = useParams({ strict: false })
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { isAdmin } = useIsAdmin()
 
   const { data: reservation, isLoading, isError } = useQuery({
     queryKey: ['reservation', id],
@@ -75,10 +77,10 @@ export function ReservaDetailPage() {
   return (
     <div className="flex flex-col">
       <PageHeader title={t('reservas.detail.title')} showBack sticky />
-      {perspective === 'owner' ? (
+      {!isAdmin && perspective === 'owner' ? (
         <RentadorView reservation={reservation} />
       ) : (
-        <ConductorView reservation={reservation} />
+        <ConductorView reservation={reservation} isAdmin={isAdmin} />
       )}
     </div>
   )

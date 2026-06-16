@@ -4,6 +4,7 @@ import { Button } from '@/ui/button'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { AuthGate } from '@/features/auth/components/AuthGate'
 import { usePushNotifications } from '@/features/pwa/hooks/usePushNotifications'
+import { NotificationList } from '@/features/notificaciones/components/NotificationList'
 import { t } from '@/i18n/es'
 
 function NotificacionesPage() {
@@ -14,6 +15,13 @@ function NotificacionesPage() {
       <PageHeader title={t('push.title')} showBack />
 
       <div className="px-5 py-6 space-y-6">
+        <NotificationList />
+
+        <div className="border-t border-white/6 pt-6">
+          <p className="text-sm font-semibold text-text-primary">{t('notificaciones.pushSettings')}</p>
+          <p className="text-xs text-text-muted mt-0.5">{t('notificaciones.pushSettingsHint')}</p>
+        </div>
+
         {/* Estado activo */}
         {permissionState === 'granted' && isSubscribed && (
           <div className="space-y-4">

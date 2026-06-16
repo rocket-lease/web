@@ -32,6 +32,7 @@ import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
 import { getErrorMessage } from '@/lib/error-mapper'
 import { useConfirmPayment } from '@/features/reservar/hooks/useConfirmPayment'
+import { useReReservar } from '@/features/reservar/hooks/useReReservar'
 import { useInitiateTransfer } from '@/features/reservar/hooks/useInitiateTransfer'
 import { useCancelReservation } from '@/features/reservar/hooks/useCancelReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
@@ -61,9 +62,11 @@ import { ReportarProblemaSheet } from '@/features/soporte/components/ReportarPro
 import { ReservaTicketInfo } from '@/features/soporte/components/ReservaTicketInfo'
 import { useReservationTickets } from '@/features/soporte/hooks/useReservationTickets'
 import { CrearResenaSheet } from '@/features/reviews/components/CrearResenaSheet'
+import { ReservaTimeline } from './ReservaTimeline'
 
 interface ConductorViewProps {
   reservation: GetReservationResponse
+  isAdmin?: boolean
 }
 
 /**
@@ -74,7 +77,7 @@ interface ConductorViewProps {
  * de pago y countdown del hold (`pending_payment`), aviso + acción de
  * retirar solicitud (`pending_approval`), o mensaje del rechazo (`rejected`).
  */
-export function ConductorView({ reservation }: ConductorViewProps) {
+export function ConductorView({ reservation, isAdmin = false }: ConductorViewProps) {
   const {
     vehicle,
     rentador,
@@ -242,16 +245,16 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       <CancellationPolicyCard reservation={reservation} />
 
-      {canPay && (
+      {!isAdmin && canPay && (
         <PendingPaymentSection
           reservation={reservation}
           holdExpiresAt={holdExpiresAt}
         />
       )}
 
-      {isPendingBalance && <PendingBalanceSection reservation={reservation} />}
+      {!isAdmin && isPendingBalance && <PendingBalanceSection reservation={reservation} />}
 
-      {isPendingApproval && (
+      {!isAdmin && isPendingApproval && (
         <PendingApprovalSection
           reservationId={reservation.id}
           holdExpiresAt={holdExpiresAt}
@@ -262,11 +265,11 @@ export function ConductorView({ reservation }: ConductorViewProps) {
 
       {contractAcceptedAt && <ContractSection acceptedAt={contractAcceptedAt} />}
 
-      {isPostPayment && (
+      {!isAdmin && isPostPayment && (
         <PostPaymentActions reservation={reservation} status={status} />
       )}
 
-      {status === RESERVATION_STATUS.in_progress && (
+      {!isAdmin && status === RESERVATION_STATUS.in_progress && (
         <ReturnAction reservationId={reservation.id} />
       )}
 
@@ -274,13 +277,20 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         <>
           <Separator />
 
+          {!isAdmin && (
+            <ReReservarAction
+              reservationId={reservation.id}
+              vehicleId={vehicle.id}
+            />
+          )}
+
           {/* US-38: Reseñas */}
-          <ReviewSectionConductor reservation={reservation} />
+          <ReviewSectionConductor reservation={reservation} isAdmin={isAdmin} />
 
           {hasAnyTicket && (
             <ReservaTicketInfo reservationId={reservation.id} myRole="conductor" />
           )}
-          {!hasConductorTicket && (
+          {!isAdmin && !hasConductorTicket && (
             <button
               type="button"
               onClick={() => setReportarOpen(true)}
@@ -293,13 +303,40 @@ export function ConductorView({ reservation }: ConductorViewProps) {
         </>
       )}
 
-      <ReportarProblemaSheet
-        reservationId={reservation.id}
-        type="vehicle_issue"
-        open={reportarOpen}
-        onOpenChange={setReportarOpen}
-      />
+      {!isAdmin && (
+        <ReportarProblemaSheet
+          reservationId={reservation.id}
+          type="vehicle_issue"
+          open={reportarOpen}
+          onOpenChange={setReportarOpen}
+        />
+      )}
+
+      {isAdmin && <ReservaTimeline reservation={reservation} />}
     </div>
+  )
+}
+
+interface ReReservarActionProps {
+  reservationId: string
+  vehicleId: string
+}
+
+/**
+ * US-31: acción "Re-reservar" visible en el detalle de una reserva completada.
+ * Inicia el flujo de re-reserva del mismo vehículo: si sigue disponible abre
+ * el formulario precargado, si no redirige al buscador de similares.
+ */
+function ReReservarAction({ reservationId, vehicleId }: ReReservarActionProps) {
+  const reReservar = useReReservar()
+  return (
+    <Button
+      className="w-full"
+      onClick={() => void reReservar({ reservationId, vehicleId })}
+    >
+      <CalendarPlus className="h-4 w-4" />
+      {t('reservar.reReservar.boton')}
+    </Button>
   )
 }
 
@@ -310,7 +347,7 @@ export function ConductorView({ reservation }: ConductorViewProps) {
  * El conductor puede reseñar: vehículo y rentador.
  * La contraparte (rentador) puede reseñar al conductor.
  */
-function ReviewSectionConductor({ reservation }: { reservation: GetReservationResponse }) {
+function ReviewSectionConductor({ reservation, isAdmin = false }: { reservation: GetReservationResponse; isAdmin?: boolean }) {
   const reviews = reservation.reviews ?? []
   const [resenaOpen, setResenaOpen] = useState(false)
 
@@ -376,7 +413,7 @@ function ReviewSectionConductor({ reservation }: { reservation: GetReservationRe
         <ReviewCard key={review.id} review={review} />
       ))}
 
-      {availableTargets.length > 0 && (
+      {!isAdmin && availableTargets.length > 0 && (
         <button
           type="button"
           onClick={() => setResenaOpen(true)}
@@ -387,12 +424,14 @@ function ReviewSectionConductor({ reservation }: { reservation: GetReservationRe
         </button>
       )}
 
-      <CrearResenaSheet
-        reservationId={reservation.id}
-        availableTargets={availableTargets}
-        open={resenaOpen}
-        onOpenChange={setResenaOpen}
-      />
+      {!isAdmin && (
+        <CrearResenaSheet
+          reservationId={reservation.id}
+          availableTargets={availableTargets}
+          open={resenaOpen}
+          onOpenChange={setResenaOpen}
+        />
+      )}
     </div>
   )
 }

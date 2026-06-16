@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import {
   APIProvider,
   Map,
@@ -7,7 +6,7 @@ import {
   useMap,
   type MapCameraChangedEvent,
 } from '@vis.gl/react-google-maps'
-import { Crosshair, Warning, Bell } from '@phosphor-icons/react'
+import { Crosshair, Warning } from '@phosphor-icons/react'
 import type { MapMarker } from '@rocket-lease/contracts'
 import {
   GOOGLE_MAPS_API_KEY,
@@ -18,6 +17,7 @@ import {
   hasGoogleMaps,
 } from '@/lib/maps'
 import { t } from '@/i18n/es'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { useMapaRentadoras } from '../hooks/useMapaRentadoras'
 import { useNearMe } from '../hooks/useNearMe'
 import type { MapSearchParams, Transmission } from '../api/mapa.api'
@@ -183,13 +183,7 @@ export function MapaPage() {
         {/* Título + bell */}
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-xl font-bold text-text-primary">{t('nav.mapa')}</h1>
-          <Link
-            to="/notificaciones"
-            aria-label={t('nav.notificaciones')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-          >
-            <Bell size={22} />
-          </Link>
+          <NotificationBell />
         </div>
 
         {/* Chips de filtro — scroll horizontal */}

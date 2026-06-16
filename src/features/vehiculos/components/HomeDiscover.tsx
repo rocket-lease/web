@@ -8,6 +8,7 @@ interface HomeDiscoverProps {
   vehicles:    GetVehicleResponse[]
   isLoading:   boolean
   isError:     boolean
+  levelDiscountPercentage?: number
   onPickCity:  (city: string) => void
 }
 
@@ -49,7 +50,7 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return 2 * R * Math.asin(Math.sqrt(s))
 }
 
-export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeDiscoverProps) {
+export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercentage, onPickCity }: HomeDiscoverProps) {
   const nearMe = useNearMe()
 
   const promoted = useMemo(
@@ -91,6 +92,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
           icon={<Sparkle size={16} weight="fill" className="text-warning" />}
           vehicles={promoted}
           isLoading={isLoading}
+          levelDiscountPercentage={levelDiscountPercentage}
         />
       )}
 
@@ -100,6 +102,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
           icon={<NavigationArrow size={16} weight="fill" className="text-brand-400" />}
           vehicles={nearby}
           isLoading={false}
+          levelDiscountPercentage={levelDiscountPercentage}
         />
       ) : (nearMe.status === 'idle' || nearMe.status === 'locating') && (
         <NearbyCTA
@@ -113,9 +116,10 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
         icon={<Clock size={16} weight="fill" className="text-text-secondary" />}
         vehicles={newest}
         isLoading={isLoading}
+        levelDiscountPercentage={levelDiscountPercentage}
       />
 
-      <FullGrid vehicles={vehicles} isLoading={isLoading} />
+      <FullGrid vehicles={vehicles} isLoading={isLoading} levelDiscountPercentage={levelDiscountPercentage} />
     </div>
   )
 }
@@ -123,10 +127,11 @@ export function HomeDiscover({ vehicles, isLoading, isError, onPickCity }: HomeD
 interface FullGridProps {
   vehicles:  GetVehicleResponse[]
   isLoading: boolean
+  levelDiscountPercentage?: number
 }
 
 /** Fallback al final del home: grilla completa de todo lo disponible. */
-function FullGrid({ vehicles, isLoading }: FullGridProps) {
+function FullGrid({ vehicles, isLoading, levelDiscountPercentage }: FullGridProps) {
   return (
     <section className="flex flex-col gap-3">
       <header className="px-5 flex items-center gap-2">
@@ -138,7 +143,7 @@ function FullGrid({ vehicles, isLoading }: FullGridProps) {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           {isLoading
             ? Array.from({ length: 4 }).map((_, i) => <VehiculoCardSkeleton key={i} />)
-            : vehicles.map(v => <VehiculoCard key={v.id} vehiculo={v} />)}
+            : vehicles.map(v => <VehiculoCard key={v.id} vehiculo={v} levelDiscountPercentage={levelDiscountPercentage} />)}
         </div>
       </div>
     </section>
@@ -200,6 +205,7 @@ interface CarouselProps {
   icon:      ReactNode
   vehicles:  GetVehicleResponse[]
   isLoading: boolean
+  levelDiscountPercentage?: number
 }
 
 /**
@@ -208,7 +214,7 @@ interface CarouselProps {
  * mobile. El padding lateral coincide con el de la página para que la
  * primera card "asome" desde el borde izquierdo.
  */
-function Carousel({ title, icon, vehicles, isLoading }: CarouselProps) {
+function Carousel({ title, icon, vehicles, isLoading, levelDiscountPercentage }: CarouselProps) {
   return (
     <section className="flex flex-col gap-3">
       <header className="px-5 flex items-center gap-2">
@@ -226,7 +232,7 @@ function Carousel({ title, icon, vehicles, isLoading }: CarouselProps) {
               ))
             : vehicles.map(v => (
                 <div key={v.id} className="shrink-0 w-64">
-                  <VehiculoCard vehiculo={v} />
+                  <VehiculoCard vehiculo={v} levelDiscountPercentage={levelDiscountPercentage} />
                 </div>
               ))}
           <div aria-hidden className="shrink-0 w-1" />

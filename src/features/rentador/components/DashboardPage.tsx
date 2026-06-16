@@ -4,7 +4,6 @@ import {
   CalendarCheck,
   Star,
   Plus,
-  Bell,
   ArrowRight,
   Percent,
   Warning,
@@ -28,6 +27,7 @@ import type { I18nKey } from '@/i18n/es'
 import { PromocionarDialog } from '@/features/promocionar/components/PromocionarDialog'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { useReputation } from '@/features/reputation/hooks/useReputation'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics'
 import { LineChart, OccupancyRing } from './DashboardCharts'
 
@@ -226,13 +226,7 @@ export function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={20} />
-            </Link>
+            <NotificationBell />
             <Link to="/mis-vehiculos/nuevo">
               <Button size="sm">
                 <Plus size={15} weight="bold" />

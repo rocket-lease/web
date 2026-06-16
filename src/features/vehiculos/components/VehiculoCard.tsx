@@ -6,6 +6,7 @@ import { t } from '@/i18n/es'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { cn } from '@/lib/utils'
 import { FavoritoButton } from '@/features/favoritos/components/FavoritoButton'
+import { LevelDiscountBadge } from '@/features/lealtad/components/LevelDiscountBadge'
 
 export function VehiculoCardSkeleton({ className }: { className?: string }) {
   return (
@@ -28,9 +29,10 @@ interface VehiculoCardProps {
   from?: string
   to?: string
   className?: string
+  levelDiscountPercentage?: number
 }
 
-export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProps) {
+export function VehiculoCard({ vehiculo, from, to, className, levelDiscountPercentage }: VehiculoCardProps) {
   const coverPhoto = vehiculo.photos[0] ?? '/placeholder-car.jpg'
   const days = from && to ? Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) : 0
 
@@ -63,6 +65,9 @@ export function VehiculoCard({ vehiculo, from, to, className }: VehiculoCardProp
               <span className="flex h-7 items-center rounded-full bg-black/70 backdrop-blur-sm px-2.5 text-xs font-semibold text-white">
                 Accesible
               </span>
+            )}
+            {levelDiscountPercentage != null && levelDiscountPercentage > 0 && (
+              <LevelDiscountBadge discountPercentage={levelDiscountPercentage} />
             )}
           </div>
 

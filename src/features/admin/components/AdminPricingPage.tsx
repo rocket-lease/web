@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import type { AdminPricingZone } from '@rocket-lease/contracts'
-import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
 import { cn } from '@/lib/utils'
 import { t } from '@/i18n/es'
@@ -21,8 +20,7 @@ export function AdminPricingPage() {
   const hasZones = zones.length > 0
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
-      <PageHeader title={t('admin.pricing.titulo')} subtitle={t('admin.pricing.subtitulo')} showBack />
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
 
       <div className="relative flex min-h-0 flex-1 flex-col">
         {isLoading && (

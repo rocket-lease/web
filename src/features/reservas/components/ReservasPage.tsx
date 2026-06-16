@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ArrowRight, CalendarDays, Check, ClipboardList, Clock, Inbox, Loader2, User, X } from 'lucide-react'
-import { Bell } from '@phosphor-icons/react'
 import {
   RESERVATION_STATUS,
   type ReservationListItem,
@@ -20,10 +19,12 @@ import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
+import { useReReservar } from '@/features/reservar/hooks/useReReservar'
 import { useApproveReservation } from '../hooks/useApproveReservation'
 import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { ConfirmationModal } from './modals/ConfirmationModal'
 import { RejectReasonModal } from './modals/RejectReasonModal'
@@ -35,6 +36,7 @@ type TabKey =
   | 'pendingBalance'
   | 'confirmed'
   | 'inProgress'
+  | 'completed'
 
 /**
  * Mapea cada tab a los estados que filtra. Es role-aware para `pending_balance`
@@ -61,6 +63,8 @@ function getTabStatuses(
         : [RESERVATION_STATUS.confirmed]
     case 'inProgress':
       return [RESERVATION_STATUS.in_progress]
+    case 'completed':
+      return [RESERVATION_STATUS.completed]
   }
 }
 
@@ -86,6 +90,7 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
       : []),
     { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
     { key: 'inProgress', label: t('reservas.tabs.enCurso') },
+    { key: 'completed', label: t('reservas.tabs.completadas') },
   ]
 }
 
@@ -154,7 +159,11 @@ export function ReservasPage() {
   const allFitsInCache =
     !!(probeQuery.data && probeQuery.data.total <= PAGE_SIZE)
   const isProbeMatch = tab === 'all' && page === 1
-  const canFilterFromCache = tab !== 'all' && allFitsInCache && page === 1
+  // El probe solo trae estados activos; el tab "Completadas" cae fuera de ese
+  // set y siempre necesita su propia request server-side.
+  const isProbeSubset = tab !== 'completed'
+  const canFilterFromCache =
+    tab !== 'all' && isProbeSubset && allFitsInCache && page === 1
   const needsTabQuery = !isProbeMatch && !canFilterFromCache
 
   const tabQuery = useReservations(
@@ -222,13 +231,7 @@ export function ReservasPage() {
                 <span>{badgeLabel} ({solicitudesCount})</span>
               </button>
             )}
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={22} />
-            </Link>
+            <NotificationBell />
           </div>
         }
       />
@@ -392,6 +395,8 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
     role === 'owner' && reserva.status === RESERVATION_STATUS.pending_approval
   const isExtension = reserva.parentReservationId != null
   const showExtensionBadge = isPendingApprovalForOwner && isExtension
+  const canReReservar =
+    role === 'conductor' && reserva.status === RESERVATION_STATUS.completed
 
   return (
     <Link
@@ -468,8 +473,43 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
             isExtension={isExtension}
           />
         )}
+        {canReReservar && (
+          <ReReservarButton
+            reservationId={reserva.id}
+            vehicleId={reserva.vehicle.id}
+          />
+        )}
       </div>
     </Link>
+  )
+}
+
+interface ReReservarButtonProps {
+  reservationId: string
+  vehicleId: string
+}
+
+/**
+ * Botón "Re-reservar" para una reserva completada. Detiene la propagación y
+ * previene el default del `<Link>` contenedor para que clickearlo no dispare
+ * la navegación al detalle de la reserva.
+ */
+function ReReservarButton({ reservationId, vehicleId }: ReReservarButtonProps) {
+  const reReservar = useReReservar()
+  return (
+    <div className="pt-1">
+      <Button
+        variant="outline"
+        className="w-full h-8 text-xs border-brand-500/40 text-brand-400 hover:bg-brand-500/10"
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          void reReservar({ reservationId, vehicleId })
+        }}
+      >
+        {t('reservar.reReservar.boton')}
+      </Button>
+    </div>
   )
 }
 
