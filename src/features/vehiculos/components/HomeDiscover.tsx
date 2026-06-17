@@ -1,7 +1,9 @@
 import { useMemo, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { CaretRight, MapPin, NavigationArrow, Sparkle, Clock, Car } from '@phosphor-icons/react'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
+import { vehiclesApi } from '../api/vehiculos.api'
 import { useNearMe } from '@/features/mapa/hooks/useNearMe'
 
 interface HomeDiscoverProps {
@@ -10,6 +12,8 @@ interface HomeDiscoverProps {
   isError:     boolean
   levelDiscountPercentage?: number
   onPickCity:  (city: string) => void
+  /** Id del usuario logueado, para mostrar la sección "Mis vehículos". */
+  ownerId?:    string
 }
 
 /**
@@ -50,8 +54,14 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return 2 * R * Math.asin(Math.sqrt(s))
 }
 
-export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercentage, onPickCity }: HomeDiscoverProps) {
+export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercentage, onPickCity, ownerId }: HomeDiscoverProps) {
   const nearMe = useNearMe()
+
+  const { data: myVehicles } = useQuery({
+    queryKey: ['vehicles', 'by-owner', ownerId],
+    queryFn: () => vehiclesApi.getByOwnerId(ownerId!),
+    enabled: Boolean(ownerId),
+  })
 
   const promoted = useMemo(
     () => vehicles.filter(v => v.isPromoted).slice(0, CAROUSEL_LIMIT),
@@ -85,6 +95,15 @@ export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercen
   return (
     <div className="flex flex-col gap-8 pt-5 pb-8">
       <DestinationsRow onPickCity={onPickCity} />
+
+      {myVehicles && myVehicles.length > 0 && (
+        <Carousel
+          title="Mis vehículos"
+          icon={<Car size={16} weight="fill" className="text-owner" />}
+          vehicles={myVehicles}
+          isLoading={false}
+        />
+      )}
 
       {(promoted.length > 0 || isLoading) && (
         <Carousel

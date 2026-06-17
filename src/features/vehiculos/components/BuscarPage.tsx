@@ -347,6 +347,7 @@ export function BuscarPage() {
           isLoading={isLoading}
           isError={isError}
           levelDiscountPercentage={levelDiscountPercentage}
+          ownerId={profile?.id}
           onPickCity={(city) => updateSearch({
             city,
             locationCode: LOCATION_BY_CITY[city]?.locationCode,
