@@ -299,7 +299,7 @@ export function PerfilPage({ profileId }: PerfilPageProps) {
       {/* Reseñas recibidas */}
       {profile && (
         canEdit ? (
-          <OwnReviewsSection />
+          <OwnReviewsSection role={displayRole} />
         ) : (
           <OwnerReviewsSection userId={profile.id} />
         )

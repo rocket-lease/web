@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Spinner, ChatCircleDots } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { ReviewCard } from '@/features/reviews/components/ReviewCard'
@@ -55,13 +54,16 @@ export function OwnerReviewsSection({ userId }: OwnerReviewsSectionProps) {
   )
 }
 
-export function OwnReviewsSection() {
-  const [tab, setTab] = useState<'rentador' | 'conductor'>('rentador')
+interface OwnReviewsSectionProps {
+  role: 'conductor' | 'rentador'
+}
+
+export function OwnReviewsSection({ role }: OwnReviewsSectionProps) {
   const rentadorQuery = useRentadorReviews()
   const conductorQuery = useConductorReviews()
 
-  const isLoading = tab === 'rentador' ? rentadorQuery.isLoading : conductorQuery.isLoading
-  const reviews = tab === 'rentador' ? rentadorQuery.data : conductorQuery.data
+  const isLoading = role === 'rentador' ? rentadorQuery.isLoading : conductorQuery.isLoading
+  const reviews = role === 'rentador' ? rentadorQuery.data : conductorQuery.data
 
   return (
     <section className="mt-6">
@@ -69,34 +71,6 @@ export function OwnReviewsSection() {
         <p className="text-xs font-medium text-text-muted uppercase tracking-wider">
           {t('perfil.reviewsTitle')}
         </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="px-4 mb-3">
-        <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
-          <button
-            type="button"
-            onClick={() => setTab('rentador')}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              tab === 'rentador'
-                ? 'bg-surface-0 text-text-primary shadow-sm'
-                : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            {t('perfil.reviews.tabRentador')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('conductor')}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              tab === 'conductor'
-                ? 'bg-surface-0 text-text-primary shadow-sm'
-                : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            {t('perfil.reviews.tabConductor')}
-          </button>
-        </div>
       </div>
 
       {isLoading ? (
@@ -109,7 +83,7 @@ export function OwnReviewsSection() {
             <ChatCircleDots size={20} className="text-text-muted" weight="regular" />
           </div>
           <p className="text-sm font-medium text-text-secondary">
-            {tab === 'rentador' ? t('perfil.reviews.emptyRentador') : t('perfil.reviews.emptyConductor')}
+            {role === 'rentador' ? t('perfil.reviews.emptyRentador') : t('perfil.reviews.emptyConductor')}
           </p>
         </div>
       ) : (
