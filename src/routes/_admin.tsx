@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState } from '@tanstack/react-router'
-import { ShieldCheck, Ticket, MapTrifold, UserCircle } from '@phosphor-icons/react'
+import { ArrowLeft, ShieldCheck, Ticket, MapTrifold, UserCircle } from '@phosphor-icons/react'
 import { useIsAdmin } from '@/features/admin/hooks/useIsAdmin'
 import { t } from '@/i18n/es'
 
@@ -34,6 +34,13 @@ function AdminLayout() {
         className="shrink-0 border-b border-white/6 bg-surface-0/95 backdrop-blur-sm flex items-center gap-2 px-4 py-3"
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 0.75rem)' }}
       >
+        <Link
+          to="/buscar"
+          aria-label={t('admin.portal.back')}
+          className="-ml-1.5 flex h-8 w-8 items-center justify-center rounded-full text-text-secondary transition-transform active:scale-90"
+        >
+          <ArrowLeft size={20} weight="bold" />
+        </Link>
         <ShieldCheck size={18} weight="duotone" className="text-amber-400" />
         <span className="text-sm font-semibold text-amber-400">
           {t('admin.portal.title')}
