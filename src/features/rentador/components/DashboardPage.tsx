@@ -196,8 +196,17 @@ export function DashboardPage() {
     isCustom && rangeValid ? dayEndIso(customTo) : undefined,
   )
   const [promoteVehicleId, setPromoteVehicleId] = useState<string | null>(null)
+  const [showAllAttention, setShowAllAttention] = useState(false)
 
   const attentionVehicles = data?.attentionVehicles ?? []
+  // Peores primero; el dashboard muestra solo unas pocas y colapsa el resto.
+  const sortedAttention = [...attentionVehicles].sort(
+    (a, b) => a.upcomingOccupancyRatePercent - b.upcomingOccupancyRatePercent,
+  )
+  const ATTENTION_PREVIEW = 3
+  const visibleAttention = showAllAttention
+    ? sortedAttention
+    : sortedAttention.slice(0, ATTENTION_PREVIEW)
 
   // Período a propagar al detalle del vehículo (mantiene la selección).
   const detailSearch: DetailSearch =
@@ -270,13 +279,27 @@ export function DashboardPage() {
           {/* Alerta de baja ocupación próxima (independiente del período) */}
           {attentionVehicles.length > 0 && (
             <div className="mt-3 space-y-3">
-              {attentionVehicles.map((v) => (
+              {visibleAttention.map((v) => (
                 <LowOccupancyCard
                   key={v.vehicleId}
                   vehicle={v}
                   onPromote={setPromoteVehicleId}
                 />
               ))}
+              {attentionVehicles.length > ATTENTION_PREVIEW && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllAttention((s) => !s)}
+                  className="w-full rounded-xl bg-surface-2 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-3 active:scale-[0.99]"
+                >
+                  {showAllAttention
+                    ? t('dashboard.verMenos')
+                    : t('dashboard.verRestantes').replace(
+                        '{n}',
+                        String(attentionVehicles.length - ATTENTION_PREVIEW),
+                      )}
+                </button>
+              )}
             </div>
           )}
         </div>

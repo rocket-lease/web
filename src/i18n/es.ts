@@ -748,6 +748,8 @@ export const es = {  // --- App ---
   'dashboard.masRentados': 'Mas rentados',
   'dashboard.bajaOcupacion': 'Baja ocupacion',
   'dashboard.bajaOcupacionHint': 'Pocos dias reservados para los proximos 30 dias. Proba promoverlo o ajustar su precio.',
+  'dashboard.verRestantes': 'Ver los {n} restantes',
+  'dashboard.verMenos': 'Ver menos',
   'dashboard.promover': 'Promover',
   'dashboard.ajustarPrecio': 'Ajustar precio',
   'dashboard.verDetalle': 'Ver detalle',
