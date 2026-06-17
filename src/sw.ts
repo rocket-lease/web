@@ -44,6 +44,8 @@ self.addEventListener('push', event => {
     body?: string
     icon?: string
     badge?: string
+    tag?: string
+    requireInteraction?: boolean
     data?: { url?: string }
   }
   event.waitUntil(
@@ -51,6 +53,8 @@ self.addEventListener('push', event => {
       body: data.body,
       icon: data.icon ?? '/icons/icon-192.png',
       badge: data.badge ?? '/icons/badge-72.png',
+      tag: data.tag,
+      requireInteraction: data.requireInteraction ?? false,
       data: data.data ?? {},
     }),
   )
