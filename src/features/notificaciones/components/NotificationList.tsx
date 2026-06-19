@@ -97,6 +97,17 @@ export function NotificationList() {
                 style={{ backgroundColor: n.readAt ? 'transparent' : 'var(--color-brand-500)' }}
               />
               {!n.readAt && <span className="sr-only">{t('notificaciones.unread')}</span>}
+              {n.imageUrl && (
+                <img
+                  src={n.imageUrl}
+                  alt=""
+                  loading="lazy"
+                  className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                  onError={e => {
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              )}
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2">
                   <span

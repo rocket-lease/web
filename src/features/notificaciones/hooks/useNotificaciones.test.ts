@@ -20,6 +20,7 @@ const notif = {
   title: 'Reserva confirmada',
   body: 'Tu reserva del Toyota Corolla está confirmada.',
   url: '/reservas/x',
+  imageUrl: null,
   readAt: null,
   createdAt: new Date().toISOString(),
 }
