@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Plus } from '@phosphor-icons/react'
+import { Plus, CreditCard } from '@phosphor-icons/react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
+import { EmptyState } from '@/ui/empty-state'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/ui/drawer'
 import { t, type I18nKey } from '@/i18n/es'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
@@ -58,17 +59,17 @@ export function PaymentMethodsPage() {
         {isLoading ? (
           <div className="text-sm text-text-muted">{t('general.loading' as I18nKey)}</div>
         ) : paymentMethods?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-center py-12 px-4">
-            <div className="h-16 w-16 rounded-full bg-surface-2 flex items-center justify-center mb-4">
-              <Plus className="h-8 w-8 text-brand-400" />
-            </div>
-            <p className="text-text-primary font-medium mb-1">{t('paymentMethods.empty' as I18nKey)}</p>
-            <p className="text-sm text-text-muted mb-6">Agregá una tarjeta o billetera virtual para pagar tus reservas.</p>
-            <Button onClick={handleOpenCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t('paymentMethods.add' as I18nKey)}
-            </Button>
-          </div>
+          <EmptyState
+            icon={<CreditCard size={26} weight="regular" className="text-text-muted" />}
+            title={t('paymentMethods.empty' as I18nKey)}
+            description={t('paymentMethods.emptyHint' as I18nKey)}
+            action={
+              <Button onClick={handleOpenCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t('paymentMethods.add' as I18nKey)}
+              </Button>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-4">
             {paymentMethods?.map((method) => (

@@ -2,6 +2,7 @@ import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 
 interface VehicleResultsListProps {
@@ -80,20 +81,18 @@ export function VehicleResultsList({
       )}
 
       {vehicles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-          <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
-          <div>
-            <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-            <p className="text-xs text-text-secondary mt-1">
-              {hasDateFilter ? t('buscar.noResultsDatesHint') : t('buscar.noResultsHint')}
-            </p>
-          </div>
-          {hasActiveFilter && (
-            <button onClick={onClearFilters} className="text-xs font-semibold text-text-primary">
-              {t('buscar.filter.clearAll')}
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={<MagnifyingGlass size={26} weight="regular" className="text-text-muted" />}
+          title={t('buscar.noResults')}
+          description={hasDateFilter ? t('buscar.noResultsDatesHint') : t('buscar.noResultsHint')}
+          action={
+            hasActiveFilter ? (
+              <button onClick={onClearFilters} className="text-sm font-semibold text-brand-400">
+                {t('buscar.filter.clearAll')}
+              </button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className={gridClass}>
           {vehicles.map(v => (
