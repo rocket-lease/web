@@ -9,6 +9,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 const markReadMutate = vi.fn()
 const markAllReadMutate = vi.fn()
+const removeMutate = vi.fn()
 const state: {
   data: { notifications: unknown[]; unreadCount: number } | undefined
   isLoading: boolean
@@ -20,6 +21,7 @@ vi.mock('../hooks/useNotificaciones', () => ({
   useMarkNotificaciones: () => ({
     markRead: { mutate: markReadMutate },
     markAllRead: { mutate: markAllReadMutate, isPending: false },
+    remove: { mutate: removeMutate },
   }),
 }))
 
@@ -59,7 +61,7 @@ describe('NotificationList', () => {
       unreadCount: 1,
     }
     render(<NotificationList />)
-    fireEvent.click(screen.getByText('Reserva confirmada'))
+    fireEvent.click(screen.getByText('Tu reserva del Toyota Corolla está confirmada.'))
     expect(markReadMutate).toHaveBeenCalledWith('n1')
     expect(navigateMock).not.toHaveBeenCalled()
   })
@@ -68,8 +70,8 @@ describe('NotificationList', () => {
     state.data = { notifications: [unread], unreadCount: 1 }
     render(<NotificationList />)
 
-    expect(screen.getByText('Reserva confirmada')).toBeInTheDocument()
-    fireEvent.click(screen.getByText('Reserva confirmada'))
+    expect(screen.getByText('Tu reserva del Toyota Corolla está confirmada.')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Tu reserva del Toyota Corolla está confirmada.'))
 
     expect(markReadMutate).toHaveBeenCalledWith('n1')
     expect(navigateMock).toHaveBeenCalledWith({ to: '/reservas/x' })
@@ -81,7 +83,7 @@ describe('NotificationList', () => {
       unreadCount: 0,
     }
     render(<NotificationList />)
-    fireEvent.click(screen.getByText('Reserva confirmada'))
+    fireEvent.click(screen.getByText('Tu reserva del Toyota Corolla está confirmada.'))
     expect(markReadMutate).not.toHaveBeenCalled()
   })
 

@@ -6,4 +6,5 @@ export const notificacionesApi = {
   unreadCount: () => httpClient.get<UnreadCountResponse>('/notifications/unread-count'),
   markRead: (id: string) => httpClient.post<UnreadCountResponse>(`/notifications/${id}/read`, {}),
   markAllRead: () => httpClient.post<UnreadCountResponse>('/notifications/read-all', {}),
+  remove: (id: string) => httpClient.delete<UnreadCountResponse>(`/notifications/${id}`),
 }
