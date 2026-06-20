@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { toast } from 'sonner'
 import { ChatCircleDots, Info } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
@@ -56,7 +57,7 @@ export function TicketChatSection({
       <div className="flex flex-col min-h-[200px] max-h-[360px]">
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
           {messagesQuery.isPending && messagesQuery.isFetching && (
-            <p className="text-center text-sm text-text-muted py-4">{t('general.loading')}</p>
+            <PageLoader />
           )}
           {!messagesQuery.isPending && messages.length === 0 && (
             <p className="text-center text-sm text-text-muted py-4">{t('ticketMessages.empty')}</p>

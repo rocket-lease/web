@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { Plus, CreditCard } from '@phosphor-icons/react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Button } from '@/ui/button'
@@ -57,7 +58,11 @@ export function PaymentMethodsPage() {
 
       <div className="flex-1 p-4 flex flex-col gap-4">
         {isLoading ? (
-          <div className="text-sm text-text-muted">{t('general.loading' as I18nKey)}</div>
+          <div className="flex flex-col gap-4">
+            {[0, 1].map(i => (
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+            ))}
+          </div>
         ) : paymentMethods?.length === 0 ? (
           <EmptyState
             icon={<CreditCard size={26} weight="regular" className="text-text-muted" />}

@@ -14,6 +14,7 @@ import type { InAppNotification } from '@rocket-lease/contracts'
 import { useMarkNotificaciones, useNotificaciones } from '../hooks/useNotificaciones'
 import { fmt } from '@/lib/formatters'
 import { EmptyState } from '@/ui/empty-state'
+import { Skeleton } from '@/ui/skeleton'
 import { t } from '@/i18n/es'
 
 const SWIPE_TRIGGER = 72
@@ -199,7 +200,13 @@ export function NotificationList() {
     return (
       <div className="space-y-1.5">
         {[1, 2, 3].map(i => (
-          <div key={i} className="h-[72px] rounded-xl bg-surface-1 animate-pulse" />
+          <div key={i} className="flex items-center gap-3 rounded-xl bg-surface-1 px-3 py-3">
+            <Skeleton className="h-12 w-12 shrink-0 rounded-md" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-3 w-4/5" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          </div>
         ))}
       </div>
     )

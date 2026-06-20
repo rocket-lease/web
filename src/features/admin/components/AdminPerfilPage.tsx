@@ -1,4 +1,5 @@
 import { Star, SignOut, UserCircle } from '@phosphor-icons/react'
+import { PageLoader } from '@/ui/page-loader'
 import { Avatar } from '@/ui/avatar'
 import { Button } from '@/ui/button'
 import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
@@ -13,7 +14,7 @@ export function AdminPerfilPage() {
   }
 
   if (isLoading) {
-    return <div className="flex-1 px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+    return <PageLoader />
   }
 
   if (!profile) return null

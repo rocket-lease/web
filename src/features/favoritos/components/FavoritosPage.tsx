@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@/i18n/es'
 import { PageHeader } from '@/features/layout/components/PageHeader'
-import { VehiculoCard } from '@/features/vehiculos/components/VehiculoCard'
+import { VehiculoCard, VehiculoCardSkeleton } from '@/features/vehiculos/components/VehiculoCard'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { EmptyState } from '@/ui/empty-state'
@@ -31,9 +31,9 @@ export function FavoritosPage() {
       />
       <div className="px-5 pt-4 pb-2">
         {isLoading && (
-          <div className="flex flex-col gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-52 rounded-xl bg-surface-1 animate-pulse" />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            {[1, 2, 3, 4].map(i => (
+              <VehiculoCardSkeleton key={i} />
             ))}
           </div>
         )}

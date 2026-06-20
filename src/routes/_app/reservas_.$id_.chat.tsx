@@ -6,6 +6,7 @@ import { AuthGate } from '@/features/auth/components/AuthGate'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { ChatWindow } from '@/features/chat/components/ChatWindow'
+import { PageLoader } from '@/ui/page-loader'
 import { t } from '@/i18n/es'
 
 function ChatPage() {
@@ -45,11 +46,7 @@ function ChatPage() {
 
       {/* Cuerpo del chat */}
       <div className="flex-1 overflow-hidden">
-        {reservationQuery.isPending && (
-          <p className="py-12 text-center text-sm text-text-muted">
-            {t('general.loading')}
-          </p>
-        )}
+        {reservationQuery.isPending && <PageLoader />}
 
         {reservationQuery.isError && (
           <p className="py-12 text-center text-sm text-danger-400">
