@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { t } from '@/i18n/es'
@@ -33,7 +34,7 @@ export function VoucherReturnPage() {
         onBack={() => navigate({ to: '/buscar' })}
       />
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-text-muted">{t('general.loading')}</p>
+        <PageLoader />
       </div>
     </div>
   )

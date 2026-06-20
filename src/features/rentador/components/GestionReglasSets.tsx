@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { Plus, Trash2, Pencil, Gauge, Clock, Car } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Badge, type BadgeProps } from '@/ui/badge'
@@ -59,8 +60,10 @@ export function GestionReglasSets() {
       />
 
       {ruleSetsQuery.isLoading ? (
-        <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
-          <p className="text-text-secondary">{t('general.loading')}</p>
+        <div className="px-4 py-4 space-y-3">
+          {[0, 1].map(i => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
         </div>
       ) : ruleSetsQuery.isError ? (
         <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">

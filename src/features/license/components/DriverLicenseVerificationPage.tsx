@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useNavigate } from '@tanstack/react-router'
 import {
   ArrowClockwise,
@@ -69,7 +70,7 @@ export function DriverLicenseVerificationPage() {
     return (
       <div className="flex min-h-full flex-col bg-surface-0">
         <PageHeader title={t('licencia.title')} showBack />
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <PageLoader />
       </div>
     )
   }

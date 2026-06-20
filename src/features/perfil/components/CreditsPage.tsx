@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { Coins, ArrowDownLeft, ArrowUpRight, Lightning, ArrowDown, ArrowUp } from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { PageHeader } from '@/features/layout/components/PageHeader'
@@ -20,7 +21,27 @@ export function CreditsPage() {
       <PageHeader title={t('perfil.creditos.title')} showBack sticky />
 
       {isLoading ? (
-        <div className="px-5 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <>
+          <div className="px-5 py-6 space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-10 w-40" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+          <div className="mx-5 h-px bg-white/6" />
+          <div className="px-5 pt-5 space-y-4">
+            <Skeleton className="h-4 w-1/3" />
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3.5 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+                <Skeleton className="h-4 w-16 shrink-0" />
+              </div>
+            ))}
+          </div>
+        </>
       ) : profile && (
         <>
           {/* Balance hero */}
@@ -42,7 +63,18 @@ export function CreditsPage() {
             <p className="mt-0.5 text-xs text-text-muted">{t('wallet.transactions.subtitle')}</p>
 
             {transactionsLoading ? (
-              <p className="mt-4 text-sm text-text-muted">{t('general.loading')}</p>
+              <div className="mt-3 space-y-4">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-3.5 w-1/2" />
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                    <Skeleton className="h-4 w-16 shrink-0" />
+                  </div>
+                ))}
+              </div>
             ) : !hasTransactions ? (
               <p className="mt-4 text-sm text-text-muted">{t('wallet.transactions.empty')}</p>
             ) : (

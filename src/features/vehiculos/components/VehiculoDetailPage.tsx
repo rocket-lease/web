@@ -18,6 +18,7 @@ import {
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
 import { EmptyState } from '@/ui/empty-state'
+import { Skeleton } from '@/ui/skeleton'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
@@ -71,10 +72,25 @@ export function VehiculoDetailPage() {
     return (
       <div className="flex flex-col min-h-full">
         <PageHeader title="Detalle del vehículo" showBack sticky />
-        <div className="aspect-4/3 bg-surface-2 animate-pulse" />
-        <div className="px-4 py-5 space-y-4">
-          <div className="h-7 w-2/3 rounded-lg bg-surface-2 animate-pulse" />
-          <div className="h-4 w-1/3 rounded-lg bg-surface-2 animate-pulse" />
+        {/* Galería */}
+        <Skeleton className="aspect-4/3 w-full rounded-none" />
+        <div className="px-4 py-5 space-y-5">
+          {/* Título + precio */}
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+          </div>
+          {/* Card del rentador */}
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          {/* Specs */}
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
+          </div>
+          {/* Secciones */}
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-24 w-full rounded-xl" />
         </div>
       </div>
     )

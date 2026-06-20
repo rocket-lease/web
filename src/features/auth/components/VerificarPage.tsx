@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Mail, Phone, CheckCircle, Rocket, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
@@ -92,7 +93,7 @@ export function VerificarPage() {
   if (loading) {
     return (
       <div className="flex min-h-svh items-center justify-center bg-surface-0">
-        <p className="text-text-muted">{t('general.loading')}</p>
+        <PageLoader />
       </div>
     )
   }

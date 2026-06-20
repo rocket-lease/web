@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { Plus, Trash } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/ui/dialog'
@@ -136,7 +137,11 @@ export function MisCuentasPage() {
 
       <div className="px-4 py-4">
         {isLoading ? (
-          <div className="text-text-muted">{t('general.loading')}</div>
+          <div className="space-y-3">
+            {[0, 1].map(i => (
+              <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+            ))}
+          </div>
         ) : isError ? (
           <div className="space-y-3 rounded-2xl border border-danger/20 bg-danger/10 p-4 text-text-primary">
             <p>{t('error.default')}</p>
