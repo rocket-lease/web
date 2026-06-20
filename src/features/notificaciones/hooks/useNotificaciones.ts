@@ -71,5 +71,10 @@ export function useMarkNotificaciones() {
     onSuccess: invalidate,
   })
 
-  return { markRead, markAllRead }
+  const remove = useMutation({
+    mutationFn: (id: string) => notificacionesApi.remove(id),
+    onSuccess: invalidate,
+  })
+
+  return { markRead, markAllRead, remove }
 }
