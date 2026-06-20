@@ -19,12 +19,13 @@ import { fmt } from '@/lib/formatters'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
 import { fetchReservations } from '../api/reservations.api'
 import { useReservations } from '../hooks/useReservations'
-import { useReReservar } from '@/features/reservar/hooks/useReReservar'
 import { useApproveReservation } from '../hooks/useApproveReservation'
 import { useRejectReservation } from '../hooks/useRejectReservation'
 import { useUnreadCount } from '@/features/chat/hooks/useUnreadCount'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
+import { ClockClockwise } from '@phosphor-icons/react'
+import { EmptyState } from '@/ui/empty-state'
 import { ReservaStatusBadge } from './ReservaStatusBadge'
 import { ConfirmationModal } from './modals/ConfirmationModal'
 import { RejectReasonModal } from './modals/RejectReasonModal'
@@ -90,7 +91,6 @@ function getTabs(role: ReservationRole): ReadonlyArray<{ key: TabKey; label: str
       : []),
     { key: 'confirmed', label: t('reservas.tabs.confirmadas') },
     { key: 'inProgress', label: t('reservas.tabs.enCurso') },
-    { key: 'completed', label: t('reservas.tabs.completadas') },
   ]
 }
 
@@ -231,6 +231,13 @@ export function ReservasPage() {
                 <span>{badgeLabel} ({solicitudesCount})</span>
               </button>
             )}
+            <Link
+              to="/reservas/historial"
+              aria-label={t('reservas.view.historial')}
+              className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary transition-colors hover:text-text-primary active:scale-95"
+            >
+              <ClockClockwise size={19} />
+            </Link>
             <NotificationBell />
           </div>
         }
@@ -395,8 +402,6 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
     role === 'owner' && reserva.status === RESERVATION_STATUS.pending_approval
   const isExtension = reserva.parentReservationId != null
   const showExtensionBadge = isPendingApprovalForOwner && isExtension
-  const canReReservar =
-    role === 'conductor' && reserva.status === RESERVATION_STATUS.completed
 
   return (
     <Link
@@ -473,43 +478,8 @@ function ReservaCard({ reserva, role, rangeStartAt, rangeEndAt, rangeTotalCents,
             isExtension={isExtension}
           />
         )}
-        {canReReservar && (
-          <ReReservarButton
-            reservationId={reserva.id}
-            vehicleId={reserva.vehicle.id}
-          />
-        )}
       </div>
     </Link>
-  )
-}
-
-interface ReReservarButtonProps {
-  reservationId: string
-  vehicleId: string
-}
-
-/**
- * Botón "Re-reservar" para una reserva completada. Detiene la propagación y
- * previene el default del `<Link>` contenedor para que clickearlo no dispare
- * la navegación al detalle de la reserva.
- */
-function ReReservarButton({ reservationId, vehicleId }: ReReservarButtonProps) {
-  const reReservar = useReReservar()
-  return (
-    <div className="pt-1">
-      <Button
-        variant="outline"
-        className="w-full h-8 text-xs border-brand-500/40 text-brand-400 hover:bg-brand-500/10"
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-          void reReservar({ reservationId, vehicleId })
-        }}
-      >
-        {t('reservar.reReservar.boton')}
-      </Button>
-    </div>
   )
 }
 
@@ -666,15 +636,15 @@ function ReservasListSkeleton() {
 function EmptyTab({ role }: { role: ReservationRole }) {
   if (role === 'conductor') {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-        <ClipboardList className="h-12 w-12 text-text-muted" />
-        <p className="text-text-secondary">
-          {t('reservas.empty.conductor.sinReservas')}
-        </p>
-        <Link to="/buscar">
-          <Button variant="secondary">{t('reservas.empty.conductor.cta')}</Button>
-        </Link>
-      </div>
+      <EmptyState
+        icon={<ClipboardList className="h-[26px] w-[26px] text-text-muted" />}
+        title={t('reservas.empty.conductor.sinReservas')}
+        action={
+          <Link to="/buscar">
+            <Button variant="secondary">{t('reservas.empty.conductor.cta')}</Button>
+          </Link>
+        }
+      />
     )
   }
   return <OwnerEmptyTab />
@@ -688,20 +658,20 @@ function OwnerEmptyTab() {
   const sinVehiculos =
     myVehiclesQuery.isFetched && (myVehiclesQuery.data?.length ?? 0) === 0
   return (
-    <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-      <ClipboardList className="h-12 w-12 text-text-muted" />
-      <p className="text-text-secondary">
-        {t(
-          sinVehiculos
-            ? 'reservas.empty.owner.sinVehiculos'
-            : 'reservas.empty.owner.sinReservas',
-        )}
-      </p>
-      {sinVehiculos && (
-        <Link to="/mis-vehiculos/nuevo">
-          <Button variant="default">{t('reservas.empty.owner.publicarCta')}</Button>
-        </Link>
+    <EmptyState
+      icon={<ClipboardList className="h-[26px] w-[26px] text-text-muted" />}
+      title={t(
+        sinVehiculos
+          ? 'reservas.empty.owner.sinVehiculos'
+          : 'reservas.empty.owner.sinReservas',
       )}
-    </div>
+      action={
+        sinVehiculos ? (
+          <Link to="/mis-vehiculos/nuevo">
+            <Button variant="default">{t('reservas.empty.owner.publicarCta')}</Button>
+          </Link>
+        ) : undefined
+      }
+    />
   )
 }

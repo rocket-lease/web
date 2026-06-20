@@ -273,26 +273,33 @@ interface NearbyCTAProps {
  */
 function NearbyCTA({ status, onClick }: NearbyCTAProps) {
   return (
-    <section className="px-5">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={status === 'locating'}
-        className="w-full flex items-center gap-3 p-4 rounded-2xl bg-surface-1 border border-white/8 hover:border-brand-500/40 transition-colors text-left active:scale-[0.99]"
-      >
-        <div className="shrink-0 h-10 w-10 rounded-full bg-brand-500/15 flex items-center justify-center">
-          <NavigationArrow size={18} weight="fill" className="text-brand-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-text-primary">
-            {status === 'locating' ? 'Detectando tu ubicación…' : 'Mostrame autos cerca mío'}
-          </p>
-          <p className="text-xs text-text-muted mt-0.5">
-            {status === 'locating' ? 'Un segundo' : 'Activá la ubicación para ver lo que hay a tu alrededor'}
-          </p>
-        </div>
-        <CaretRight size={16} className="text-text-muted shrink-0" />
-      </button>
+    <section className="flex flex-col gap-3">
+      <header className="px-5 flex items-center gap-2">
+        <NavigationArrow size={16} weight="fill" className="text-brand-400" />
+        <h2 className="text-base font-bold text-text-primary">Cerca tuyo</h2>
+      </header>
+
+      <div className="px-5">
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={status === 'locating'}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-surface-1 border border-white/8 hover:border-brand-500/40 transition-colors text-left active:scale-[0.99] disabled:opacity-70"
+        >
+          <div className="shrink-0 h-10 w-10 rounded-full bg-brand-500/15 flex items-center justify-center">
+            <NavigationArrow size={18} weight="fill" className="text-brand-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary">
+              {status === 'locating' ? 'Detectando tu ubicación…' : 'Activar ubicación'}
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              {status === 'locating' ? 'Un segundo' : 'Para ver los autos más cercanos a vos'}
+            </p>
+          </div>
+          <CaretRight size={16} className="text-text-muted shrink-0" />
+        </button>
+      </div>
     </section>
   )
 }

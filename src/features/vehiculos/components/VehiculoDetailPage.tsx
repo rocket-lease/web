@@ -12,12 +12,12 @@ import {
   Star,
   CheckCircle,
   WarningCircle,
-  ChatCircleText,
   CaretRight,
   Spinner,
 } from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
+import { EmptyState } from '@/ui/empty-state'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
@@ -464,13 +464,7 @@ function ReviewsSection({ vehicleId }: { vehicleId: string }) {
         </div>
       </div>
       {reviews?.length === 0 ? (
-        <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
-            <ChatCircleText size={20} className="text-text-muted" weight="regular" />
-          </div>
-          <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
-          <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>
-        </div>
+        <EmptyState variant="compact" title={t('vehiculo.reviewsEmpty')} />
       ) : (
         <div className="space-y-3">
           {reviews?.map((review) => (

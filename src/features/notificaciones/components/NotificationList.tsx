@@ -13,6 +13,7 @@ import {
 import type { InAppNotification } from '@rocket-lease/contracts'
 import { useMarkNotificaciones, useNotificaciones } from '../hooks/useNotificaciones'
 import { fmt } from '@/lib/formatters'
+import { EmptyState } from '@/ui/empty-state'
 import { t } from '@/i18n/es'
 
 const SWIPE_TRIGGER = 72
@@ -206,29 +207,21 @@ export function NotificationList() {
 
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-1">
-          <BellSlash size={26} weight="regular" className="text-text-muted" />
-        </div>
-        <div>
-          <p className="font-semibold text-text-primary">{t('notificaciones.error')}</p>
-          <p className="mt-1 text-sm text-text-muted">{t('notificaciones.errorHint')}</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={<BellSlash size={26} weight="regular" className="text-text-muted" />}
+        title={t('notificaciones.error')}
+        description={t('notificaciones.errorHint')}
+      />
     )
   }
 
   if (notifications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-1">
-          <BellSlash size={26} weight="regular" className="text-text-muted" />
-        </div>
-        <div>
-          <p className="font-semibold text-text-primary">{t('notificaciones.empty')}</p>
-          <p className="mt-1 text-sm text-text-muted">{t('notificaciones.emptyHint')}</p>
-        </div>
-      </div>
+      <EmptyState
+        icon={<BellSlash size={26} weight="regular" className="text-text-muted" />}
+        title={t('notificaciones.empty')}
+        description={t('notificaciones.emptyHint')}
+      />
     )
   }
 

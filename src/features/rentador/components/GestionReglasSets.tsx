@@ -3,6 +3,7 @@ import { Plus, Trash2, Pencil, Gauge, Clock, Car } from 'lucide-react'
 import { Button } from '@/ui/button'
 import { Badge, type BadgeProps } from '@/ui/badge'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { EmptyState } from '@/ui/empty-state'
 import { t } from '@/i18n/es'
 import {
   useReservationRuleSets,
@@ -69,12 +70,15 @@ export function GestionReglasSets() {
           </Button>
         </div>
       ) : ruleSets.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
-          <p className="text-text-secondary">{t('reservationRules.empty')}</p>
-          <Button onClick={() => setShowCreateDialog(true)}>
-            {t('reservationRules.createFirst')}
-          </Button>
-        </div>
+        <EmptyState
+          icon={<Gauge size={26} className="text-text-muted" />}
+          title={t('reservationRules.empty')}
+          action={
+            <Button onClick={() => setShowCreateDialog(true)}>
+              {t('reservationRules.createFirst')}
+            </Button>
+          }
+        />
       ) : (
         <div className="px-4 py-4 space-y-3">
           {ruleSets.map((ruleSet) => (

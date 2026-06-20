@@ -5,6 +5,7 @@ import {
   LogOut,
   Trash2,
   Zap,
+  Bell,
 } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
@@ -42,6 +43,15 @@ export function ConfiguracionPage() {
   return (
     <div className="flex flex-col pb-6">
       <PageHeader title={t('configuracion.title')} showBack />
+
+      <Section title={t('configuracion.section.preferencias')}>
+        <SettingsRow
+          leading={<Bell className="h-5 w-5" />}
+          label={t('nav.notificaciones')}
+          asLink="/notificaciones"
+          showChevron
+        />
+      </Section>
 
       <Section title={t('configuracion.section.rentador')}>
         <SettingsRow
