@@ -5,6 +5,7 @@ import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 import { vehiclesApi } from '../api/vehiculos.api'
 import { useNearMe } from '@/features/mapa/hooks/useNearMe'
+import { SugeridoParaVos } from '@/features/recomendaciones/components/SugeridoParaVos'
 
 interface HomeDiscoverProps {
   vehicles:    GetVehicleResponse[]
@@ -104,6 +105,7 @@ export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercen
           isLoading={false}
         />
       )}
+      <SugeridoParaVos levelDiscountPercentage={levelDiscountPercentage} />
 
       {(promoted.length > 0 || isLoading) && (
         <Carousel
