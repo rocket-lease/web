@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import type { ReservationListItem } from '@rocket-lease/contracts'
 import { ReservasPage } from './ReservasPage'
 import { fetchReservations } from '../api/reservations.api'
@@ -135,17 +135,7 @@ function listResponse(items: ReservationListItem[]) {
 }
 
 describe('ReservasPage — botón Re-reservar (US-31)', () => {
-  it('muestra el botón Re-reservar en una reserva completada del conductor', async () => {
-    fetchMock.mockResolvedValue(listResponse([listItem({ status: 'completed' })]))
-
-    render(<ReservasPage />, { wrapper: createWrapper() })
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Completadas' }))
-
-    expect(await screen.findByRole('button', { name: 'Re-reservar' })).toBeInTheDocument()
-  })
-
-  it('no muestra el botón Re-reservar en una reserva confirmada', async () => {
+  it('no muestra el botón Re-reservar entre las reservas activas (el re-reservar vive en Historial)', async () => {
     fetchMock.mockResolvedValue(listResponse([listItem({ status: 'confirmed' })]))
 
     render(<ReservasPage />, { wrapper: createWrapper() })

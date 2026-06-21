@@ -37,6 +37,19 @@ registerRoute(
 
 // ─── Push Notifications ────────────────────────────────────────────────────
 
+// El Badging API (setAppBadge) sí está soportado en PWAs instaladas en iOS 16.4+,
+// a diferencia de la mayoría de las propiedades ricas de la notificación. Refleja
+// el conteo de no leídas en el ícono de la app.
+function syncAppBadge(unreadCount?: number) {
+  const nav = self.navigator as WorkerNavigator & {
+    setAppBadge?: (count?: number) => Promise<void>
+    clearAppBadge?: () => Promise<void>
+  }
+  if (typeof unreadCount !== 'number') return
+  if (unreadCount > 0) void nav.setAppBadge?.(unreadCount)
+  else void nav.clearAppBadge?.()
+}
+
 self.addEventListener('push', event => {
   if (!event.data) return
   const data = event.data.json() as {
@@ -44,13 +57,19 @@ self.addEventListener('push', event => {
     body?: string
     icon?: string
     badge?: string
+    tag?: string
+    requireInteraction?: boolean
+    unreadCount?: number
     data?: { url?: string }
   }
+  syncAppBadge(data.unreadCount)
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'Rocket Lease', {
       body: data.body,
       icon: data.icon ?? '/icons/icon-192.png',
       badge: data.badge ?? '/icons/badge-72.png',
+      tag: data.tag,
+      requireInteraction: data.requireInteraction ?? false,
       data: data.data ?? {},
     }),
   )
@@ -65,7 +84,10 @@ self.addEventListener('notificationclick', event => {
       .then(clientList => {
         for (const client of clientList) {
           if (client.url.startsWith(self.location.origin) && 'focus' in client) {
-            return (client as WindowClient).focus().then(c => c.navigate(url))
+            // En WebKit (iOS 17/18) navigate() sobre un cliente existente es lo que
+            // efectivamente cambia de ruta; focus() solo, deja la página anterior.
+            const wc = client as WindowClient
+            return wc.navigate(url).then(c => (c ?? wc).focus())
           }
         }
         return self.clients.openWindow(url)

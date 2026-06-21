@@ -1,6 +1,6 @@
 import { Star } from '@phosphor-icons/react'
 import { Avatar } from '@/ui/avatar'
-import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
+import { useUserProfile } from '@/features/perfil/hooks/useUserProfile'
 import { useReputation } from '@/features/reputation/hooks/useReputation'
 import { t } from '@/i18n/es'
 
@@ -10,7 +10,7 @@ interface AdminUserChipProps {
 }
 
 export function AdminUserChip({ userId, role }: AdminUserChipProps) {
-  const { data: profile } = useMyProfile(userId)
+  const { data: profile } = useUserProfile(userId)
   const { data: rep } = useReputation(userId)
   const score = role === 'conductor' ? rep?.asDriver.score : rep?.asRenter.score
 

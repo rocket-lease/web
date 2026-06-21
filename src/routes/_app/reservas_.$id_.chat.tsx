@@ -4,18 +4,11 @@ import { useQuery } from '@tanstack/react-query'
 import { RESERVATION_STATUS } from '@rocket-lease/contracts'
 import { AuthGate } from '@/features/auth/components/AuthGate'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { profileApi } from '@/features/perfil/api/profile.api'
 import { reservarApi } from '@/features/reservar/api/reservar.api'
 import { ChatWindow } from '@/features/chat/components/ChatWindow'
-import { WhatsAppContactButton } from '@/features/chat/components/WhatsAppContactButton'
+import { PageLoader } from '@/ui/page-loader'
 import { t } from '@/i18n/es'
 
-/**
- * Página de chat interno entre conductor y rentador para una reserva.
- *
- * El conductor ve además el botón de WhatsApp con el teléfono del rentador
- * (requiere fetch adicional al perfil público). El rentador solo ve el chat.
- */
 function ChatPage() {
   const { id: reservationId = '' } = useParams({ strict: false })
   const { user } = useAuth()
@@ -28,16 +21,6 @@ function ChatPage() {
   })
 
   const reservation = reservationQuery.data
-
-  const isConductor =
-    reservation !== undefined && user !== null && reservation.conductorId === user.id
-
-  const rentadorProfileQuery = useQuery({
-    queryKey: ['profile', reservation?.rentador.id],
-    queryFn: () => profileApi.getProfileById(reservation!.rentador.id),
-    enabled: isConductor && reservation !== undefined,
-    staleTime: 60_000,
-  })
 
   const chatAllowed =
     reservation !== undefined &&
@@ -61,23 +44,9 @@ function ChatPage() {
         </h1>
       </div>
 
-      {/* WhatsApp CTA — solo visible al conductor cuando hay teléfono */}
-      {isConductor && rentadorProfileQuery.data?.phone && (
-        <div className="border-b border-white/8 px-4 py-3">
-          <WhatsAppContactButton
-            phone={rentadorProfileQuery.data.phone}
-            name={reservation?.rentador.name ?? ''}
-          />
-        </div>
-      )}
-
       {/* Cuerpo del chat */}
       <div className="flex-1 overflow-hidden">
-        {reservationQuery.isPending && (
-          <p className="py-12 text-center text-sm text-text-muted">
-            {t('general.loading')}
-          </p>
-        )}
+        {reservationQuery.isPending && <PageLoader />}
 
         {reservationQuery.isError && (
           <p className="py-12 text-center text-sm text-danger-400">

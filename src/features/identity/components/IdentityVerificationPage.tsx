@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useNavigate } from '@tanstack/react-router'
 import {
   ArrowClockwise,
@@ -72,7 +73,7 @@ export function IdentityVerificationPage() {
     return (
       <div className="flex flex-col min-h-full bg-surface-0">
         <PageHeader title={t('identidad.title')} showBack />
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <PageLoader />
       </div>
     )
   }

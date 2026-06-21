@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ChatCircleDots } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
+import { PageLoader } from '@/ui/page-loader'
 import { useMessages } from '../hooks/useMessages'
 import { useSendMessage } from '../hooks/useSendMessage'
-import { markAsRead } from '../hooks/useUnreadCount'
+import { messagingApi } from '../api/messaging.api'
+import { messagesQueryKey } from '../hooks/useMessages'
 import { MessageBubble } from './MessageBubble'
 import { MessageInput } from './MessageInput'
 
@@ -21,6 +24,7 @@ export function ChatWindow({
   reservationId,
   currentUserId,
 }: ChatWindowProps) {
+  const queryClient = useQueryClient()
   const messagesQuery = useMessages(reservationId)
   const sendMessage = useSendMessage(reservationId, currentUserId)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -28,9 +32,14 @@ export function ChatWindow({
   const messages = messagesQuery.data?.items ?? []
 
   useEffect(() => {
-    markAsRead(reservationId)
-    return () => { markAsRead(reservationId) }
-  }, [reservationId])
+    const now = new Date().toISOString()
+    void messagingApi.markRead(reservationId, now).then(() => {
+      void queryClient.invalidateQueries({ queryKey: messagesQueryKey(reservationId) })
+    })
+    return () => {
+      void messagingApi.markRead(reservationId, new Date().toISOString())
+    }
+  }, [reservationId, queryClient])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -47,11 +56,7 @@ export function ChatWindow({
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {messagesQuery.isPending && (
-          <p className="text-center text-sm text-text-muted py-8">
-            {t('general.loading')}
-          </p>
-        )}
+        {messagesQuery.isPending && <PageLoader />}
 
         {messagesQuery.isError && (
           <p className="text-center text-sm text-danger-400 py-8">

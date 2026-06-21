@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { ArrowLeft, CheckCircle, ShieldCheck, WarningCircle } from '@phosphor-icons/react'
@@ -80,7 +81,7 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5 pb-10">
         {isLoading && (
-          <p className="text-center text-sm text-text-muted py-12">{t('general.loading')}</p>
+          <PageLoader />
         )}
 
         {ticket && (
@@ -182,12 +183,10 @@ export function AdminTicketDetailPage({ ticketId }: { ticketId: string }) {
               </div>
             ) : user ? (
               <div className="space-y-2">
-                {ticket.reportedBy && (
-                  <AdminUserChip
-                    userId={ticket.reporterId}
-                    role={ticket.reportedBy}
-                  />
-                )}
+                <AdminUserChip
+                  userId={ticket.reporterId}
+                  role={ticket.reportedBy ?? 'conductor'}
+                />
                 <TicketChatSection
                   ticketId={ticketId}
                   currentUserId={user.id}

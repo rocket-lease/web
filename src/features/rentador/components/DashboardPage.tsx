@@ -4,7 +4,6 @@ import {
   CalendarCheck,
   Star,
   Plus,
-  Bell,
   ArrowRight,
   Percent,
   Warning,
@@ -28,6 +27,7 @@ import type { I18nKey } from '@/i18n/es'
 import { PromocionarDialog } from '@/features/promocionar/components/PromocionarDialog'
 import { DateRangeSheet } from '@/ui/date-range-sheet'
 import { useReputation } from '@/features/reputation/hooks/useReputation'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics'
 import { LineChart, OccupancyRing } from './DashboardCharts'
 
@@ -196,8 +196,17 @@ export function DashboardPage() {
     isCustom && rangeValid ? dayEndIso(customTo) : undefined,
   )
   const [promoteVehicleId, setPromoteVehicleId] = useState<string | null>(null)
+  const [showAllAttention, setShowAllAttention] = useState(false)
 
   const attentionVehicles = data?.attentionVehicles ?? []
+  // Peores primero; el dashboard muestra solo unas pocas y colapsa el resto.
+  const sortedAttention = [...attentionVehicles].sort(
+    (a, b) => a.upcomingOccupancyRatePercent - b.upcomingOccupancyRatePercent,
+  )
+  const ATTENTION_PREVIEW = 3
+  const visibleAttention = showAllAttention
+    ? sortedAttention
+    : sortedAttention.slice(0, ATTENTION_PREVIEW)
 
   // Período a propagar al detalle del vehículo (mantiene la selección).
   const detailSearch: DetailSearch =
@@ -226,13 +235,7 @@ export function DashboardPage() {
             </h1>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link
-              to="/notificaciones"
-              aria-label={t('nav.notificaciones')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-            >
-              <Bell size={20} />
-            </Link>
+            <NotificationBell />
             <Link to="/mis-vehiculos/nuevo">
               <Button size="sm">
                 <Plus size={15} weight="bold" />
@@ -276,13 +279,27 @@ export function DashboardPage() {
           {/* Alerta de baja ocupación próxima (independiente del período) */}
           {attentionVehicles.length > 0 && (
             <div className="mt-3 space-y-3">
-              {attentionVehicles.map((v) => (
+              {visibleAttention.map((v) => (
                 <LowOccupancyCard
                   key={v.vehicleId}
                   vehicle={v}
                   onPromote={setPromoteVehicleId}
                 />
               ))}
+              {attentionVehicles.length > ATTENTION_PREVIEW && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllAttention((s) => !s)}
+                  className="w-full rounded-xl bg-surface-2 py-2.5 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-3 active:scale-[0.99]"
+                >
+                  {showAllAttention
+                    ? t('dashboard.verMenos')
+                    : t('dashboard.verRestantes').replace(
+                        '{n}',
+                        String(attentionVehicles.length - ATTENTION_PREVIEW),
+                      )}
+                </button>
+              )}
             </div>
           )}
         </div>

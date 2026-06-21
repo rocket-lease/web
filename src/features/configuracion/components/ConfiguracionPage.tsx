@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { Link } from '@tanstack/react-router'
 import {
   ChevronRight,
   LogOut,
   Trash2,
   Zap,
+  Bell,
 } from 'lucide-react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { DeleteAccountDialog } from '@/features/auth/components/DeleteAccountDialog'
@@ -34,7 +36,21 @@ export function ConfiguracionPage() {
     return (
       <div className="flex flex-col">
         <PageHeader title={t('configuracion.title')} showBack />
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <div className="mt-2">
+          {[2, 1, 2].map((rows, s) => (
+            <div key={s} className="px-4 mt-6">
+              <Skeleton className="mb-3 h-3 w-24" />
+              <div className="space-y-1">
+                {Array.from({ length: rows }).map((_, r) => (
+                  <div key={r} className="flex items-center gap-3 px-3 py-3.5">
+                    <Skeleton className="h-5 w-5 shrink-0 rounded" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -42,6 +58,15 @@ export function ConfiguracionPage() {
   return (
     <div className="flex flex-col pb-6">
       <PageHeader title={t('configuracion.title')} showBack />
+
+      <Section title={t('configuracion.section.preferencias')}>
+        <SettingsRow
+          leading={<Bell className="h-5 w-5" />}
+          label={t('nav.notificaciones')}
+          asLink="/notificaciones"
+          showChevron
+        />
+      </Section>
 
       <Section title={t('configuracion.section.rentador')}>
         <SettingsRow

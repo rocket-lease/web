@@ -29,7 +29,7 @@ export function useSendMessage(reservationId: string, currentUserId: string) {
       queryClient.setQueryData<ListMessagesResponse>(queryKey, (old) =>
         old
           ? { ...old, items: [...old.items, optimistic] }
-          : { items: [optimistic] },
+          : { items: [optimistic], lastSeenAt: null },
       )
       return { previous }
     },

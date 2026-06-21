@@ -1,5 +1,6 @@
 import { User } from 'lucide-react'
 import { Star } from '@phosphor-icons/react'
+import { Link } from '@tanstack/react-router'
 import type { ReviewItem } from '@rocket-lease/contracts'
 import { fmt } from '@/lib/formatters'
 import { t } from '@/i18n/es'
@@ -20,7 +21,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
   const targetLabel = TARGET_LABELS[review.targetType] ?? ''
 
   return (
-    <div className="bg-surface-1 rounded-xl p-4 space-y-3">
+    <Link
+      to="/perfil/$id"
+      params={{ id: review.reviewerId }}
+      className="block bg-surface-1 rounded-xl p-4 space-y-3 hover:bg-surface-2 transition-colors"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Avatar size="sm">
@@ -58,6 +63,6 @@ export function ReviewCard({ review }: ReviewCardProps) {
       <p className="text-xs text-text-muted">
         {fmt.dateShort(review.createdAt)}
       </p>
-    </div>
+    </Link>
   )
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { useNavigate } from '@tanstack/react-router'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
@@ -57,7 +58,7 @@ export function WithdrawDrawer({ open, onOpenChange, balanceInCents }: WithdrawD
           </div>
 
           {accountsLoading ? (
-            <p className="text-sm text-text-muted">{t('general.loading')}</p>
+            <PageLoader />
           ) : accounts.length === 0 ? (
             <div className="rounded-xl border border-warning/30 bg-warning/8 px-4 py-3 space-y-3">
               <div>

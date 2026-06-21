@@ -1,15 +1,16 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from '@tanstack/react-router'
-import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft } from '@phosphor-icons/react'
+import { User, Envelope, Lock, Phone, IdentificationCard, CaretLeft, WarningCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { Button } from '@/ui/button'
 import { Input } from '@/ui/input'
 import { authApi } from '../api/auth.api'
 import { t } from '@/i18n/es'
 import { getErrorMessage } from '@/lib/error-mapper'
-import { ErrorCodes, type ProblemDetails } from '@rocket-lease/contracts'
+import { ErrorCodes, RegisterUserRequestSchema, type ProblemDetails } from '@rocket-lease/contracts'
 
 function formatDni(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 8)
@@ -18,32 +19,31 @@ function formatDni(value: string): string {
   return `${digits.slice(0, digits.length - 6)}.${digits.slice(-6, -3)}.${digits.slice(-3)}`
 }
 
-// Mirrors RegisterUserRequestSchema from @rocket-lease/contracts
-const schema = z
-  .object({
-    name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
-    email: z.string().email('Ingresá un correo válido'),
-    dni: z
-      .string()
-      .transform(v => v.replace(/\./g, ''))
-      .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
-    phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
-    password: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .refine(v => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
-      .refine(v => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
-    confirmPassword: z.string(),
-  })
-  .refine(d => d.password === d.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
-    path: ['confirmPassword'],
-  })
+const schema = RegisterUserRequestSchema.extend({
+  name: z.string().min(1, 'Ingresá tu nombre completo').max(100),
+  email: z.string().email('Ingresá un correo válido'),
+  dni: z
+    .string()
+    .transform(v => v.replace(/\./g, ''))
+    .pipe(z.string().regex(/^\d{7,8}$/, 'El DNI debe tener 7 u 8 dígitos')),
+  phone: z.string().min(1, 'Ingresá tu teléfono').max(20),
+  password: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .refine(v => /[a-zA-Z]/.test(v), 'La contraseña debe contener al menos una letra')
+    .refine(v => /[0-9]/.test(v), 'La contraseña debe contener al menos un número'),
+  confirmPassword: z.string(),
+}).refine(d => d.password === d.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+})
 
 type FormData = z.infer<typeof schema>
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [resending, setResending] = useState(false)
   const {
     register,
     handleSubmit,
@@ -51,6 +51,7 @@ export function RegisterPage() {
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
   const onSubmit = async (data: FormData) => {
+    setPendingEmail(null)
     try {
       await authApi.signUp({
         name: data.name,
@@ -64,13 +65,25 @@ export function RegisterPage() {
     } catch (err) {
       const problem = err as ProblemDetails
       if (problem?.code === ErrorCodes.EMAIL_UNVERIFIED_PENDING) {
-        toast.info(t('auth.register.pendingVerification'))
-        navigate({ to: '/verificar', search: { channel: 'email', email: data.email } })
+        setPendingEmail(data.email)
       } else if (problem?.code === ErrorCodes.ENTITY_ALREADY_EXISTS) {
         toast.error(t('auth.register.emailTaken'))
       } else {
         toast.error(getErrorMessage(err))
       }
+    }
+  }
+
+  const handleResend = async () => {
+    if (!pendingEmail || resending) return
+    setResending(true)
+    try {
+      await authApi.resendEmailOtp(pendingEmail)
+      navigate({ to: '/verificar', search: { channel: 'email', email: pendingEmail } })
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setResending(false)
     }
   }
 
@@ -121,6 +134,26 @@ export function RegisterPage() {
                 error={errors.email?.message}
                 {...register('email')}
               />
+              {pendingEmail && (
+                <div className="mt-2 flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                  <div className="flex items-start gap-2">
+                    <WarningCircle size={16} weight="duotone" className="mt-0.5 shrink-0 text-amber-400" />
+                    <p className="text-xs text-text-secondary">{t('auth.register.pendingVerification')}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={resending}
+                    onClick={handleResend}
+                    className="w-full border-amber-500/40 text-amber-300 hover:bg-amber-500/10"
+                  >
+                    {resending
+                      ? t('auth.register.pendingVerificationSending')
+                      : t('auth.register.pendingVerificationCta')}
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -175,6 +208,9 @@ export function RegisterPage() {
                 error={errors.password?.message}
                 {...register('password')}
               />
+              {!errors.password && (
+                <p className="mt-1.5 text-xs text-text-muted">{t('auth.register.passwordHint')}</p>
+              )}
             </div>
 
             <div>

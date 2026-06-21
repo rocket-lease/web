@@ -1,6 +1,7 @@
 import { Spinner, ChatCircleDots } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { PageHeader } from '@/features/layout/components/PageHeader'
+import { EmptyState } from '@/ui/empty-state'
 import { useRentadorReviews } from '../hooks/useRentadorReviews'
 import { ReviewCard } from './ReviewCard'
 
@@ -29,15 +30,11 @@ export function ResenasPage() {
         )}
 
         {reviews?.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <ChatCircleDots size={40} className="text-white/10 mb-3" />
-            <p className="text-sm text-text-primary font-medium">
-              {t('historial.resenas.empty')}
-            </p>
-            <p className="text-xs text-text-muted mt-1">
-              {t('historial.resenas.emptyHint')}
-            </p>
-          </div>
+          <EmptyState
+            icon={<ChatCircleDots size={26} weight="regular" className="text-text-muted" />}
+            title={t('historial.resenas.empty')}
+            description={t('historial.resenas.emptyHint')}
+          />
         )}
 
         {reviews?.map((review) => (

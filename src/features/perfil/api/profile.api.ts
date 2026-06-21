@@ -1,8 +1,8 @@
 import {
   GetMyProfileResponseSchema,
   type GetMyProfileResponse,
-  type GetUserProfileResponse,
-  GetUserProfileResponseSchema,
+  type GetPublicProfileResponse,
+  GetPublicProfileResponseSchema,
   UpdateMyProfileRequestSchema,
   UpdateMyProfileResponseSchema,
   type UpdateMyProfileRequest,
@@ -16,9 +16,9 @@ export const profileApi = {
     return GetMyProfileResponseSchema.parse(raw);
   },
 
-  async getProfileById(profileId: string): Promise<GetUserProfileResponse> {
+  async getProfileById(profileId: string): Promise<GetPublicProfileResponse> {
     const raw = await apiClient.get<unknown>(`/profile/${profileId}`);
-    return GetUserProfileResponseSchema.parse(raw);
+    return GetPublicProfileResponseSchema.parse(raw);
   },
 
   async updateMyProfile(

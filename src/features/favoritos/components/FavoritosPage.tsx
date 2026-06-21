@@ -1,10 +1,12 @@
-import { Heart, Bell } from '@phosphor-icons/react'
+import { Heart } from '@phosphor-icons/react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { t } from '@/i18n/es'
 import { PageHeader } from '@/features/layout/components/PageHeader'
-import { VehiculoCard } from '@/features/vehiculos/components/VehiculoCard'
+import { VehiculoCard, VehiculoCardSkeleton } from '@/features/vehiculos/components/VehiculoCard'
 import { vehiclesApi } from '@/features/vehiculos/api/vehiculos.api'
+import { NotificationBell } from '@/features/notificaciones/components/NotificationBell'
+import { EmptyState } from '@/ui/empty-state'
 import { useFavoritos } from '../hooks/useFavoritos'
 
 export function FavoritosPage() {
@@ -25,42 +27,31 @@ export function FavoritosPage() {
     <div className="flex flex-col">
       <PageHeader
         title={t('nav.favoritos')}
-        actions={
-          <Link
-            to="/notificaciones"
-            aria-label={t('nav.notificaciones')}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2/80 text-text-secondary hover:text-text-primary transition-colors active:scale-95"
-          >
-            <Bell size={22} />
-          </Link>
-        }
+        actions={<NotificationBell />}
       />
       <div className="px-5 pt-4 pb-2">
         {isLoading && (
-          <div className="flex flex-col gap-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-52 rounded-xl bg-surface-1 animate-pulse" />
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            {[1, 2, 3, 4].map(i => (
+              <VehiculoCardSkeleton key={i} />
             ))}
           </div>
         )}
 
         {!isLoading && favoritos.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-1">
-              <Heart size={28} weight="regular" color="#5A5A78" />
-            </div>
-            <div>
-              <p className="font-semibold text-text-primary">{t('favoritos.empty')}</p>
-              <p className="mt-1 text-sm text-text-muted">{t('favoritos.emptyHint')}</p>
-            </div>
-            <Link
-              to="/buscar"
-              className="mt-2 rounded-full px-6 py-2.5 text-sm font-semibold text-white"
-              style={{ background: 'linear-gradient(135deg, #06B6D4 0%, #7C3AED 100%)' }}
-            >
-              {t('favoritos.emptyAction')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Heart size={26} weight="regular" className="text-text-muted" />}
+            title={t('favoritos.empty')}
+            description={t('favoritos.emptyHint')}
+            action={
+              <Link
+                to="/buscar"
+                className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white active:scale-95 transition-transform"
+              >
+                {t('favoritos.emptyAction')}
+              </Link>
+            }
+          />
         )}
 
         {!isLoading && favoritos.length > 0 && (

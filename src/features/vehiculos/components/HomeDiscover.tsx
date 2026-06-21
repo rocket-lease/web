@@ -1,7 +1,9 @@
 import { useMemo, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { CaretRight, MapPin, NavigationArrow, Sparkle, Clock, Car } from '@phosphor-icons/react'
 import type { GetVehicleResponse } from '@rocket-lease/contracts'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
+import { vehiclesApi } from '../api/vehiculos.api'
 import { useNearMe } from '@/features/mapa/hooks/useNearMe'
 import { SugeridoParaVos } from '@/features/recomendaciones/components/SugeridoParaVos'
 
@@ -11,6 +13,8 @@ interface HomeDiscoverProps {
   isError:     boolean
   levelDiscountPercentage?: number
   onPickCity:  (city: string) => void
+  /** Id del usuario logueado, para mostrar la sección "Mis vehículos". */
+  ownerId?:    string
 }
 
 /**
@@ -51,8 +55,14 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
   return 2 * R * Math.asin(Math.sqrt(s))
 }
 
-export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercentage, onPickCity }: HomeDiscoverProps) {
+export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercentage, onPickCity, ownerId }: HomeDiscoverProps) {
   const nearMe = useNearMe()
+
+  const { data: myVehicles } = useQuery({
+    queryKey: ['vehicles', 'by-owner', ownerId],
+    queryFn: () => vehiclesApi.getByOwnerId(ownerId!),
+    enabled: Boolean(ownerId),
+  })
 
   const promoted = useMemo(
     () => vehicles.filter(v => v.isPromoted).slice(0, CAROUSEL_LIMIT),
@@ -87,6 +97,14 @@ export function HomeDiscover({ vehicles, isLoading, isError, levelDiscountPercen
     <div className="flex flex-col gap-8 pt-5 pb-8">
       <DestinationsRow onPickCity={onPickCity} />
 
+      {myVehicles && myVehicles.length > 0 && (
+        <Carousel
+          title="Mis vehículos"
+          icon={<Car size={16} weight="fill" className="text-owner" />}
+          vehicles={myVehicles}
+          isLoading={false}
+        />
+      )}
       <SugeridoParaVos levelDiscountPercentage={levelDiscountPercentage} />
 
       {(promoted.length > 0 || isLoading) && (
@@ -257,26 +275,33 @@ interface NearbyCTAProps {
  */
 function NearbyCTA({ status, onClick }: NearbyCTAProps) {
   return (
-    <section className="px-5">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={status === 'locating'}
-        className="w-full flex items-center gap-3 p-4 rounded-2xl bg-surface-1 border border-white/8 hover:border-brand-500/40 transition-colors text-left active:scale-[0.99]"
-      >
-        <div className="shrink-0 h-10 w-10 rounded-full bg-brand-500/15 flex items-center justify-center">
-          <NavigationArrow size={18} weight="fill" className="text-brand-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-text-primary">
-            {status === 'locating' ? 'Detectando tu ubicación…' : 'Mostrame autos cerca mío'}
-          </p>
-          <p className="text-xs text-text-muted mt-0.5">
-            {status === 'locating' ? 'Un segundo' : 'Activá la ubicación para ver lo que hay a tu alrededor'}
-          </p>
-        </div>
-        <CaretRight size={16} className="text-text-muted shrink-0" />
-      </button>
+    <section className="flex flex-col gap-3">
+      <header className="px-5 flex items-center gap-2">
+        <NavigationArrow size={16} weight="fill" className="text-brand-400" />
+        <h2 className="text-base font-bold text-text-primary">Cerca tuyo</h2>
+      </header>
+
+      <div className="px-5">
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={status === 'locating'}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl bg-surface-1 border border-white/8 hover:border-brand-500/40 transition-colors text-left active:scale-[0.99] disabled:opacity-70"
+        >
+          <div className="shrink-0 h-10 w-10 rounded-full bg-brand-500/15 flex items-center justify-center">
+            <NavigationArrow size={18} weight="fill" className="text-brand-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary">
+              {status === 'locating' ? 'Detectando tu ubicación…' : 'Activar ubicación'}
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              {status === 'locating' ? 'Un segundo' : 'Para ver los autos más cercanos a vos'}
+            </p>
+          </div>
+          <CaretRight size={16} className="text-text-muted shrink-0" />
+        </button>
+      </div>
     </section>
   )
 }

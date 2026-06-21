@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import { ArrowLeft } from '@phosphor-icons/react'
@@ -94,7 +95,7 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
 
       <div className="flex-1 px-4 py-4 space-y-5 pb-24">
         {isLoading && (
-          <p className="text-center text-sm text-text-muted py-12">{t('general.loading')}</p>
+          <PageLoader />
         )}
 
         {ticket && (

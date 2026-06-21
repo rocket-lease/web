@@ -12,12 +12,13 @@ import {
   Star,
   CheckCircle,
   WarningCircle,
-  ChatCircleText,
   CaretRight,
   Spinner,
 } from '@phosphor-icons/react'
 import { Button } from '@/ui/button'
 import { Separator } from '@/ui/separator'
+import { EmptyState } from '@/ui/empty-state'
+import { Skeleton } from '@/ui/skeleton'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { Badge } from '@/ui/badge'
 import { Avatar } from '@/ui/avatar'
@@ -71,10 +72,25 @@ export function VehiculoDetailPage() {
     return (
       <div className="flex flex-col min-h-full">
         <PageHeader title="Detalle del vehículo" showBack sticky />
-        <div className="aspect-4/3 bg-surface-2 animate-pulse" />
-        <div className="px-4 py-5 space-y-4">
-          <div className="h-7 w-2/3 rounded-lg bg-surface-2 animate-pulse" />
-          <div className="h-4 w-1/3 rounded-lg bg-surface-2 animate-pulse" />
+        {/* Galería */}
+        <Skeleton className="aspect-4/3 w-full rounded-none" />
+        <div className="px-4 py-5 space-y-5">
+          {/* Título + precio */}
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+          </div>
+          {/* Card del rentador */}
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          {/* Specs */}
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
+            <Skeleton className="h-16 rounded-xl" />
+          </div>
+          {/* Secciones */}
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-24 w-full rounded-xl" />
         </div>
       </div>
     )
@@ -464,13 +480,7 @@ function ReviewsSection({ vehicleId }: { vehicleId: string }) {
         </div>
       </div>
       {reviews?.length === 0 ? (
-        <div className="rounded-xl bg-surface-2 border border-white/5 px-4 py-6 text-center">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface-1">
-            <ChatCircleText size={20} className="text-text-muted" weight="regular" />
-          </div>
-          <p className="text-sm font-medium text-text-secondary">{t('vehiculo.reviewsEmpty')}</p>
-          <p className="mt-1 text-xs text-text-muted">{t('vehiculo.reviewsEmptyHint')}</p>
-        </div>
+        <EmptyState variant="compact" title={t('vehiculo.reviewsEmpty')} />
       ) : (
         <div className="space-y-3">
           {reviews?.map((review) => (
