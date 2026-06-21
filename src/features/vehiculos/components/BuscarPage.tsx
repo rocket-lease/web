@@ -17,6 +17,7 @@ import { useMyProfile } from '@/features/perfil/hooks/useMyProfile'
 import { LEVEL_DISCOUNT_PCT } from '@/features/lealtad/utils/constants'
 import type { Characteristic, GetVehicleResponse } from '@rocket-lease/contracts'
 import { Route, type BuscarSearch } from '@/routes/_app/buscar'
+import { useSearchAlternatives } from '@/features/recomendaciones/hooks/useSearchAlternatives'
 
 const LOCATION_BY_CITY: Record<string, { locationCode: string; locationLabel: string }> = {
   CABA: { locationCode: 'caba', locationLabel: 'CABA' },
@@ -127,6 +128,8 @@ export function BuscarPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile])
 
+  const hasSearch = !!(search.city || search.locationCode || search.start || search.end || search.searched)
+
   const filtered = (vehicles as GetVehicleResponse[]).filter(v => {
     if (filters.query) {
       const q = filters.query.toLowerCase()
@@ -151,6 +154,16 @@ export function BuscarPage() {
     if (sortBy === 'rating') return 0 // The backend already sorted by rating
     return 0
   })
+
+  const showAlternatives = hasSearch && sorted.length === 0
+  const alternativesParams = showAlternatives ? {
+    brand: search.query?.split(' ')[0],
+    transmission: search.transmission,
+    maxPriceCents: search.maxPrice ? search.maxPrice * 100 : undefined,
+    city: search.city,
+    characteristics: search.characteristics as string[] | undefined,
+  } : {}
+  const { data: alternativesData, isLoading: alternativesLoading } = useSearchAlternatives(alternativesParams)
 
   const activeFiltersCount = [
     filters.transmission,
@@ -189,8 +202,6 @@ export function BuscarPage() {
   // Modo "exploración con mapa" se activa cuando hay al menos un criterio
   // primario en la URL. Antes de buscar, /buscar es un feed plano de
   // vehículos sin mapa — la home conductor.
-  const hasSearch = !!(search.city || search.locationCode || search.start || search.end || search.searched)
-
   /** Limpia los criterios primarios para volver al feed home sin recargar. */
   const exitSearch = () => updateSearch({
     city: undefined,
@@ -324,6 +335,8 @@ export function BuscarPage() {
                     columns="single"
                     hideCountHeader
                     levelDiscountPercentage={levelDiscountPercentage}
+                    alternatives={alternativesData?.alternatives}
+                    alternativesLoading={alternativesLoading}
                   />
                 </div>
               </VaulDrawer.Content>
