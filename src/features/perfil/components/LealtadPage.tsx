@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { Skeleton } from '@/ui/skeleton'
 import { Trophy, CaretRight } from '@phosphor-icons/react'
 import { PageHeader } from '@/features/layout/components/PageHeader'
 import { t } from '@/i18n/es'
@@ -34,7 +35,10 @@ export function LealtadPage() {
       <PageHeader title={t('lealtad.title')} showBack sticky />
 
       {isLoading && (
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <div className="px-4 mt-6 space-y-5">
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </div>
       )}
 
       {profile && (

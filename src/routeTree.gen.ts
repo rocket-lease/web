@@ -25,7 +25,6 @@ import { Route as AppMisVehiculosRouteImport } from './routes/_app/mis-vehiculos
 import { Route as AppMapaRouteImport } from './routes/_app/mapa'
 import { Route as AppLicenciaRouteImport } from './routes/_app/licencia'
 import { Route as AppIdentidadRouteImport } from './routes/_app/identidad'
-import { Route as AppHistorialRouteImport } from './routes/_app/historial'
 import { Route as AppFavoritosRouteImport } from './routes/_app/favoritos'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppConfiguracionRouteImport } from './routes/_app/configuracion'
@@ -34,6 +33,7 @@ import { Route as AdminTicketsRouteImport } from './routes/_admin/tickets'
 import { Route as VoucherVerifyTokenRouteImport } from './routes/voucher.verify.$token'
 import { Route as VoucherReturnTokenRouteImport } from './routes/voucher.return.$token'
 import { Route as AppVehiculosIdRouteImport } from './routes/_app/vehiculos.$id'
+import { Route as AppReservasHistorialRouteImport } from './routes/_app/reservas_.historial'
 import { Route as AppReservasIdRouteImport } from './routes/_app/reservas_.$id'
 import { Route as AppReservasTransferenciaIdRouteImport } from './routes/_app/reservas-transferencia.$id'
 import { Route as AppPerfilVerificacionesRouteImport } from './routes/_app/perfil_.verificaciones'
@@ -136,11 +136,6 @@ const AppIdentidadRoute = AppIdentidadRouteImport.update({
   path: '/identidad',
   getParentRoute: () => AppRoute,
 } as any)
-const AppHistorialRoute = AppHistorialRouteImport.update({
-  id: '/historial',
-  path: '/historial',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppFavoritosRoute = AppFavoritosRouteImport.update({
   id: '/favoritos',
   path: '/favoritos',
@@ -179,6 +174,11 @@ const VoucherReturnTokenRoute = VoucherReturnTokenRouteImport.update({
 const AppVehiculosIdRoute = AppVehiculosIdRouteImport.update({
   id: '/vehiculos/$id',
   path: '/vehiculos/$id',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReservasHistorialRoute = AppReservasHistorialRouteImport.update({
+  id: '/reservas_/historial',
+  path: '/reservas/historial',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReservasIdRoute = AppReservasIdRouteImport.update({
@@ -310,7 +310,6 @@ export interface FileRoutesByFullPath {
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
-  '/historial': typeof AppHistorialRoute
   '/identidad': typeof AppIdentidadRoute
   '/licencia': typeof AppLicenciaRoute
   '/mapa': typeof AppMapaRoute
@@ -337,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/perfil/verificaciones': typeof AppPerfilVerificacionesRoute
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
+  '/reservas/historial': typeof AppReservasHistorialRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
@@ -358,7 +358,6 @@ export interface FileRoutesByTo {
   '/configuracion': typeof AppConfiguracionRoute
   '/dashboard': typeof AppDashboardRoute
   '/favoritos': typeof AppFavoritosRoute
-  '/historial': typeof AppHistorialRoute
   '/identidad': typeof AppIdentidadRoute
   '/licencia': typeof AppLicenciaRoute
   '/mapa': typeof AppMapaRoute
@@ -385,6 +384,7 @@ export interface FileRoutesByTo {
   '/perfil/verificaciones': typeof AppPerfilVerificacionesRoute
   '/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/reservas/$id': typeof AppReservasIdRoute
+  '/reservas/historial': typeof AppReservasHistorialRoute
   '/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
@@ -409,7 +409,6 @@ export interface FileRoutesById {
   '/_app/configuracion': typeof AppConfiguracionRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/favoritos': typeof AppFavoritosRoute
-  '/_app/historial': typeof AppHistorialRoute
   '/_app/identidad': typeof AppIdentidadRoute
   '/_app/licencia': typeof AppLicenciaRoute
   '/_app/mapa': typeof AppMapaRoute
@@ -436,6 +435,7 @@ export interface FileRoutesById {
   '/_app/perfil_/verificaciones': typeof AppPerfilVerificacionesRoute
   '/_app/reservas-transferencia/$id': typeof AppReservasTransferenciaIdRoute
   '/_app/reservas_/$id': typeof AppReservasIdRoute
+  '/_app/reservas_/historial': typeof AppReservasHistorialRoute
   '/_app/vehiculos/$id': typeof AppVehiculosIdRoute
   '/voucher/return/$token': typeof VoucherReturnTokenRoute
   '/voucher/verify/$token': typeof VoucherVerifyTokenRoute
@@ -459,7 +459,6 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/dashboard'
     | '/favoritos'
-    | '/historial'
     | '/identidad'
     | '/licencia'
     | '/mapa'
@@ -486,6 +485,7 @@ export interface FileRouteTypes {
     | '/perfil/verificaciones'
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
+    | '/reservas/historial'
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
@@ -507,7 +507,6 @@ export interface FileRouteTypes {
     | '/configuracion'
     | '/dashboard'
     | '/favoritos'
-    | '/historial'
     | '/identidad'
     | '/licencia'
     | '/mapa'
@@ -534,6 +533,7 @@ export interface FileRouteTypes {
     | '/perfil/verificaciones'
     | '/reservas-transferencia/$id'
     | '/reservas/$id'
+    | '/reservas/historial'
     | '/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
@@ -557,7 +557,6 @@ export interface FileRouteTypes {
     | '/_app/configuracion'
     | '/_app/dashboard'
     | '/_app/favoritos'
-    | '/_app/historial'
     | '/_app/identidad'
     | '/_app/licencia'
     | '/_app/mapa'
@@ -584,6 +583,7 @@ export interface FileRouteTypes {
     | '/_app/perfil_/verificaciones'
     | '/_app/reservas-transferencia/$id'
     | '/_app/reservas_/$id'
+    | '/_app/reservas_/historial'
     | '/_app/vehiculos/$id'
     | '/voucher/return/$token'
     | '/voucher/verify/$token'
@@ -721,13 +721,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIdentidadRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/historial': {
-      id: '/_app/historial'
-      path: '/historial'
-      fullPath: '/historial'
-      preLoaderRoute: typeof AppHistorialRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/favoritos': {
       id: '/_app/favoritos'
       path: '/favoritos'
@@ -782,6 +775,13 @@ declare module '@tanstack/react-router' {
       path: '/vehiculos/$id'
       fullPath: '/vehiculos/$id'
       preLoaderRoute: typeof AppVehiculosIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reservas_/historial': {
+      id: '/_app/reservas_/historial'
+      path: '/reservas/historial'
+      fullPath: '/reservas/historial'
+      preLoaderRoute: typeof AppReservasHistorialRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/reservas_/$id': {
@@ -985,7 +985,6 @@ interface AppRouteChildren {
   AppConfiguracionRoute: typeof AppConfiguracionRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFavoritosRoute: typeof AppFavoritosRoute
-  AppHistorialRoute: typeof AppHistorialRoute
   AppIdentidadRoute: typeof AppIdentidadRoute
   AppLicenciaRoute: typeof AppLicenciaRoute
   AppMapaRoute: typeof AppMapaRoute
@@ -1007,6 +1006,7 @@ interface AppRouteChildren {
   AppPerfilVerificacionesRoute: typeof AppPerfilVerificacionesRoute
   AppReservasTransferenciaIdRoute: typeof AppReservasTransferenciaIdRoute
   AppReservasIdRoute: typeof AppReservasIdRoute
+  AppReservasHistorialRoute: typeof AppReservasHistorialRoute
   AppVehiculosIdRoute: typeof AppVehiculosIdRoute
   AppDashboardVehiculoIdRoute: typeof AppDashboardVehiculoIdRoute
   AppReservasIdChatRoute: typeof AppReservasIdChatRoute
@@ -1020,7 +1020,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppConfiguracionRoute: AppConfiguracionRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFavoritosRoute: AppFavoritosRoute,
-  AppHistorialRoute: AppHistorialRoute,
   AppIdentidadRoute: AppIdentidadRoute,
   AppLicenciaRoute: AppLicenciaRoute,
   AppMapaRoute: AppMapaRoute,
@@ -1042,6 +1041,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPerfilVerificacionesRoute: AppPerfilVerificacionesRoute,
   AppReservasTransferenciaIdRoute: AppReservasTransferenciaIdRoute,
   AppReservasIdRoute: AppReservasIdRoute,
+  AppReservasHistorialRoute: AppReservasHistorialRoute,
   AppVehiculosIdRoute: AppVehiculosIdRoute,
   AppDashboardVehiculoIdRoute: AppDashboardVehiculoIdRoute,
   AppReservasIdChatRoute: AppReservasIdChatRoute,

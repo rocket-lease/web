@@ -141,6 +141,14 @@ export const es = {  // --- App ---
   'auth.verify.banner': 'Tu cuenta no esta verificada',
   'auth.verify.banner.cta': 'Verificar',
 
+  // --- Recomendaciones ---
+  'recomendaciones.title': 'Sugerido para vos',
+  'recomendaciones.empty': 'Sin sugerencias por ahora',
+  'recomendaciones.emptyHint': 'Completá una reserva para recibir recomendaciones',
+  'recomendaciones.alternatives': 'Alternativas cercanas',
+  'recomendaciones.alternativesHint': 'No encontramos resultados exactos, pero estos vehículos pueden interesarte',
+  'recomendaciones.differences': 'Diferencias',
+
   // --- Buscar ---
   'buscar.title': 'Buscar vehiculos',
   'buscar.placeholder': 'Marca o modelo...',
@@ -238,6 +246,8 @@ export const es = {  // --- App ---
 
   // --- Reservas ---
   'reservas.title': 'Mis reservas',
+  'reservas.view.activas': 'Activas',
+  'reservas.view.historial': 'Historial',
   'reservas.list.pendingExtension': 'Extensión pendiente',
   'reservas.list.extensionBadge': 'Extensión',
   'reservas.role.aria': 'Cambiar perspectiva',
@@ -505,16 +515,19 @@ export const es = {  // --- App ---
   'perfil.level': 'Nivel',
   'perfil.reputation': 'Reputacion',
   'perfil.publishedVehicles': 'Vehículos publicados',
-  'perfil.publishedVehiclesEmpty': 'Este rentador todavía no publicó vehículos.',
   'perfil.reviewsTitle': 'Reseñas',
-  'perfil.reviewsEmpty': 'Este rentador todavía no tiene reseñas.',
-  'perfil.reviewsEmptyHint': 'Cuando alguien complete un alquiler con él y deje una opinión, vas a verla acá.',
+  'perfil.viewAsRentador': 'Ver como rentador',
+  'perfil.viewAsConductor': 'Ver como conductor',
+  'perfil.verif.identidad': 'Identidad verificada',
+  'perfil.verif.licencia': 'Licencia verificada',
   'perfil.reviews.tabRentador': 'Como rentador',
   'perfil.reviews.tabConductor': 'Como conductor',
-  'perfil.reviews.emptyRentador': 'Todavía no recibiste reseñas como rentador.',
-  'perfil.reviews.emptyConductor': 'Todavía no recibiste reseñas como conductor.',
   'perfil.settings': 'Configuracion',
+  'perfil.group.cuenta': 'Cuenta',
+  'perfil.group.actividad': 'Actividad',
+  'perfil.group.app': 'App',
   'perfil.adminPanel': 'Panel de administracion',
+  'perfil.admin.row': 'Panel de administración',
   'perfil.darkMode': 'Modo oscuro',
   'perfil.notifications': 'Notificaciones',
 
@@ -732,6 +745,7 @@ export const es = {  // --- App ---
   // --- Configuración ---
   'configuracion.title': 'Configuración',
   'configuracion.section.seguridad': 'Seguridad',
+  'configuracion.section.preferencias': 'Preferencias',
   'configuracion.section.rentador': 'Rentador',
   'configuracion.section.cuenta': 'Cuenta',
   'configuracion.section.admin': 'Administración',
@@ -1267,6 +1281,7 @@ export const es = {  // --- App ---
   'paymentMethods.title': 'Medios de pago',
   'paymentMethods.add': 'Agregar medio de pago',
   'paymentMethods.empty': 'No tenés medios de pago guardados',
+  'paymentMethods.emptyHint': 'Agregá una tarjeta o billetera virtual para pagar tus reservas.',
   'paymentMethods.card': 'Tarjeta',
   'paymentMethods.wallet': 'Billetera virtual',
   'paymentMethods.lastFour': 'Terminada en {lastFour}',

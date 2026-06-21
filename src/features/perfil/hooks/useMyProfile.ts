@@ -7,24 +7,19 @@ const myProfileQueryKey = ['profile', 'me'] as const;
 
 export function useMyProfile() {
   const queryClient = useQueryClient();
-  const { session } = useAuth();
-  const accessToken = session?.access_token ?? localStorage.getItem('rocket_lease:access_token');
+  const { isAuthenticated } = useAuth();
 
   const profileQuery = useQuery({
     queryKey: myProfileQueryKey,
-    enabled: Boolean(accessToken),
+    enabled: isAuthenticated,
     queryFn: async () => {
-      if (!accessToken) throw new Error('Missing session token');
-      return profileApi.getMyProfile(accessToken);
+      return profileApi.getMyProfile();
     },
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (payload: UpdateMyProfileRequest) => {
-      if (!accessToken) {
-        throw new Error('Missing session token');
-      }
-      return profileApi.updateMyProfile(accessToken, payload);
+      return profileApi.updateMyProfile(payload);
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(myProfileQueryKey, updated);
@@ -34,10 +29,7 @@ export function useMyProfile() {
 
   const uploadAvatarMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!accessToken) {
-        throw new Error('Missing session token');
-      }
-      return profileApi.uploadAvatar(accessToken, file);
+      return profileApi.uploadAvatar(file);
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(myProfileQueryKey, updated);

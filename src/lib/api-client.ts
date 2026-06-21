@@ -4,6 +4,9 @@ import { getSessionId } from './session-id'
 
 const BASE_URL = import.meta.env.VITE_API_URL as string
 
+/** En dev (BASE_URL vacío) las llamadas van al proxy de Vite en /api/* → mismo origen, sin CORS. */
+const API_PREFIX = BASE_URL ? '' : '/api'
+
 async function authHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token ?? localStorage.getItem('rocket_lease:access_token')
@@ -27,7 +30,7 @@ async function forceLogout() {
 
 async function doFetch(path: string, init?: RequestInit) {
   const isFormData = typeof FormData !== 'undefined' && init?.body instanceof FormData
-  return fetch(`${BASE_URL}${path}`, {
+  return fetch(`${BASE_URL}${API_PREFIX}${path}`, {
     ...init,
     headers: {
       ...(isFormData ? {} : { 'Content-Type': 'application/json' }),

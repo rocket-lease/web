@@ -95,7 +95,7 @@ describe('useMyProfile', () => {
       })
     })
 
-    expect(mockProfileApi.updateMyProfile).toHaveBeenCalledWith('tok-123', {
+    expect(mockProfileApi.updateMyProfile).toHaveBeenCalledWith({
       name: 'Nuevo Nombre',
       phone: '1234567890',
       avatarUrl: null,

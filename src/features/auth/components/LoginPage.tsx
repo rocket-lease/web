@@ -35,11 +35,10 @@ export function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await authApi.signIn(data)
+      await authApi.signIn(data)
 
       if (isAdminMode) {
-        const token = res.access_token
-        const profile = await profileApi.getMyProfile(token)
+        const profile = await profileApi.getMyProfile()
         if (!profile.isAdmin) {
           await authApi.signOut()
           toast.error(t('admin.login.notAdmin'))

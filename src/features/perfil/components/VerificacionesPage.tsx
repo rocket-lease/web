@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
+import { Skeleton } from '@/ui/skeleton'
 import {
   EnvelopeSimple,
   IdentificationCard,
@@ -30,7 +31,15 @@ export function VerificacionesPage() {
     return (
       <div className="flex flex-col">
         <PageHeader title={t('perfil.verificaciones.title')} showBack sticky />
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <div className="px-4 mt-4 space-y-1">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="flex items-center gap-3 px-3 py-3.5">
+              <Skeleton className="h-5 w-5 shrink-0 rounded" />
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="ml-auto h-5 w-16 shrink-0 rounded-full" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

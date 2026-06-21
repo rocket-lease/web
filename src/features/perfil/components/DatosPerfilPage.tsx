@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Skeleton } from '@/ui/skeleton'
 import { toast } from 'sonner'
 import type { UpdateMyProfileRequest } from '@rocket-lease/contracts'
 import { Button } from '@/ui/button'
@@ -84,7 +85,19 @@ export function DatosPerfilPage() {
     return (
       <div className="flex flex-col">
         <PageHeader title={t('perfil.datos.title')} showBack />
-        <div className="px-4 py-8 text-sm text-text-muted">{t('general.loading')}</div>
+        <>
+        <div className="flex flex-col items-center gap-3 px-4 py-6">
+          <Skeleton className="h-20 w-20 rounded-full" />
+        </div>
+        <div className="px-4 space-y-5">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          ))}
+        </div>
+      </>
       </div>
     )
   }

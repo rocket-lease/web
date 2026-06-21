@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { profileApi } from '@/features/perfil/api/profile.api'
-import { useAuth } from '@/features/auth/hooks/useAuth'
 import type { GetMyProfileResponse } from '@rocket-lease/contracts'
 import { t } from '@/i18n/es'
 import { getErrorMessage } from '@/lib/error-mapper'
@@ -26,16 +25,12 @@ const profileQueryKey = ['profile', 'me'] as const
  */
 export function useToggleAutoAccept() {
   const queryClient = useQueryClient()
-  const { session } = useAuth()
-  const accessToken =
-    session?.access_token ?? localStorage.getItem('rocket_lease:access_token')
 
   const mutation = useMutation({
     mutationFn: async (next: boolean) => {
       const current = queryClient.getQueryData<GetMyProfileResponse>(profileQueryKey)
       if (!current) throw new Error('No profile loaded')
-      if (!accessToken) throw new Error('Missing session token')
-      return profileApi.updateMyProfile(accessToken, {
+      return profileApi.updateMyProfile({
         name: current.name,
         phone: current.phone,
         avatarUrl: current.avatarUrl,

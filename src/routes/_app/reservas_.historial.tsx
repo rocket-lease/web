@@ -10,6 +10,6 @@ function HistorialRoute() {
   )
 }
 
-export const Route = createFileRoute('/_app/historial')({
+export const Route = createFileRoute('/_app/reservas_/historial')({
   component: HistorialRoute,
 })

@@ -13,6 +13,8 @@ import { PromocionarDialog } from '@/features/promocionar/components/Promocionar
 import { VehicleSelectionBar } from './VehicleSelectionBar'
 import { BulkPriceDialog } from './BulkPriceDialog'
 import { Plus, Car, Sparkle, Warning, MapPin } from '@phosphor-icons/react'
+import { EmptyState } from '@/ui/empty-state'
+import { Skeleton } from '@/ui/skeleton'
 
 const myVehiclesQueryKey = ['vehicles', 'mine'] as const
 const FALLBACK_PHOTO = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&q=80'
@@ -101,8 +103,14 @@ export function MisVehiculosPage() {
 
         <TabsContent value="vehiculos" className="flex-1">
           {vehiclesQuery.isLoading ? (
-            <div className="flex items-center justify-center py-24 px-6">
-              <p className="text-text-secondary">{t('general.loading')}</p>
+            <div className="px-5 py-3 space-y-6">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="aspect-video w-full rounded-xl" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              ))}
             </div>
           ) : vehiclesQuery.isError ? (
             <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
@@ -112,13 +120,15 @@ export function MisVehiculosPage() {
               </Button>
             </div>
           ) : vehicles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 px-6 text-center gap-4">
-              <Car size={56} className="text-text-muted" />
-              <p className="text-text-secondary">{t('misVehiculos.empty')}</p>
-              <Link to="/mis-vehiculos/nuevo">
-                <Button>{t('misVehiculos.emptyAction')}</Button>
-              </Link>
-            </div>
+            <EmptyState
+              icon={<Car size={26} weight="regular" className="text-text-muted" />}
+              title={t('misVehiculos.empty')}
+              action={
+                <Link to="/mis-vehiculos/nuevo">
+                  <Button>{t('misVehiculos.emptyAction')}</Button>
+                </Link>
+              }
+            />
           ) : (
             <>
               {/* Contextual controls bar */}

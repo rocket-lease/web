@@ -1,7 +1,8 @@
-import type { GetVehicleResponse } from '@rocket-lease/contracts'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import type { GetVehicleResponse, SearchAlternative } from '@rocket-lease/contracts'
+import { MagnifyingGlass, ArrowsLeftRight } from '@phosphor-icons/react'
 import { t } from '@/i18n/es'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/ui/empty-state'
 import { VehiculoCard, VehiculoCardSkeleton } from './VehiculoCard'
 
 interface VehicleResultsListProps {
@@ -13,17 +14,15 @@ interface VehicleResultsListProps {
   hasDateFilter:   boolean
   hasActiveFilter: boolean
   onClearFilters:  () => void
-  /** Id del vehículo resaltado (sync con el mapa). */
   selectedId?:     string | null
   onHoverVehicle?: (id: string | null) => void
   onClickVehicle?: (id: string) => void
-  /** Layout de la grilla. `single` colapsa a 1 columna (para split-pane). */
   columns?:        'auto' | 'single'
-  /** Oculta el header "N resultados" — útil cuando el contenedor (drawer)
-   *  ya muestra el count por su cuenta. */
   hideCountHeader?: boolean
   levelDiscountPercentage?: number
   className?:      string
+  alternatives?:   SearchAlternative[]
+  alternativesLoading?: boolean
 }
 
 /**
@@ -35,6 +34,7 @@ export function VehicleResultsList({
   vehicles, isLoading, isError, from, to, hasDateFilter, hasActiveFilter,
   onClearFilters, selectedId, onHoverVehicle, onClickVehicle,
   columns = 'auto', hideCountHeader, levelDiscountPercentage, className,
+  alternatives, alternativesLoading,
 }: VehicleResultsListProps) {
   if (isError) {
     return (
@@ -80,20 +80,80 @@ export function VehicleResultsList({
       )}
 
       {vehicles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-          <MagnifyingGlass size={48} weight="thin" className="text-text-muted" />
-          <div>
-            <p className="text-text-secondary font-medium">{t('buscar.noResults')}</p>
-            <p className="text-xs text-text-secondary mt-1">
-              {hasDateFilter ? t('buscar.noResultsDatesHint') : t('buscar.noResultsHint')}
-            </p>
-          </div>
-          {hasActiveFilter && (
-            <button onClick={onClearFilters} className="text-xs font-semibold text-text-primary">
-              {t('buscar.filter.clearAll')}
-            </button>
+        <>
+          <EmptyState
+            icon={<MagnifyingGlass size={26} weight="regular" className="text-text-muted" />}
+            title={t('buscar.noResults')}
+            description={hasDateFilter ? t('buscar.noResultsDatesHint') : t('buscar.noResultsHint')}
+            action={
+              hasActiveFilter ? (
+                <button onClick={onClearFilters} className="text-sm font-semibold text-brand-400">
+                  {t('buscar.filter.clearAll')}
+                </button>
+              ) : undefined
+            }
+          />
+
+          {alternativesLoading && (
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-text-primary mb-3">{t('recomendaciones.alternatives')}</p>
+              <div className="grid grid-cols-1 gap-6">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <VehiculoCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
           )}
-        </div>
+
+          {alternatives && alternatives.length > 0 && (
+            <div className="mt-6 border-t border-white/8 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ArrowsLeftRight size={16} className="text-brand-400" />
+                <p className="text-sm font-semibold text-text-primary">{t('recomendaciones.alternatives')}</p>
+              </div>
+              <p className="text-xs text-text-muted mb-4">{t('recomendaciones.alternativesHint')}</p>
+              <div className="grid grid-cols-1 gap-6">
+                {alternatives.map((alt) => {
+                  const vehicle = {
+                    ...alt.vehicle,
+                    transmission: alt.vehicle.transmission as GetVehicleResponse['transmission'],
+                    characteristics: alt.vehicle.characteristics as GetVehicleResponse['characteristics'],
+                    ownerId: '',
+                    plate: '',
+                    description: null,
+                    availableFrom: '',
+                    address: null,
+                    latitude: null,
+                    longitude: null,
+                    locationApproximate: false,
+                    homeDeliveryEnabled: false,
+                    homeDeliveryFeeCents: null,
+                    homeReturnEnabled: false,
+                    homeReturnFeeCents: null,
+                    dynamicPricingEnabled: false,
+                    discountTiers: [],
+                  } satisfies GetVehicleResponse
+
+                  return (
+                    <div key={alt.vehicle.id}>
+                      <VehiculoCard vehiculo={vehicle} from={from} to={to} levelDiscountPercentage={levelDiscountPercentage} />
+                      {alt.differences.length > 0 && (
+                        <div className="mt-2 px-1">
+                          <p className="text-xs font-semibold text-text-muted mb-1">{t('recomendaciones.differences')}:</p>
+                          <ul className="list-disc list-inside text-xs text-text-muted space-y-0.5">
+                            {alt.differences.map((d, i) => (
+                              <li key={i}>{d}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className={gridClass}>
           {vehicles.map(v => (

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { PageLoader } from '@/ui/page-loader'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -100,7 +101,7 @@ export function EditarVehiculoPage({ vehicleId }: EditarVehiculoPageProps) {
       <div className="flex min-h-full flex-col">
         <PageHeader title={t('editVehiculo.title')} showBack />
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">
-          <p className="text-text-secondary">{t('general.loading')}</p>
+          <PageLoader />
         </div>
       </div>
     )
