@@ -145,6 +145,9 @@ export const es = {  // --- App ---
   'recomendaciones.title': 'Sugerido para vos',
   'recomendaciones.empty': 'Sin sugerencias por ahora',
   'recomendaciones.emptyHint': 'Completá una reserva para recibir recomendaciones',
+  'recomendaciones.alternatives': 'Alternativas cercanas',
+  'recomendaciones.alternativesHint': 'No encontramos resultados exactos, pero estos vehículos pueden interesarte',
+  'recomendaciones.differences': 'Diferencias',
 
   // --- Buscar ---
   'buscar.title': 'Buscar vehiculos',
