@@ -59,7 +59,7 @@ export function BottomNav({ tabs, activeRole }: BottomNavProps) {
       `}</style>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 bottom-nav"
+        className="shrink-0 bottom-nav"
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
       >
         <div className="flex w-full">

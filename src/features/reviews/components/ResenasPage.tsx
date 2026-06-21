@@ -9,14 +9,14 @@ export function ResenasPage() {
   const { data: reviews, isLoading, isError } = useRentadorReviews()
 
   return (
-    <div className="flex flex-col min-h-dvh bg-surface-0">
+    <div className="flex flex-col min-h-full bg-surface-0">
       <PageHeader
         title={t('historial.resenas.title')}
         showBack
         icon={<ChatCircleDots size={20} weight="regular" />}
       />
 
-      <div className="flex-1 px-4 pt-4 space-y-3 pb-24">
+      <div className="flex-1 px-4 pt-4 space-y-3 pb-6">
         {isLoading && (
           <div className="flex items-center justify-center py-20">
             <Spinner className="h-6 w-6 animate-spin text-text-muted" />
