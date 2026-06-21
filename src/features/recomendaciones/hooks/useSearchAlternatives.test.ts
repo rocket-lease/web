@@ -28,7 +28,7 @@ describe('useSearchAlternatives', () => {
   })
 
   it('dispara query cuando hay filtros', async () => {
-    mockApi.getSearchAlternatives.mockResolvedValue({ alternatives: [], message: null })
+    mockApi.getSearchAlternatives.mockResolvedValue({ alternatives: [], message: undefined })
 
     const { result } = renderHook(() => useSearchAlternatives({ brand: 'Toyota' }), { wrapper: createWrapper() })
 
@@ -44,7 +44,7 @@ describe('useSearchAlternatives', () => {
           differences: ['Cambia marca: Toyota → Honda'],
         },
       ],
-      message: null,
+      message: undefined,
     }
     mockApi.getSearchAlternatives.mockResolvedValue(response)
 
@@ -65,7 +65,7 @@ describe('useSearchAlternatives', () => {
   })
 
   it('tiene query key con los params', async () => {
-    mockApi.getSearchAlternatives.mockResolvedValue({ alternatives: [], message: null })
+    mockApi.getSearchAlternatives.mockResolvedValue({ alternatives: [], message: undefined })
 
     const params = { brand: 'Toyota', maxPriceCents: 50000 }
     const { result } = renderHook(() => useSearchAlternatives(params), { wrapper: createWrapper() })

@@ -34,6 +34,7 @@ export function VehicleResultsList({
   vehicles, isLoading, isError, from, to, hasDateFilter, hasActiveFilter,
   onClearFilters, selectedId, onHoverVehicle, onClickVehicle,
   columns = 'auto', hideCountHeader, levelDiscountPercentage, className,
+  alternatives, alternativesLoading,
 }: VehicleResultsListProps) {
   if (isError) {
     return (
@@ -115,6 +116,8 @@ export function VehicleResultsList({
                 {alternatives.map((alt) => {
                   const vehicle = {
                     ...alt.vehicle,
+                    transmission: alt.vehicle.transmission as GetVehicleResponse['transmission'],
+                    characteristics: alt.vehicle.characteristics as GetVehicleResponse['characteristics'],
                     ownerId: '',
                     plate: '',
                     description: null,
