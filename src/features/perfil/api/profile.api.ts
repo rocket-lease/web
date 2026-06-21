@@ -10,47 +10,10 @@ import {
 } from '@rocket-lease/contracts';
 import { apiClient } from '@/lib/api-client';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000';
-
-async function request<T>(
-  path: string,
-  init: RequestInit,
-  parser: (input: unknown) => T,
-): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    },
-  });
-
-  const payload = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    const detail =
-      typeof payload === 'object' && payload && 'message' in payload
-        ? String((payload as { message: unknown }).message)
-        : 'Request failed';
-
-    const error = new Error(detail) as Error & { status?: number };
-    error.status = response.status;
-    throw error;
-  }
-
-  return parser(payload);
-}
-
 export const profileApi = {
-  async getMyProfile(accessToken: string): Promise<GetMyProfileResponse> {
-    return request(
-      '/profile/me',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-      (input) => GetMyProfileResponseSchema.parse(input),
-    );
+  async getMyProfile(): Promise<GetMyProfileResponse> {
+    const raw = await apiClient.get<unknown>('/profile/me');
+    return GetMyProfileResponseSchema.parse(raw);
   },
 
   async getProfileById(profileId: string): Promise<GetUserProfileResponse> {
@@ -59,45 +22,20 @@ export const profileApi = {
   },
 
   async updateMyProfile(
-    accessToken: string,
     body: UpdateMyProfileRequest,
   ): Promise<UpdateMyProfileResponse> {
     const payload = UpdateMyProfileRequestSchema.parse(body);
-
-    return request(
-      '/profile/me',
-      {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify(payload),
-      },
-      (input) => UpdateMyProfileResponseSchema.parse(input),
-    );
+    const raw = await apiClient.patch<unknown>('/profile/me', payload);
+    return UpdateMyProfileResponseSchema.parse(raw);
   },
 
-  async uploadAvatar(accessToken: string, file: File): Promise<GetMyProfileResponse> {
+  async uploadAvatar(file: File): Promise<GetMyProfileResponse> {
     const formData = new FormData();
     formData.append('file', file);
-
-    const response = await fetch(`${API_BASE_URL}/profile/me/avatar`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: formData,
-    });
-
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      const detail =
-        typeof payload === 'object' && payload && 'message' in payload
-          ? String((payload as { message: unknown }).message)
-          : 'Request failed';
-
-      const error = new Error(detail) as Error & { status?: number };
-      error.status = response.status;
-      throw error;
-    }
-
-    return GetMyProfileResponseSchema.parse(payload);
+    const raw = await apiClient.postFormData<unknown>(
+      '/profile/me/avatar',
+      formData,
+    );
+    return GetMyProfileResponseSchema.parse(raw);
   },
 };

@@ -1,8 +1,11 @@
 import { supabase } from './supabase'
 import { getSessionId } from './session-id'
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000'
+const API_URL = import.meta.env.VITE_API_URL as string | undefined
 const TOKEN_KEY = 'rocket_lease:access_token'
+
+/** En dev (API_URL vacío) las llamadas van al proxy de Vite en /api/* → mismo origen, sin CORS. */
+const API_PREFIX = API_URL ? '' : '/api'
 
 async function authHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession()
@@ -16,6 +19,7 @@ function sessionHeader(): Record<string, string> {
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 304) return undefined as T
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw Object.assign(new Error(body.message ?? res.statusText), { status: res.status, ...body })
@@ -25,7 +29,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 async function doFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${API_URL}${path}`, {
+  return fetch(`${API_URL ?? ''}${API_PREFIX}${path}`, {
     ...init,
     headers: {
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
