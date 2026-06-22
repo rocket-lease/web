@@ -77,15 +77,16 @@ function AppLayout() {
   const role = activeRole === 'rentador' ? 'rentador' : 'conductor'
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} enabled={refreshEnabled}>
-      <div className="flex min-h-dvh flex-col bg-surface-0">
+    <div className="flex h-dvh flex-col overflow-hidden bg-surface-0">
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        enabled={refreshEnabled}
+        className="flex-1 overflow-y-auto overscroll-contain"
+      >
         <VerificationBanner />
-
-        <main className={immersive || !navVisible ? 'flex-1' : 'flex-1 pb-24'}>
-          <Outlet />
-        </main>
-        {!immersive && navVisible && <BottomNav tabs={tabs} activeRole={role} />}
-      </div>
-    </PullToRefresh>
+        <Outlet />
+      </PullToRefresh>
+      {!immersive && navVisible && <BottomNav tabs={tabs} activeRole={role} />}
+    </div>
   )
 }

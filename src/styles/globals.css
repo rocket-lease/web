@@ -198,11 +198,14 @@
   box-shadow: var(--shadow-card);
 }
 
-/* ─── Bottom nav ─── */
+/*
+ * Bottom nav: hijo de layout del shell (no `fixed`), clavada al fondo de un
+ * contenedor de altura fija que no scrollea. Por eso no hay contenido detrás
+ * que difuminar — fondo sólido, sin `backdrop-filter` (que en iOS parpadea
+ * sobre contenido en scroll).
+ */
 .bottom-nav {
-  background: rgba(19, 19, 31, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--color-surface-1);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

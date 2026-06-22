@@ -91,7 +91,7 @@ export function PagarReservaPage() {
     processing
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-dvh">
       <PageHeader
         title={isBalanceMode ? t('reservas.saldo.title') : t('reservas.pago.title')}
         showBack

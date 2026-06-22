@@ -82,7 +82,7 @@ export function TransferenciaPage() {
 
   if (confirmed) {
     return (
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-dvh">
         <PageHeader title={t('reservas.transfer.title')} showBack sticky />
         <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 text-center">
           <div className="rounded-full bg-green-500/15 p-4">
