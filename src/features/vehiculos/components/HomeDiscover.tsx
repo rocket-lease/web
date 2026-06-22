@@ -25,21 +25,18 @@ interface HomeDiscoverProps {
  */
 /**
  * Destinos sugeridos en el home. Cada uno arranca una búsqueda en su ciudad.
- *
- * Las fotos usan Lorem Picsum con seed por destino como placeholder estable
- * (siempre cargan, son fotos reales de banco). NO son específicas del lugar
- * — para la versión final hay que swappear cada `photo` por una URL de la
- * ciudad correspondiente (Unsplash, Cloudinary, etc.).
+ * Las fotos vienen del CDN de Unsplash (estable y rápido), una curada por destino.
  */
+const UNSPLASH_PARAMS = 'w=400&h=560&fit=crop&q=80&auto=format'
 const DESTINATIONS: ReadonlyArray<{ value: string; label: string; hint: string; photo: string }> = [
-  { value: 'CABA',                    label: 'Buenos Aires',  hint: 'Ciudad',     photo: 'https://picsum.photos/seed/caba-buenosaires/400/560' },
-  { value: 'Bariloche',               label: 'Bariloche',     hint: 'Patagonia',  photo: 'https://picsum.photos/seed/bariloche-lago/400/560' },
-  { value: 'Mar del Plata',           label: 'Mar del Plata', hint: 'Costa',      photo: 'https://picsum.photos/seed/mardelplata-playa/400/560' },
-  { value: 'Mendoza',                 label: 'Mendoza',       hint: 'Cordillera', photo: 'https://picsum.photos/seed/mendoza-vinedos/400/560' },
-  { value: 'Córdoba',                 label: 'Córdoba',       hint: 'Sierras',    photo: 'https://picsum.photos/seed/cordoba-sierras/400/560' },
-  { value: 'Salta',                   label: 'Salta',         hint: 'Norte',      photo: 'https://picsum.photos/seed/salta-cerros/400/560' },
-  { value: 'Rosario',                 label: 'Rosario',       hint: 'Litoral',    photo: 'https://picsum.photos/seed/rosario-parana/400/560' },
-  { value: 'San Martín de los Andes', label: 'San Martín',    hint: 'Patagonia',  photo: 'https://picsum.photos/seed/smandes-andes/400/560' },
+  { value: 'CABA',                    label: 'Buenos Aires',  hint: 'Ciudad',     photo: `https://images.unsplash.com/photo-1589909202802-8f4aadce1849?${UNSPLASH_PARAMS}` },
+  { value: 'Bariloche',               label: 'Bariloche',     hint: 'Patagonia',  photo: `https://images.unsplash.com/photo-1598162480222-b2c3d92548d5?${UNSPLASH_PARAMS}` },
+  { value: 'Mar del Plata',           label: 'Mar del Plata', hint: 'Costa',      photo: `https://images.unsplash.com/photo-1561816646-b5b12a9b92ed?${UNSPLASH_PARAMS}` },
+  { value: 'Mendoza',                 label: 'Mendoza',       hint: 'Cordillera', photo: `https://images.unsplash.com/photo-1629424511021-1be28bf5ae1e?${UNSPLASH_PARAMS}` },
+  { value: 'Córdoba',                 label: 'Córdoba',       hint: 'Sierras',    photo: `https://images.unsplash.com/photo-1495317823589-e67efe1524b0?${UNSPLASH_PARAMS}` },
+  { value: 'Salta',                   label: 'Salta',         hint: 'Norte',      photo: `https://images.unsplash.com/photo-1599094792743-7df3e8870800?${UNSPLASH_PARAMS}` },
+  { value: 'Rosario',                 label: 'Rosario',       hint: 'Litoral',    photo: `https://images.unsplash.com/photo-1532665469716-ef45431df414?${UNSPLASH_PARAMS}` },
+  { value: 'San Martín de los Andes', label: 'San Martín',    hint: 'Patagonia',  photo: `https://images.unsplash.com/photo-1627859767844-87729a39ce66?${UNSPLASH_PARAMS}` },
 ]
 
 const CAROUSEL_LIMIT = 8
