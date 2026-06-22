@@ -6,21 +6,31 @@ interface PullToRefreshProps {
   children:  React.ReactNode
   /** Deshabilita los gestos de pull-to-refresh sin desmontar el componente. */
   enabled?:  boolean
+  /** Clases del contenedor scrolleable interno (este componente ES el scroller). */
+  className?: string
 }
 
 const THRESHOLD = 70
 const MAX_PULL = 110
 const RESISTANCE = 0.5
 
-export function PullToRefresh({ onRefresh, children, enabled = true }: PullToRefreshProps) {
+/**
+ * Contenedor scrolleable con gesto pull-to-refresh. Es el único scroller del
+ * shell: el documento/viewport no scrollea, así la bottom bar queda clavada por
+ * layout. El gesto se mide sobre el `scrollTop` de este contenedor, no sobre
+ * `window`.
+ */
+export function PullToRefresh({ onRefresh, children, enabled = true, className }: PullToRefreshProps) {
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const pullRef = useRef(0)
   const startYRef = useRef<number | null>(null)
   const refreshingRef = useRef(false)
+  const scrollerRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (!enabled) {
+    const el = scrollerRef.current
+    if (!el || !enabled) {
       setPull(0)
       pullRef.current = 0
       startYRef.current = null
@@ -32,13 +42,13 @@ export function PullToRefresh({ onRefresh, children, enabled = true }: PullToRef
     }
 
     const onTouchStart = (event: TouchEvent) => {
-      if (window.scrollY > 0 || refreshingRef.current) return
+      if (el.scrollTop > 0 || refreshingRef.current) return
       startYRef.current = event.touches[0].clientY
     }
 
     const onTouchMove = (event: TouchEvent) => {
       if (startYRef.current === null || refreshingRef.current) return
-      if (window.scrollY > 0) {
+      if (el.scrollTop > 0) {
         startYRef.current = null
         setPullValue(0)
         return
@@ -70,15 +80,15 @@ export function PullToRefresh({ onRefresh, children, enabled = true }: PullToRef
       }
     }
 
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: true })
-    window.addEventListener('touchend', onTouchEnd)
-    window.addEventListener('touchcancel', onTouchEnd)
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: true })
+    el.addEventListener('touchend', onTouchEnd)
+    el.addEventListener('touchcancel', onTouchEnd)
     return () => {
-      window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchmove', onTouchMove)
-      window.removeEventListener('touchend', onTouchEnd)
-      window.removeEventListener('touchcancel', onTouchEnd)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+      el.removeEventListener('touchcancel', onTouchEnd)
     }
   }, [onRefresh, enabled])
 
@@ -108,7 +118,9 @@ export function PullToRefresh({ onRefresh, children, enabled = true }: PullToRef
           )}
         </div>
       </div>
-      {children}
+      <main ref={scrollerRef} className={className}>
+        {children}
+      </main>
     </>
   )
 }

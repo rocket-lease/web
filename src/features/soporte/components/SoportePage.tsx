@@ -39,7 +39,7 @@ export function SoportePage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 py-4 space-y-4 pb-24">
+      <div className="flex-1 px-4 py-4 space-y-4 pb-6">
         {/* Result count */}
         {!isEmpty && (
           <p className="text-xs text-text-muted">

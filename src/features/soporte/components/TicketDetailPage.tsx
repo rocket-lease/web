@@ -93,7 +93,7 @@ export function TicketDetailPage({ ticketId }: TicketDetailPageProps) {
         </h1>
       </header>
 
-      <div className="flex-1 px-4 py-4 space-y-5 pb-24">
+      <div className="flex-1 px-4 py-4 space-y-5 pb-6">
         {isLoading && (
           <PageLoader />
         )}
